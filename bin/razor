@@ -48,10 +48,10 @@ def call_razor_slice
       print "<-Invalid Slice \n".yellow
     end
   end
-  #rescue => e
-  #  print_header
-  #  print "\n [#{@namespace.capitalize}] ".red
-  #  print "<-#{e.message} \n".yellow
+  rescue => e
+    print_header
+    print "\n [#{@namespace.capitalize}] ".red
+    print "<-#{e.message} \n".yellow
   end
 end
 

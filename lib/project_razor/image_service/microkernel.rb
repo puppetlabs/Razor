@@ -2,6 +2,9 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "yaml"
+require "digest/sha2"
+require "digest/hmac"
+require "extlib"
 
 module ProjectRazor
   module ImageService
@@ -10,6 +13,10 @@ module ProjectRazor
       attr_accessor :mk_version
       attr_accessor :kernel
       attr_accessor :initrd
+      attr_accessor :kernel_hash
+      attr_accessor :initrd_hash
+      attr_accessor :hash_description
+
       attr_accessor :iso_build_time
       attr_accessor :iso_version
 
@@ -27,21 +34,17 @@ module ProjectRazor
           resp = super(src_image_path, image_svc_path)
           if resp[0]
 
-            if verify(image_svc_path)
-              @iso_build_time = @_meta['iso_build_time'].to_i
-              @iso_version = @_meta['iso_version']
-              @kernel = @_meta['kernel']
-              @initrd = @_meta['initrd']
-            else
+            unless verify(image_svc_path)
               logger.error "Missing metadata"
               return [false, "Missing metadata"]
             end
+            return resp
           else
             resp
           end
-        rescue => e
-          logger.error e.message
-          return [false, e.message]
+          rescue => e
+            logger.error e.message
+            return [false, e.message]
         end
       end
 
@@ -53,36 +56,92 @@ module ProjectRazor
 
         if File.exist?("#{image_path}/iso-metadata.yaml")
           File.open("#{image_path}/iso-metadata.yaml","r") do
-            |f|
+          |f|
             @_meta = YAML.load(f)
           end
 
+          set_hash_vars
 
-          unless File.exists?("#{image_path}/boot/#{@_meta['kernel']}")
-            logger.error "missing kernel: #{image_path}/boot/#{@_meta['kernel']}"
+
+          unless File.exists?(kernel_path)
+            logger.error "missing kernel: #{kernel_path}"
             return false
           end
 
-          unless File.exists?("#{image_path}/boot/#{@_meta['initrd']}")
-            logger.error "missing kernel: #{image_path}/boot/#{@_meta['initrd']}"
+          unless File.exists?(initrd_path)
+            logger.error "missing initrd: #{initrd_path}"
             return false
           end
 
-          if @_meta['iso_build_time'] == nil
+          if @iso_build_time == nil
             logger.error "ISO build time is nil"
             return false
           end
 
-          if @_meta['iso_version'] == nil
+          if @iso_version == nil
             logger.error "ISO build time is nil"
             return false
           end
+
+          if @hash_description == nil
+            logger.error "Hash description is nil"
+            return false
+          end
+
+          if @kernel_hash == nil
+            logger.error "Kernel hash is nil"
+            return false
+          end
+
+          if @initrd_hash == nil
+            logger.error "Initrd hash is nil"
+            return false
+          end
+
+
+          digest = Object::full_const_get(@hash_description["type"]).new(@hash_description["bitlen"])
+          khash = File.exist?(kernel_path) ? digest.hexdigest(File.read(kernel_path)) : ""
+          ihash = File.exist?(initrd_path) ? digest.hexdigest(File.read(initrd_path)) : ""
+
+          unless @kernel_hash == khash
+            logger.error "Kernel #{@kernel} is invalid"
+            return false
+          end
+
+          unless @initrd_hash == ihash
+            logger.error "Initrd #{@initrd} is invalid"
+            return false
+          end
+
 
           true
         else
           logger.error "Missing metadata"
           false
         end
+      end
+
+      def set_hash_vars
+        if @iso_build_time ==nil ||
+            @iso_version == nil ||
+            @kernel == nil ||
+            @initrd == nil
+
+          @iso_build_time = @_meta['iso_build_time'].to_i
+          @iso_version = @_meta['iso_version']
+          @kernel = @_meta['kernel']
+          @initrd = @_meta['initrd']
+        end
+
+        if @kernel_hash == nil ||
+            @initrd_hash == nil ||
+            @hash_description == nil
+
+          @kernel_hash = @_meta['kernel_hash']
+          @initrd_hash = @_meta['initrd_hash']
+          @hash_description = @_meta['hash_description']
+        end
+
       end
 
       def print_image_info(image_svc_path)
@@ -97,6 +156,14 @@ module ProjectRazor
         # Cap any subset with 999 being the maximum
         @iso_version.split(".").map! {|v| v.to_i > 999 ? 999 : v}.join(".")
         @iso_version.split(".").map {|x| "%03d" % x}.join.to_i
+      end
+
+      def kernel_path
+        image_path + "/" + @kernel
+      end
+
+      def initrd_path
+        image_path + "/" + @initrd
       end
 
     end
