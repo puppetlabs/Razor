@@ -6,7 +6,7 @@
 module ProjectRazor
   module Policy
     class Base< ProjectRazor::Object
-      attr_accessor :name
+      attr_accessor :label
       attr_accessor :line_number
       attr_accessor :model
       attr_accessor :tags

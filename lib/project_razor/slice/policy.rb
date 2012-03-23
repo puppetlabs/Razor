@@ -21,16 +21,122 @@ module ProjectRazor
                            :get => "get_policy",
                            :default => "get_policy",
                            :remove => "remove_policy"}
-        @slice_commands_help = {:add => "imagesvc add_rule " + "(type)".blue + " (PATH TO ISO)".yellow,
-                                :get => "imagesvc policy ".red + "{get [rule|type|model [config|type]}".blue,
-                                :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
-                                :default => "imagesvc " + "[get]".blue,
-                                "get model" => "imagesvc policy get model [config|type] ".white + "(policy type)".red,
-                                "get model config" => "imagesvc policy get model config ".white + "(policy type)".red,
-                                "get model type" => "imagesvc policy get model type ".white + "(policy type)".red}
+        @slice_commands_help = {:add => "policy add " + "(type)".blue +
+                                        " (name)".blue + " (model config uuid)".blue + " (tag{,tag,tag})".blue,
+                                :get => "policy ".red + "{get [rule|type|model [config|type]}".blue,
+                                :remove => "policy " + "(policy rule UUID)".yellow,
+                                :default => "policy ".red + "{get [rule|type|model [config|type]}".blue,
+                                "get model" => "policy get model [config|type] ".white + "(policy type)".red,
+                                "get model config" => "policy get model config ".white + "(policy type)".red,
+                                "get model type" => "policy get model type ".white + "(policy type)".red}
         @slice_name = "Policy"
       end
 
+
+      #### Add
+
+      def add_policy
+        @command = :add
+        policy_rules = ProjectRazor::PolicyRules.instance
+
+
+        @policy_type_name = @command_array.shift
+        unless policy_rules.is_policy_type?(@policy_type_name)
+          slice_error("InvalidPolicyTypeProvided")
+          return
+        end
+
+
+
+
+        @policy_label = @command_array.shift
+        unless /^[\w ]+$/ =~ @policy_label
+          slice_error("InvalidPolicyLabel")
+          return
+        end
+
+
+
+        @model_config_uuid = @command_array.shift
+        unless @model_config_uuid != nil
+          slice_error("MustProvideModelConfigUUID")
+          return
+        end
+        setup_data
+        @model_config = @data.fetch_object_by_uuid(:model, @model_config_uuid)
+        unless @model_config != nil
+          slice_error("MustProvideModelConfigUUID")
+          return
+        end
+
+
+        @tags = @command_array.shift
+        unless @tags != nil
+          slice_error("MustProvideAtLeastOneTag")
+          return
+        end
+
+        @tags_array = @tags.split(",")
+
+        unless @tags_array.count > 0
+          slice_error("MustProvideAtLeastOneTag")
+          return
+        end
+
+
+        new_policy_rule = policy_rules.new_policy_from_type_name(@policy_type_name)
+
+        new_policy_rule.label = @policy_label
+        new_policy_rule.model = @model_config
+        new_policy_rule.tags = @tags_array
+
+        new_policy_rule = policy_rules.add(new_policy_rule)
+        unless new_policy_rule != nil
+          slice_error("ErrorCreatingPolicyRule")
+          return
+        end
+
+        print_policy_rules [new_policy_rule]
+      end
+
+
+
+      ####
+
+
+      #### Remove
+
+      def remove_policy
+        @command = :remove
+        policy_uuid = @command_array.shift
+
+        unless validate_arg(policy_uuid)
+          slice_error("MissingUUID")
+          return
+        end
+
+        setup_data
+        policy_rule= @data.fetch_object_by_uuid(:policy_rule, policy_uuid)
+
+        unless policy_rule
+          slice_error("CannotFindPolicyRule")
+          get_policy
+          return
+        end
+
+        if @data.delete_object(policy_rule)
+          slice_success("PolicyRuleRemoved")
+        else
+          slice_error("PolicyRuleNotRemoved")
+        end
+      end
+
+
+      ####
+
+
+
+      #### Get
 
       def get_policy
         @command = :get
@@ -120,28 +226,11 @@ module ProjectRazor
         end
       end
 
+      ####
 
 
 
-      # Handles printing of image details to CLI
-      # @param [Array] images_array
-      def print_policy_rules(rules_array)
-        unless @web_command
-          puts "Policy Rules:"
 
-          #unless @verbose
-          #  rules_array.each do
-          #  |rule|
-          #    rule.print_image_info(@data.config.image_svc_path)
-          #    print "\n"
-          #  end
-          #else
-          rules_array.each { |rule| print_object_details_cli(rule) }
-        else
-          rules_array = rules_array.collect { |rule| rule.to_hash }
-          slice_success(rules_array, false)
-        end
-      end
 
 
 

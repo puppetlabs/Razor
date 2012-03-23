@@ -24,7 +24,8 @@ module ProjectRazor
         @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :default => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :add_cli => "imagesvc model add".red + " (model_type) (model config name)".blue,
-                                :add_web => "imagesvc model add".red + " (model_type) (json string)".blue}
+                                :add_web => "imagesvc model add".red + " (model_type) (json string)".blue,
+                                :remove => "imagesvc model remove".red + " (model config uuid)".blue}
         @slice_name = "Model"
       end
 
@@ -54,6 +55,32 @@ module ProjectRazor
         print_model_types policy_rules.get_model_types
       end
 
+
+      def remove_model
+        @command = :remove
+        model_uuid = @command_array.shift
+
+        unless validate_arg(model_uuid)
+          slice_error("MissingUUID")
+          return
+        end
+
+        setup_data
+        model_config = @data.fetch_object_by_uuid(:model, model_uuid)
+
+        unless model_config
+          slice_error("CannotFindModelConfig")
+          get_model_config
+          return
+        end
+
+        if @data.delete_object(model_config)
+          slice_success("ModelConfigRemoved")
+        else
+          slice_error("ModelConfigNotRemoved")
+        end
+      end
+
       def add_model
         if @web_command
           # REST call
@@ -63,6 +90,8 @@ module ProjectRazor
           add_model_cli
         end
       end
+
+      ##### CLI Add Model
 
       def add_model_cli
         @command = :add_cli
@@ -109,10 +138,8 @@ module ProjectRazor
         end
       end
 
-
       def cli_interactive_metadata(new_model)
         req_metadata_hash = new_model.req_metadata_hash
-
         puts "\n--- Building Model Config(#{@model_name}): #{@model_config_name}\n".yellow
         req_metadata_hash.each_key do
         |md|
@@ -122,21 +149,24 @@ module ProjectRazor
           required = req_metadata_hash[md][:required]
           description = req_metadata_hash[md][:description]
           example = req_metadata_hash[md][:example]
-
           until flag
 
-            print "\nPlease enter " + "#{description}".yellow.bold
-            print " (example: " + "#{example}}".yellow + ") \n"
-            if default != ""
-              puts "default: " + "#{default}".yellow
+            response = @command_array.shift
+
+            if response == nil
+              print "\nPlease enter " + "#{description}".yellow.bold
+              print " (example: " + "#{example}}".yellow + ") \n"
+              if default != ""
+                puts "default: " + "#{default}".yellow
+              end
+              if required
+                puts quit_option
+              else
+                puts skip_quit_option
+              end
+              print " > "
+              response = gets.strip
             end
-            if required
-              puts quit_option
-            else
-              puts skip_quit_option
-            end
-            print " > "
-            response = gets.strip
 
             case response
               when "SKIP"
@@ -145,27 +175,20 @@ module ProjectRazor
                 else
                   flag = true
                 end
-
               when "QUIT"
                 slice_error("AddCanceled")
                 return nil
-
               when ""
                 if default != ""
                   flag = set_metadata_value(new_model, md, default, validation)
                 else
                   puts "no default value, must enter something".red
                 end
-
               else
                 flag = set_metadata_value(new_model, md, response, validation)
-
             end
-
           end
-
         end
-
         new_model
       end
 
@@ -195,7 +218,7 @@ module ProjectRazor
         slice_error("NotImplemented")
       end
 
-
+      ####################
 
 
     end

@@ -1,5 +1,5 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-   # Copyright © 2012 EMC Corporation, All Rights Reserved
+# Copyright © 2012 EMC Corporation, All Rights Reserved
 
 module ProjectRazor
   # Used for binding of policy+models to a node
@@ -17,7 +17,7 @@ module ProjectRazor
     def get_model_configs(policy_type)
       model_configs = []
       $data.fetch_all_objects(:model).each do
-        |mc|
+      |mc|
         model_configs << mc if mc.model_type == policy_type
       end
       model_configs
@@ -29,7 +29,9 @@ module ProjectRazor
       ObjectSpace.each_object do
       |object_class|
 
-        if object_class.to_s.start_with?(POLICY_PREFIX) && object_class.to_s != POLICY_PREFIX
+        if object_class.to_s.start_with?(POLICY_PREFIX) &&
+            object_class.to_s != POLICY_PREFIX &&
+            (/#/ =~ object_class.to_s) == nil
           temp_hash[object_class.to_s] = object_class.to_s.sub(POLICY_PREFIX,"").strip
         end
       end
@@ -39,7 +41,7 @@ module ProjectRazor
 
       valid_types = []
       policy_type_array.each do
-        |policy_type|
+      |policy_type|
         policy_type_obj = Object.full_const_get(POLICY_PREFIX + policy_type[0]).new({})
         valid_types << policy_type_obj if !policy_type_obj.hidden
       end
@@ -70,10 +72,18 @@ module ProjectRazor
       valid_types
     end
 
-    def is_policy_type?(policy_type)
+    def new_policy_from_type_name(policy_type_name)
       get_types.each do
-        |type|
-        return true if type.policy_type.to_s == policy_type
+      |type|
+        return type if type.policy_type.to_s == policy_type_name
+      end
+      type
+    end
+
+    def is_policy_type?(policy_type_name)
+      get_types.each do
+      |type|
+        return true if type.policy_type.to_s == policy_type_name
       end
       false
     end
@@ -115,10 +125,6 @@ module ProjectRazor
 
     alias :update :add
 
-
-    def remove
-
-    end
 
     # Down is up in numbers (++)
     def move_lines_down
