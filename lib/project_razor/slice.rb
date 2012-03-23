@@ -10,6 +10,7 @@ require "project_razor/slice/node"
 require "project_razor/slice/tag"
 require "project_razor/slice/bmc"
 require "project_razor/slice/imagesvc"
+require "project_razor/slice/policy"
 
 
 module Slice

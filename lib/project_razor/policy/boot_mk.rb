@@ -8,10 +8,12 @@ module ProjectRazor
     class BootMK< ProjectRazor::Policy::Base
 
       # @param hash [Hash]
-      def initialize
+      def initialize(hash)
         super(nil)
 
+        @hidden = :true
         @policy_type = :hidden
+        @description = "Default MK boot object. Hidden"
 
         @data = ProjectRazor::Data.new
         @config = @data.config

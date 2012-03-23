@@ -4,7 +4,7 @@
 
 require "project_razor/image_service/base"
 require "project_razor/image_service/microkernel"
-require "project_razor/image_service/iso"
+require "project_razor/image_service/os_install"
 
 
 module ProjectRazor

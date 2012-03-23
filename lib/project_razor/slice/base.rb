@@ -4,6 +4,8 @@
 require "json"
 require "colored"
 
+# TODO - change help printing to multi-line with header and description
+
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
@@ -17,6 +19,8 @@ module ProjectRazor
 
       # Bool for indicating whether this was driven from Node.js
       attr_accessor :web_command
+      attr_accessor :verbose
+      attr_accessor :debug
 
       # Initializes the Slice Base
       # @param [Array] args
@@ -55,7 +59,7 @@ module ProjectRazor
       # Called when slice action is successful
       # Returns a json string representing a [Hash] with metadata and response
       # @param [Hash] response
-      def slice_success(response, mk_response)
+      def slice_success(response, mk_response = false)
         return_hash = {}
         return_hash["resource"] = self.class.to_s
         return_hash["command"] = @command
@@ -77,7 +81,7 @@ module ProjectRazor
       # Called when a slice action triggers an error
       # Returns a json string representing a [Hash] with metadata including error code and message
       # @param [Hash] error
-      def slice_error(error, mk_response)
+      def slice_error(error, mk_response = false)
         @command = "null" if @command == nil
 
         return_hash = {}

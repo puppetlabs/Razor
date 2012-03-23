@@ -20,9 +20,9 @@ module ProjectRazor::Logging
   def logger
     classname = self.class.name
     methodname = caller[0][/`([^']*)'/, 1]
-    @logger ||= ProjectRazor::Logging.logger_for(classname, methodname)
-    @logger.progname = "#{classname}\##{methodname}"
-    @logger
+    @_logger ||= ProjectRazor::Logging.logger_for(classname, methodname)
+    @_logger.progname = "#{classname}\##{methodname}"
+    @_logger
   end
 
   # Singleton override that returns a logger for each specific instance

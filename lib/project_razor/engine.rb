@@ -24,6 +24,11 @@ module ProjectRazor
     end
 
 
+
+
+
+    #####################
+
     #####################
     ##### Default MK ####
     #####################
@@ -217,21 +222,20 @@ module ProjectRazor
       # If the node is in the DB we can check for bound policy on it
       if node != nil
         # Node is in DB, lets check for policy
-        logger.debug "Node identified - uuid: #{uuid}"
-        #bound_policy = find_bound_policy(node)  # commented out until refactor
+        logger.debug "Node identified - uuid: #{node.uuid}"
+        bound_policy = find_bound_policy(node)  # commented out until refactor
 
-        # If there is a bound policy we pass it the node to a common
-        # method call from a boot
-        #if bound_policy
-        #
-        #  logger.debug "Active policy found (#{bound_policy.name}) - uuid: #{uuid}"
-        #  bound_policy.boot_call(@node)
-        #else
-
-        # There is not bound policy so we boot the MK
-        logger.debug "No active policy found - uuid: #{uuid}"
+        If there is a bound policy we pass it the node to a common
+        method call from a boot
+        if bound_policy
+          # Call the bound policy boot_call
+          logger.debug "Active policy found (#{bound_policy.name}) for Node uuid: #{node.uuid}"
+          bound_policy.boot_call(@node)
+        else
+        #There is not bound policy so we boot the MK
+        logger.debug "No active policy found - uuid: #{node.uuid}"
         default_mk_boot(uuid)
-        #end
+        end
       else
 
         # Node isn't in DB, we boot it into the MK
@@ -248,16 +252,16 @@ module ProjectRazor
     end
 
 
-    #def find_bound_policy(node)
-    #  bound_policies = $data.fetch_all_objects(:bound_policy)
-    #  bound_policies.each do
-    #  |bp|
-    #    # If we find a bound policy we return it
-    #    return bp.policy if uuid_sanitize(bp.uuid) == uuid_sanitize(node.uuid)
-    #  end
-    #  # Otherwise we return false indicating we have no policy
-    #  false
-    #end
+    def find_bound_policy(node)
+      bound_policies = $data.fetch_all_objects(:bound_policy)
+      bound_policies.each do
+      |bp|
+        # If we find a bound policy we return it
+        return bp.policy if uuid_sanitize(bp.uuid) == uuid_sanitize(node.uuid)
+      end
+      # Otherwise we return false indicating we have no policy
+      false
+    end
 
 
 

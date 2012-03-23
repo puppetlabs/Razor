@@ -28,10 +28,10 @@ module ProjectRazor
         from_hash(hash) unless hash == nil
       end
 
-      def add(src_image_path, image_svc_path)
+      def add(src_image_path, image_svc_path, extra)
         # Add the iso to the image svc storage
         begin
-          resp = super(src_image_path, image_svc_path)
+          resp = super(src_image_path, image_svc_path, extra)
           if resp[0]
 
             unless verify(image_svc_path)

@@ -10,15 +10,18 @@ module ProjectRazor
       attr_accessor :line_number
       attr_accessor :model
       attr_accessor :tags
+      attr_reader :hidden
       attr_reader :policy_type
-      attr_reader :model_type
+      attr_reader :description
 
       # @param hash [Hash]
       def initialize(hash)
         super()
 
         @tags = []
+        @hidden = :true
         @policy_type = :hidden
+        @description = "Base policy rule object. Hidden"
 
         @_collection = :policy_rule
         from_hash(hash) unless hash == nil
@@ -48,6 +51,8 @@ module ProjectRazor
       def system_call(node, new_state)
 
       end
+
+
 
     end
   end

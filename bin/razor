@@ -35,20 +35,23 @@ end
 # Call the slice
 def call_razor_slice
   begin
-  if is_slice?
-    razor_module = Object.full_const_get(SLICE_PREFIX + @namespace.capitalize).new(@args)
-    razor_module.web_command = @web_command
-    razor_module.slice_call
-  else
-    if @web_command
-      p JSON.dump({"slice" => "ProjectRazor::Slice", "result" => "InvalidSlice"})
+    if is_slice?
+      razor_module = Object.full_const_get(SLICE_PREFIX + @namespace.capitalize).new(@args)
+      razor_module.web_command = @web_command
+      razor_module.verbose = @verbose
+      razor_module.debug = @debug
+      razor_module.slice_call
     else
-      print_header
-      print "\n [#{@namespace.capitalize}] ".red
-      print "<-Invalid Slice \n".yellow
+      if @web_command
+        p JSON.dump({"slice" => "ProjectRazor::Slice", "result" => "InvalidSlice"})
+      else
+        print_header
+        print "\n [#{@namespace.capitalize}] ".red
+        print "<-Invalid Slice \n".yellow
+      end
     end
-  end
   rescue => e
+    raise if @debug
     print_header
     print "\n [#{@namespace.capitalize}] ".red
     print "<-#{e.message} \n".yellow
@@ -110,6 +113,12 @@ if $0 == __FILE__
       case switch
         when "-w"
           @web_command = true
+        when "--debug"
+          @debug = true
+        when "--verbose"
+          @verbose = true
+        else
+          #
       end
     end
 
