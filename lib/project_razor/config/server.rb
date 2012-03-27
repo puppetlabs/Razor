@@ -97,9 +97,6 @@ module ProjectRazor
         ip.ip_address
       end
 
-      def get_mk_
-
-      end
 
 
     end

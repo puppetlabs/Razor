@@ -7,11 +7,12 @@ require "project_razor/slice/boot"
 require "project_razor/slice/config"
 require "project_razor/slice/model"
 require "project_razor/slice/node"
-require "project_razor/slice/tag"
+#require "project_razor/slice/tag"
 require "project_razor/slice/bmc"
 require "project_razor/slice/imagesvc"
 require "project_razor/slice/policy"
 require "project_razor/slice/tag_rule"
+require "project_razor/slice/tag_matcher"
 
 
 module Slice

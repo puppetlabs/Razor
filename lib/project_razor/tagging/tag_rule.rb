@@ -98,7 +98,7 @@ module ProjectRazor
         new_tag_matchers_array = []
         @tag_matchers.each do
         |tag_matcher|
-          if tag_matcher.class == Hash
+          if tag_matcher.class != ProjectRazor::Tagging::TagMatcher
             new_tag_matchers_array << ProjectRazor::Tagging::TagMatcher.new(tag_matcher)
           else
             new_tag_matchers_array << tag_matcher
