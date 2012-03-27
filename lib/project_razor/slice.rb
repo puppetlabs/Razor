@@ -11,6 +11,7 @@ require "project_razor/slice/tag"
 require "project_razor/slice/bmc"
 require "project_razor/slice/imagesvc"
 require "project_razor/slice/policy"
+require "project_razor/slice/tag_rule"
 
 
 module Slice

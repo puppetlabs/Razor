@@ -6,8 +6,6 @@
 module ProjectRazor
   module Policy
     class LinuxDeploy < ProjectRazor::Policy::Base
-      attr_accessor :kernel_path
-
 
       # @param hash [Hash]
       def initialize(hash)
@@ -21,27 +19,12 @@ module ProjectRazor
 
 
       def mk_call(node)
-        # Placeholder - tell it to reboot
-        logger.debug "Telling our node to reboot (placeholder)"
-        [:reboot, {}]
+        model.mk_call(node, @uuid)
       end
 
-      # Called from a node bound to this policy does a boot and requires a script
+
       def boot_call(node)
-
-
-
-
-
-      end
-
-
-      def kernel_line
-        @model.kernel_line
-      end
-
-      def module_line
-        @model.module_line
+        model.boot_call(node, @uuid)
       end
 
     end

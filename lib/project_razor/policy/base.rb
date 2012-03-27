@@ -14,6 +14,13 @@ module ProjectRazor
       attr_reader :policy_type
       attr_reader :description
 
+      # Used for binding
+      attr_accessor :bound
+      attr_accessor :node_uuid
+      attr_accessor :bind_timestamp
+
+      # TODO - method for setting tags that removes duplicates
+
       # @param hash [Hash]
       def initialize(hash)
         super()
@@ -23,8 +30,32 @@ module ProjectRazor
         @policy_type = :hidden
         @description = "Base policy rule object. Hidden"
 
-        @_collection = :policy_rule
+        @node_uuid = nil
+        @bind_timestamp = nil
+        @bound = false
+
+
+
         from_hash(hash) unless hash == nil
+
+        # If our policy is bound it is stored in a different collection
+        if @bound
+          @_collection = :bound_policy
+        else
+          @_collection = :policy_rule
+        end
+      end
+
+      def bind_me(node)
+        if node
+          @bound = true
+          @_collection = :bound_policy
+          @bind_timestamp = Time.now.to_i
+          @node_uuid = node.uuid
+          true
+        else
+          false
+        end
       end
 
       # These are required methods called by the engine for all policies

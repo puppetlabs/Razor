@@ -8,9 +8,9 @@ require "net/http"
 
 puts "\nThis script is for doing the following:".green
 puts "\t 1) Creating a tag rule and tag matcher"
-puts "\t 2) Creating policy rule for matching tag above with LinuxDeploy model"
-puts "\n\n"
-puts "This will cause any node that gets tagged to be rebooted by the LinuxDeploy model applied by the rule"
+#puts "\t 2) Creating policy rule for matching tag above with LinuxDeploy model"
+#puts "\n\n"
+#puts "This will cause any node that gets tagged to be rebooted by the LinuxDeploy model applied by the rule"
 puts "\n"
 puts "Once bound, you have to ru-run rspec tests to remove the bound policy".red
 puts "\n"
@@ -25,7 +25,7 @@ engine = ProjectRazor::Engine.instance
 config  = data.config
 
 data.delete_all_objects(:tag)
-data.delete_all_objects(:policy_rule)
+#data.delete_all_objects(:policy_rule)
 data.delete_all_objects(:bound_policy)
 
 node = data.fetch_object_by_uuid(:node, node_uuid)
@@ -36,7 +36,7 @@ if node
   #### We create an empty tag rule with the tag: TEST_TAG
   uri = URI "http://127.0.0.1:#{config.api_port}/razor/api/tag/rule/add"
   name = "live_test_tag_rule_for_engine"
-  tag = "TEST_TAG"
+  tag = "test"
   json_hash = {}
   json_hash["@name"] = name
   json_hash["@tag"] = tag
@@ -59,18 +59,18 @@ if node
   Net::HTTP.post_form(uri, 'json_hash' => json_string)
   sleep 1
 
-  puts "...creating policy rule for TEST_TAG to bind LinuxDeploy policy"
-  # Create a new policy rule
-  new_policy_rule = ProjectRazor::Policy::LinuxDeploy.new({})
-  new_policy_rule.name = "Rule for node:#{node.uuid}"
-  new_policy_rule.kernel_path = "test"
-  new_policy_rule.model = ProjectRazor::Model::Base.new({})
-  new_policy_rule.tags << "TEST_TAG"
+  #puts "...creating policy rule for TEST_TAG to bind LinuxDeploy policy"
+  ## Create a new policy rule
+  #new_policy_rule = ProjectRazor::Policy::LinuxDeploy.new({})
+  #new_policy_rule.name = "Rule for node:#{node.uuid}"
+  #new_policy_rule.kernel_path = "test"
+  #new_policy_rule.model = ProjectRazor::Model::Base.new({})
+  #new_policy_rule.tags << "TEST_TAG"
 
 
 
   # We add our policy rule
-  engine.policy_rules.add(new_policy_rule)
+  #engine.policy_rules.add(new_policy_rule)
 
 
   puts "Next check in the policy will be bound, the following checkin the model will be called."

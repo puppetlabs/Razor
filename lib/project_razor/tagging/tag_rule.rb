@@ -10,6 +10,7 @@ module ProjectRazor
       attr_accessor :tag
       attr_accessor :tag_matchers
 
+      # TODO - method for setting tags that removes duplicates
 
       def initialize(hash)
         super()
@@ -103,6 +104,27 @@ module ProjectRazor
             new_tag_matchers_array << tag_matcher
           end
         end
+      end
+
+      def to_hash
+        @tag_matchers = @tag_matchers.each {|tm| tm.to_hash}
+        super
+      end
+
+      def print_header
+        return "Name", "Tags", "UUID"
+      end
+
+      def print_items
+        return @name, @tag.join(","), @uuid
+      end
+
+      def line_color
+        :white_on_blue
+      end
+
+      def header_color
+        :blue_on_white
       end
 
 

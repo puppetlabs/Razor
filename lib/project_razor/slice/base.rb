@@ -5,6 +5,7 @@ require "json"
 require "colored"
 
 # TODO - change help printing to multi-line with header and description
+# TODO - add ability to hide commands from CLI help
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver

@@ -24,6 +24,7 @@ module ProjectRazor
         @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :default => "imagesvc model ".red + "{get [config|type]}".blue,
                                 :add_cli => "imagesvc model add".red + " (model_type) (model config name)".blue,
+                                :add_cli_with_image => "imagesvc model add".red + " (model_type) (model config name) {image uuid}".blue,
                                 :add_web => "imagesvc model add".red + " (model_type) (json string)".blue,
                                 :remove => "imagesvc model remove".red + " (model config uuid)".blue}
         @slice_name = "Model"
@@ -117,6 +118,57 @@ module ProjectRazor
         end
 
         new_model.label = @model_label
+
+
+        if new_model.instance_variable_get(:@image_uuid)
+          @command = :add_cli_with_image
+          @model_image_uuid = @command_array.shift
+          unless @model_image_uuid
+            slice_error("ImageUUIDToBindMissing")
+            valid_images = get_object("images", :images).map! do |i|
+              i.path_prefix == new_model.image_prefix ? i : nil
+            end.compact!
+            if valid_images.count > 0
+              print_images valid_images
+            else
+              puts "There are no valid images in the system. You must add one."
+            end
+
+            return
+          end
+
+          setup_data
+          @image_requested = @data.fetch_object_by_uuid(:images, @model_image_uuid)
+          unless @image_requested != nil
+            slice_error("ImageDoesNotExist")
+            valid_images = get_object("images", :images).map! do |i|
+              i.path_prefix == new_model.image_prefix ? i : nil
+            end.compact!
+            if valid_images.count > 0
+              print_images valid_images
+            else
+              puts "There are no valid images in the system. You must add one."
+            end
+            return
+          end
+
+          unless @image_requested.path_prefix == new_model.image_prefix
+            slice_error("ImageIsNotCorrectType")
+            valid_images = get_object("images", :images).map! do |i|
+              i.path_prefix == new_model.image_prefix ? i : nil
+            end.compact!
+            if valid_images.count > 0
+              print_images valid_images
+            else
+              puts "There are no valid images in the system. You must add one."
+            end
+            return
+          end
+
+          new_model.image_uuid = @image_requested.uuid
+        end
+
+
         if new_model.req_metadata_hash != {}
           if cli_interactive_metadata(new_model) != nil
             insert_model_config(new_model)

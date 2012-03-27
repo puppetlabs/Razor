@@ -8,90 +8,96 @@ module ProjectRazor
     # ProjectRazor Tag Slice
     # Tag
     # @author Nicholas Weaver
-    class Tag < ProjectRazor::Slice::Base
+    class Tagrule < ProjectRazor::Slice::Base
 
       # init
       # @param [Array] args
       def initialize(args)
         super(args)
         # Define your commands and help text
-        @slice_commands = {:rule => "rule_call",
-                           :matcher => "matcher_call",
-                           :default => "get_tag_rule"}
+        @slice_commands = {:default => "get_tag",
+                           :get => "get_tag",
+                           :add => "add_tag",
+                           :remove => "remove_tag",
+        }
         @slice_commands_help = {:rule => "tag rule".red + "[add|remove|get]".blue,
                                 :matcher => "tag matcher".red + " (tag rule uuid) [add|remove|get]".blue,
                                 "add_tag_rule" => "tag rule add ".red + "(name) (tag{,tag,tag})".blue,
-                                :remove => "tag remove ".red + "[rule|matcher] (uuid)".blue,}
-        @slice_name = "Tag"
+                                "remove_tag" => "tagrule remove ".red + "[(uuid)|all]".blue}
+        @slice_name = "Tagrule"
       end
 
 
-      def rule_call
-        @command_query_string = @command_array.shift
 
-        case @command_query_string
+      def remove_tag
+        @command = "remove_tag"
+        uuid = @command_array.shift
 
-          when "add"
-            add_tag_rule
-
-          when "remove"
-            remove_tag_rule
-
-          when "get"
-
-
-
-          else
-            if @command_query_string != "{}" && @command_query_string != nil
-
-
-              if (/^\{.*\}$/ =~ @command_query_string) != nil
-                @command_array.unshift(@command_query_string)
-                get_tag_rule
-
-              else
-
-                @command = "get_tag_rule"
-                tag_rule = get_tag_rule_by_uuid(@command_query_string)
-                slice_success(tag_rule.to_hash, false) unless !tag_rule
-
-              end
-
-            else
-
-              # get all rules
-              get_tag_rule
-
-            end
-
-
+        if uuid == "all"
+          setup_data
+          @data.delete_all_objects(:tag)
+          slice_success("AllTagRulesRemoved")
+          return
         end
 
+        unless validate_arg(uuid)
+          slice_error("MissingUUID")
+          print_object_array get_object("tag_rules", :tag), "Existing Tag Rules" unless @web_command
+          return
+        end
 
-      end
-
-
-
-
-      def get_tag_rule
         setup_data
-        if @web_command
-          print_tag_rule get_object("tag_rule", :tag)
-        else
-          slice_error("NotImplemented", false)
+        tag_rule = @data.fetch_object_by_uuid(:tag, uuid)
+
+        unless tag_rule !=  nil
+          slice_error("InvalidUUID")
+          print_object_array get_object("tag_rules", :tag), "Existing Tag Rules" unless @web_command
+          return
         end
+
+        if @data.delete_object(tag_rule)
+          slice_success("TagRuleDeleted")
+        else
+          slice_error("CouldNotDeleteTagRule")
+        end
+
       end
 
-      def add_tag_rule
+      def get_tag
+        uuid = @command_array.shift
+        @command = :get
+
+        if validate_arg(uuid)
+          setup_data
+          tag_rule = @data.fetch_object_by_uuid(:tag, uuid)
+
+          unless tag_rule
+            slice_error("InvalidUUID")
+            print_object_array get_object("tag_rule", :tag), "Valid Tag Rules:" unless @web_command
+            return
+          end
+
+
+          print_object_array [tag_rule], nil
+          return
+        end
+
+
+
+
+
+        print_object_array get_object("tag_rule", :tag), "Tag Rules:"
+      end
+
+      def add_tag
         if @web_command
           add_tag_rule_web
         else
-          add_tag_rule_cli
+          add_tag_cli
         end
-
       end
 
-      def add_tag_rule_cli
+      def add_tag_cli
         @command = "add_tag_rule"
         name = @command_array.shift
 
@@ -119,16 +125,13 @@ module ProjectRazor
 
         setup_data
         new_tag_rule = @data.persist_object(new_tag_rule)
-        print_tag_rule [new_tag_rule]
+        print_object_array [new_tag_rule], "Added Tag Rule:"
         slice_success("TagRuleAdded")
       end
 
 
-      def add_tag_matcher_cli
 
-      end
-
-      def add_tag_rule_web
+      def add_tag_web
         @command = "add_tag_rule"
         json_string = @command_array.shift
         if json_string != "{}" && json_string != nil
@@ -160,7 +163,7 @@ module ProjectRazor
 
         unless validate_arg(tag_rule_uuid)
           slice_error("MissingUUID")
-          print_tag_rule get_object("tag_rules", :tag) unless @web_command
+          print_object_array get_object("tag_rules", :tag), "Existing Tag Rules" unless @web_command
           return
         end
 
@@ -168,7 +171,7 @@ module ProjectRazor
         tag_rule = @data.fetch_object_by_uuid(:tag, tag_rule_uuid)
         unless tag_rule != nil
           slice_error("CannotFindTagRule")
-          print_tag_rule get_object("tag_rules", :tag) unless @web_command
+          print_object_array get_object("tag_rules", :tag), "Existing Tag Rules" unless @web_command
           return
         end
 

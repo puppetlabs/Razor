@@ -2,6 +2,7 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "uuid"
+require "colored"
 require "project_razor/utility"
 require "project_razor/logging"
 

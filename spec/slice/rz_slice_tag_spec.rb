@@ -41,8 +41,8 @@ describe "ProjectRazor::Slice::Tag" do
       response_hash = JSON.parse(res.body)
 
       response_hash['errcode'].should == 0
-      response_hash['response']['@name'].should == name
-      response_hash['response']['@tag'].should == tag
+      response_hash['response'][0]['@name'].should == name
+      response_hash['response'][0]['@tag'].should == tag
     end
 
     it "should be able to get one tag rule from REST" do
@@ -188,14 +188,18 @@ describe "ProjectRazor::Slice::Tag" do
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
       tag_rules = res_hash['response']
+      p res_hash
 
-      tag_rules.sort do
-        |a,b|
-        a["@name"] <=> b["@name"]
+
+
+      tag_rules.count.should == 3
+      tag_rules.each do
+        |tag_r|
+        (tag_r['@name'] == "test_tag_rule3" ||
+            tag_r['@name'] == "test_tag_rule4" ||
+            tag_r['@name'] == "test_tag_rule5").should == true
       end
-      tag_rules[0]['@name'].should == "test_tag_rule3"
-      tag_rules[1]['@name'].should == "test_tag_rule4"
-      tag_rules[2]['@name'].should == "test_tag_rule5"
+
     end
 
     it "should successfully tag and get tags back from node object (Complex test)"  do

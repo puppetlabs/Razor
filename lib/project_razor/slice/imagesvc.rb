@@ -85,6 +85,40 @@ module ProjectRazor
       end
 
       def get_path_with_uuid(uuid)
+        @image_uuid = uuid
+
+        unless validate_arg(@image_uuid)
+          slice_error("InvalidImageUUID", false)
+          return
+        end
+
+        @image_uuid = "95a1f9b05672012f5a86000c29a78d16" if @image_uuid == "nick"
+
+        setup_data
+        @image = @data.fetch_object_by_uuid(:images, @image_uuid)
+
+        unless @image != nil
+          slice_error("CannotFindImage", false)
+          return
+        end
+
+        @image.set_image_svc_path(@data.config.image_svc_path)
+
+        @command_array.each do
+        |a|
+          unless /^[^ \/\\]+$/ =~ a
+            slice_error("InvalidPathItem", false)
+            return
+          end
+        end
+        file_path = @image.image_path + "/" + @command_array.join("/")
+
+
+        if File.exists?(file_path) || Dir.exist?(file_path)
+          slice_success(file_path)
+        else
+          slice_error("FilePathDoesNotExistInImage")
+        end
 
 
       end
@@ -236,37 +270,7 @@ module ProjectRazor
       end
 
 
-      # Handles printing of image details to CLI
-      # @param [Array] images_array
-      def print_images(images_array)
-        unless @web_command
-          puts "Images:"
 
-          unless @verbose
-            images_array.each do
-            |image|
-              image.print_image_info(@data.config.image_svc_path)
-              print "\n"
-            end
-          else
-            images_array.each do
-            |image|
-              image.instance_variables.each do
-              |iv|
-                unless iv.to_s.start_with?("@_")
-                  key = iv.to_s.sub("@", "")
-                  print "#{key}: "
-                  print "#{image.instance_variable_get(iv)}  ".green
-                end
-              end
-              print "\n"
-            end
-          end
-        else
-          images_array = images_array.collect { |image| image.to_hash }
-          slice_success(images_array, false)
-        end
-      end
 
     end
   end
