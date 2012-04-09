@@ -14,12 +14,14 @@ module ProjectRazor
       attr_accessor :size
       attr_accessor :verification_hash
       attr_accessor :path_prefix
+      attr_accessor :hidden
 
       def initialize(hash)
         super()
         @path_prefix = "base"
         @_collection = :images
         @description = "Image Base"
+        @hidden = true
         from_hash(hash) unless hash == nil
       end
 
@@ -200,7 +202,6 @@ module ProjectRazor
         print "\tStatus: "
         print "#{verify(image_svc_path) ? "Valid".green : "Broken/Missing".red}   \n"
       end
-
     end
   end
 end

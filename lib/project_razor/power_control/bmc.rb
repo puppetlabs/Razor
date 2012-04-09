@@ -7,9 +7,13 @@
 module ProjectRazor
   module PowerControl
     class Bmc < ProjectRazor::Object
+      # used to store/access the MAC address of the underlying BMC's NIC
       attr_accessor :mac
+      # used to store/access the IP address assigned to the underlying BMC's NIC
       attr_accessor :ip
+      # used to store/access the Current Power State of the underlying BMC
       attr_accessor :current_power_state
+      # used to store/access the Board Serial Number of node attached to the underlying BMC
       attr_accessor :board_serial_number
 
       # @param hash [Hash]
@@ -26,6 +30,10 @@ module ProjectRazor
         @_ipmi_password = config.default_ipmi_password
       end
 
+      # Returns a reference to the current Bmc node with the current_power_state set to
+      # the current value for that node.  Also ensures that any changes in this state
+      # are persisted to the database
+      # @return [Bmc]
       def refresh_power_state
         # values to return if the ipmitool command does not succeed
         @current_power_state = "unknown"
@@ -36,6 +44,10 @@ module ProjectRazor
         self.update_self
       end
 
+      # Returns a reference to the current Bmc node with the board_serial_number set to
+      # the current value for that node.  Also ensures that any changes in this serial number
+      # are persisted to the database
+      # @return [Bmc]
       def refresh_board_serial_number
         # values to return if the ipmitool command does not succeed
         @board_serial_number = ""
@@ -46,7 +58,16 @@ module ProjectRazor
         self.update_self
       end
 
-      def change_power_state(new_state, username, password, ipmi_timeout = EXT_COMMAND_TIMEOUT)
+      # Used to change the power state of this node via the IPMI interface provided by the BMC.
+      #
+      # @param new_state [String] the desired state; should be one 'on', 'off', 'cycle', or 'reset' to
+      #     power the node on, power the node off, power-cycle the node or perform a hard-reset of the
+      #     node (respectively)
+      # @param username [String] the username that should be used to access the BMC via it's IPMI interface
+      # @param password [String] the password that should be used to access the BMC via it's IPMI interface
+      # @return [Array<Boolean, String>] an array containing a Boolean showing whether or not the command
+      #     succeeded (true indicates success) and a String containing the command results
+      def change_power_state(new_state, username, password)
         case new_state
           when new_state = "on"
             return @_ipmi.power_on(@ip, username, password)
@@ -61,6 +82,17 @@ module ProjectRazor
         end
       end
 
+      # Used to change the power state of this node via the IPMI interface provided by the BMC.
+      #
+      # @param new_state [String] the desired state; should be one 'on', 'off', 'cycle', or 'reset' to
+      #     power the node on, power the node off, power-cycle the node or perform a hard-reset of the
+      #     node (respectively)
+      # @param username [String] the username that should be used to access the BMC via it's IPMI interface
+      # @param password [String] the password that should be used to access the BMC via it's IPMI interface
+      # @return [Array<Boolean, Hash>] an array containing a Boolean showing whether or not the command
+      #     succeeded (true indicates success) and a Hash map containing the command results (a list of
+      #     properties expressed as name/value pairs where the names are Symbols and the values are Strings
+      #     or arrays of Strings)
       def run_ipmi_query_cmd(cmd, username, password)
         case cmd
           when "power_status"
@@ -83,14 +115,34 @@ module ProjectRazor
         end
       end
 
+      # This method is required by the common printing framework to support the printing of an array
+      # of Bmc objects.  It is used to specify the values that should be used for the column headings
+      # when printing the array in tabular form.
+      # @return [String] a string containing the values to use for the column headings
       def print_header
         return "MAC-Addr", "IP-Addr", "Power", "S/N", "UUID"
       end
 
+      # This method is required by the common printing framework to support the printing of
+      # an array of Bmc objects.  It is used to specify the fields that should be printed for
+      # each Bmc object when printing the array in tabular form
+      # @return [Array<String>] an array containing the fields that should be printed
+      #       for this object
       def print_items
         return @mac, @ip, @current_power_state, @board_serial_number, @uuid
       end
 
+      # This method is required by the common printing framework to support the printing of an array
+      # of Bmc objects.  It is used to specify the color that should be used when printing the meta-data
+      # for each object in the array.  In this case, we change the color on a per-object basis (based
+      # on the value of the '@current_power_state' value) as follows:
+      #
+      #     'on'      => returns :green
+      #     'off'     => returns :red
+      #     'unknown' => returns :yellow
+      #
+      # @return [Symbol] the value for the color that should be used to print the
+      #     meta-data for this object
       def line_color
         case @current_power_state
           when "on"
@@ -102,6 +154,12 @@ module ProjectRazor
         end
       end
 
+      # This method is required by the common printing framework to support the printing of an array
+      # of Bmc objects.  It is used to specify the color that should be used when printing
+      # the header row for the table containing the meta-data for the array.
+      #
+      # @return [Symbol] the value for the color that should be used to print the column
+      #     headings when printing an array of Bmc objects
       def header_color
         :white
       end

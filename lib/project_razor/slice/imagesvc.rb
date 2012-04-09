@@ -15,6 +15,7 @@ module ProjectRazor
     # Used for image management
     # @author Nicholas Weaver
     class Imagesvc < ProjectRazor::Slice::Base
+
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args
       def initialize(args)
@@ -25,7 +26,7 @@ module ProjectRazor
                            :remove => "remove_image",
                            :default => "list_images",
                            :path => "get_path"}
-        @slice_commands_help = {:add => "imagesvc add " + "[mk|os]".blue + " (PATH TO ISO)".yellow,
+        @slice_commands_help = {:add => "imagesvc add " + "[#{get_types}]".white + " (PATH TO ISO)".yellow,
                                 :get => "imagesvc " + "[get]".blue,
                                 :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
                                 :default => "imagesvc " + "[get]".blue}
@@ -37,6 +38,10 @@ module ProjectRazor
       # /mk/initrd - gets default mk initrd
       # /%uuid&/%path to file% - gets the file from relative path for image with %uuid%
 
+      def get_types
+        @image_types = get_child_types("ProjectRazor::ImageService::")
+        @image_types.map {|x| x.path_prefix.yellow unless x.hidden}.compact.join("|".red)
+      end
 
       def get_path
         if @web_command
@@ -141,7 +146,10 @@ module ProjectRazor
                                :method => "add_mk"},
                        :os => {:desc => "OS Install ISO",
                                :classname => "ProjectRazor::ImageService::OSInstall",
-                               :method => "add_os"}}
+                               :method => "add_os"},
+                       :esxi => {:desc => "VMware Hypervisor ISO",
+                               :classname => "ProjectRazor::ImageService::VMwareHypervisor",
+                               :method => "add_esxi"}}
         if @web_command
           slice_error("CLIOnlySlice", false)
         else
@@ -188,6 +196,11 @@ module ProjectRazor
         new_image.add(iso_path, image_svc_path, nil)
       end
 
+      def add_esxi(new_image, iso_path, image_svc_path)
+        puts "Attempting to add, please wait...".green
+        new_image.add(iso_path, image_svc_path, nil)
+      end
+
       def add_os(new_image, iso_path, image_svc_path)
         os_name = @command_array.shift
         if os_name == nil
@@ -212,12 +225,17 @@ module ProjectRazor
       end
 
       def print_types(types)
+
+        unless @image_types
+          get_types
+        end
+
         puts "\nPlease select a valid image type.\nValid types are:".red
-        types.each_key do
-        |k|
-          print "\t[#{k}]".yellow
+        @image_types.map {|x| x unless x.hidden}.compact.each do
+        |type|
+          print "\t[#{type.path_prefix}]".yellow
           print " - "
-          print "#{types[k][:desc]}".yellow
+          print "#{type.description}".yellow
           print "\n"
         end
       end

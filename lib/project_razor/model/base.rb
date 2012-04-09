@@ -94,6 +94,18 @@ module ProjectRazor
         :red_on_black
       end
 
+      def config
+        $data.config
+      end
+
+      def image_svc_uri
+        "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image/#{@image_prefix}"
+      end
+
+      def api_svc_uri
+        "http://#{config.image_svc_host}:#{config.api_port}/razor/api"
+      end
+
 
     end
   end

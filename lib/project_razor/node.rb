@@ -56,37 +56,33 @@ class ProjectRazor::Node < ProjectRazor::Object
     :red_on_black
   end
 
+
+  # Used to print our attributes_hash through slice printing
+  # @return [Array]
   def print_attributes_hash
+
+    # First see if we have the HashPrint class already defined
     begin
-      self.class.const_get :NodeAttr
+      self.class.const_get :HashPrint # This throws an error so we need to use begin/rescue to catch
     rescue
-      define_node_attr_class
+      # Define out HashPrint class for this object
+      define_hash_print_class
     end
 
+    # Create an array to store our HashPrint objects
     attr_array = []
+    # Take each element in our attributes_hash and store as a HashPrint object in our array
     @attributes_hash.each do
     |k,v|
+      # Skip any k/v where the v > 32 characters
       if v.to_s.length < 32
-        attr_array << ProjectRazor::Node::NodeAttr.new(["Name", "Value"], [k.to_s, v.to_s], line_color, header_color)
+        # We use Name / Value as header and key/value as values for our object
+        attr_array << ProjectRazor::Node::HashPrint.new(["Name", "Value"], [k.to_s, v.to_s], line_color, header_color)
       end
     end
+    # Return our array of HashPrint
     attr_array
   end
 
-  def define_node_attr_class
-    puts "Defining class"
-    p = Class.new do
-      def initialize(print_header, print_items, line_color, header_color)
-        @print_header = print_header
-        @print_items = print_items
-        @line_color = line_color
-        @header_color = header_color
-      end
 
-      attr_reader :print_header, :print_items, :line_color, :header_color
-
-    end
-
-    self.class.const_set :NodeAttr, p
-  end
 end

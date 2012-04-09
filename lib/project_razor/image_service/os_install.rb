@@ -14,6 +14,7 @@ module ProjectRazor
         super(hash)
         @description = "OS Install"
         @path_prefix = "os"
+        @hidden = false
         from_hash(hash) unless hash == nil
       end
 

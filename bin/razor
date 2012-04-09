@@ -3,32 +3,33 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 #
-# Primary control for ProjectRazor
-# Modules are dynamically loaded and accessed through corresponding namespace
+# CLI Control for ProjectRazor
 # Format will be 'project_razor [module namespace] [module args{}]'
 #
 
 
-$lib_path = File.dirname(File.expand_path(__FILE__)).sub(/\/bin$/,"/lib")
-$LOAD_PATH.unshift($lib_path)
+# We first add our Lib path to the load path. This is for non-gem ease of use
+lib_path = File.dirname(File.expand_path(__FILE__)).sub(/\/bin$/,"/lib")
+$LOAD_PATH.unshift(lib_path)
+
+# We require the root lib
 require "project_razor"
+
+# We need these for misc operations later
 require "extlib"
 require "json"
 require "colored"
 
-
-MODULE_PATH = "#{$lib_path}/project_razor/slices"
+# We set a constant for our Slice root Namespace. We use this to pull the slice names back out
+# from objectspace
 SLICE_PREFIX = "ProjectRazor::Slice::"
 
 
-# Dynamically loads Modules from $RAZOR_HOME/lib/slices
-def load_slices
+#
+def init
   @obj = ProjectRazor::Object.new
   @version = @obj.get_razor_version
   @logger = @obj.get_logger
-  #Dir.glob("#{MODULE_PATH}/*.{rb}") do |file|
-  #  require "#{file}"
-  #end
   get_slices_loaded
 end
 
@@ -88,7 +89,7 @@ def print_header
   x = 1
   @slice_array.each do |slice|
     x += 1
-    print "[#{slice.downcase}] ".blue unless slice.downcase == "base" || slice.downcase == "template"
+    print "[#{slice.downcase}] ".yellow unless slice.downcase == "base" || slice.downcase == "template"
     if x > 5
       print "\n"
       x = 1
@@ -101,10 +102,13 @@ def print_header
 end
 
 
-# Detects if running from command line
+# First check to see if we have executed from command line
 if $0 == __FILE__
-  load_slices
-  #cli.get_logger.debug ("ProjectRazor CLI launched")
+
+  # Initialize a few things
+  init
+
+
   @web_command = false
 
   if ARGV.count > 0

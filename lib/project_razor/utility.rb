@@ -90,5 +90,21 @@ module ProjectRazor
       file.close
       version
     end
+
+    def get_child_types(namespace_prefix)
+      temp_hash = {}
+      ObjectSpace.each_object do
+      |object_class|
+
+        if object_class.to_s.start_with?(namespace_prefix) && object_class.to_s != namespace_prefix
+          temp_hash[object_class.to_s] = object_class.to_s.sub(namespace_prefix,"").strip
+        end
+      end
+      object_array = {}
+      temp_hash.each_value {|x| object_array[x] = x}
+      object_array.each_value.collect {|x| x}.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
+
+
+    end
   end
 end

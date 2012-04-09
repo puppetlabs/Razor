@@ -10,7 +10,12 @@ module ProjectRazor::System
 
   # Root namespace for Systems defined in ProjectRazor for node handoff
   # @author Nicholas Weaver
-  class PuppetAgent < ProjectRazor::System::Base
+  class Puppet < ProjectRazor::System::Base
+
+    def initialize(hash)
+      super(hash)
+
+    end
 
   end
 end

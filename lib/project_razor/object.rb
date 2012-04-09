@@ -60,4 +60,18 @@ class ProjectRazor::Object
     logger.debug "Generate UUID"
     UUID.generate(format = :compact)
   end
+
+  # When called it creates a new dynamic object used for printing Hashes using slice printing
+  def define_hash_print_class
+    hash_print_class = Class.new do
+      def initialize(print_header, print_items, line_color, header_color)
+        @print_header = print_header
+        @print_items = print_items
+        @line_color = line_color
+        @header_color = header_color
+      end
+      attr_reader :print_header, :print_items, :line_color, :header_color
+    end
+    self.class.const_set :HashPrint, hash_print_class
+  end
 end

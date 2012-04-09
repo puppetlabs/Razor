@@ -107,26 +107,20 @@ sed -i '/razor_postinstall/d' /etc/rc.local
 
       def preseed_call(args_array, node, policy_uuid)
         @node_bound = node
-
         @arg = args_array.shift
-
         case @arg
-
           when  "start"
             fsm_action(:preseed_start, :preseed)
             return "ok"
-
           when "end"
             fsm_action(:preseed_end, :preseed)
             return "ok"
           when "file"
             fsm_action(:preseed_file, :preseed)
             return generate_preseed(policy_uuid)
-
           else
             return "error"
         end
-
       end
 
 
@@ -320,6 +314,7 @@ d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-md/device_remove_md boolean true
 
 d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
 
 
 d-i partman-auto-lvm/guided_size string max

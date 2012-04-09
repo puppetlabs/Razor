@@ -25,6 +25,7 @@ module ProjectRazor
         super(hash)
         @description = "MicroKernel Image"
         @path_prefix = "mk"
+        @hidden = false
         from_hash(hash) unless hash == nil
       end
 

@@ -27,6 +27,16 @@ module ProjectRazor
 
       # First, define a set of 'query-style' actions that will invoke corresponding
       # commands from the ipmitool command set
+
+      # A wrapper method for the ipmitool's 'power status' command that can be used to obtain
+      # the 'current power status' for the node with a specified IP address.
+      #
+      # @param host_ip [String] the IP address of the BMC to query for 'power status' information
+      # @param username [String] the IPMI username to use for the query
+      # @param passwd [String] the IPMI password to use for the query
+      # @return [Array<Boolean, String>] an array containing a Boolean indicating whether or not the
+      #     'power status' command succeeded and a String indicating what the 'power status' of that
+      #     node actually is (either 'on' or 'off', or 'unknown')
       def power_status(host_ip, username, passwd)
         command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
         if command_failed
@@ -37,6 +47,12 @@ module ProjectRazor
         [true, power_status]
       end
 
+      # A wrapper method for the ipmitool's 'bmc info' command that can be used to obtain the
+      # 'bmc info' information for the node with a specified IP address (as a Hash map).
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, Hash>] an array containing a Boolean indicating whether or not the
+      #     'bmc info' command succeeded and a Hash map containing 'bmc info' for that node
       def bmc_info(host_ip, username, passwd)
         command_failed, bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'info')
         if command_failed
@@ -46,6 +62,12 @@ module ProjectRazor
         [true, bmc_hash]
       end
 
+      # A wrapper method for the ipmitool's 'bmc getenables' command that can be used to obtain the
+      # 'bmc getenables' information for the node with a specified IP address (as a Hash map).
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, Hash>] an array containing a Boolean indicating whether or not the
+      #     'bmc getenables' command succeeded and a Hash map containing 'bmc getenables' for that node
       def bmc_getenables(host_ip, username, passwd)
         command_failed, bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'getenables')
         if command_failed
@@ -55,6 +77,12 @@ module ProjectRazor
         [true, bmc_hash]
       end
 
+      # A wrapper method for the ipmitool's 'bmc guid' command that can be used to obtain the
+      # 'bmc guid' information for the node with a specified IP address (as a Hash map).
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, Hash>] an array containing a Boolean indicating whether or not the
+      #     'bmc guid' command succeeded and a Hash map containing 'bmc guid' for that node
       def bmc_guid(host_ip, username, passwd)
         command_failed, bmc_output = run_ipmi_command(host_ip, username, passwd, 'bmc', 'guid')
         if command_failed
@@ -64,6 +92,13 @@ module ProjectRazor
         [true, bmc_hash]
       end
 
+      # A wrapper method for the ipmitool's 'chassis status' command that can be used to obtain the
+      # 'chassis status' information for the node with a specified IP address (as a Hash map).
+      #
+      # Returns the 'chassis status' (as a Hash map) for the node with the specified IP address.
+      # @param (see #power_status)
+      # @return [Array<Boolean, Hash>] an array containing a Boolean indicating whether or not the
+      #     'chassis status' command succeeded and a Hash map containing 'chassis status' for that node
       def chassis_status(host_ip, username, passwd)
         command_failed, chassis_output = run_ipmi_command(host_ip, username, passwd, 'chassis', 'status')
         if command_failed
@@ -73,6 +108,12 @@ module ProjectRazor
         [true, chassis_hash]
       end
 
+      # A wrapper method for the ipmitool's 'lan print' command that can be used to obtain the
+      # 'lan print' information for the node with a specified IP address (as a Hash map).
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, Hash>] an array containing a Boolean indicating whether or not the
+      #     'lan print' command succeeded and a Hash map containing 'lan print' for that node
       def lan_print(host_ip, username, passwd)
         command_failed, lan_output = run_ipmi_command(host_ip, username, passwd, 'lan', 'print')
         if command_failed
@@ -82,6 +123,12 @@ module ProjectRazor
         [true, lan_hash]
       end
 
+      # A wrapper method for the ipmitool's 'fru print' command that can be used to obtain the
+      # 'fru print' information for the node with a specified IP address (as a Hash map).
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, Hash>] an array containing a Boolean indicating whether or not the
+      #     'fru print' command succeeded and a Hash map containing 'fru print' for that node
       def fru_print(host_ip, username, passwd)
         command_failed, fru_output = run_ipmi_command(host_ip, username, passwd, 'fru', 'print')
         if command_failed
@@ -94,6 +141,14 @@ module ProjectRazor
       # Then, define a set of 'command-style' actions that will invoke corresponding
       # actions from the ipmitool command set (power on, power off, power cycle, )
 
+      # A wrapper method for the ipmitool's 'power on' command that can be used to turn on a node
+      # that is currently powered off.  Note that while it is not an error to try to power on a node that
+      # is already turned on, the command to change the power state will have failed, so the success_flag
+      # that is returned to the caller will be 'false' in that instance.
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, String>] an array containing a Boolean indicating whether or not the
+      #     'power on' command succeeded and a String containing the results of that command
       def power_on(host_ip, username, passwd)
         command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
         if command_failed
@@ -109,6 +164,14 @@ module ProjectRazor
         [false, 'Up/On']
       end
 
+      # A wrapper method for the ipmitool's 'power off' command that can be used to turn off a node
+      # that is currently powered on. Note that while it is not an error to try to power off a node that
+      # is already turned off, the command to change the power state will have failed, so the success_flag
+      # that is returned to the caller will be 'false' in that instance.
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, String>] an array containing a Boolean indicating whether or not the
+      #     'power off' command succeeded and a String containing the results of that command
       def power_off(host_ip, username, passwd)
         command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
         if command_failed
@@ -124,6 +187,13 @@ module ProjectRazor
         [false, 'Down/Off']
       end
 
+      # A wrapper method for the ipmitool's 'power cycle' command that can be used to power-cycle
+      # a node that is currently powered on.  Note that it is an error to try to power-cycle a node
+      # that is currently turned off.  You can only power-cycle nodes that are currently powered on.
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, String>] an array containing a Boolean indicating whether or not the
+      #     'power cycle' command succeeded and a String containing the results of that command
       def power_cycle(host_ip, username, passwd)
         command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
         if command_failed
@@ -139,6 +209,14 @@ module ProjectRazor
         [false, 'Off']
       end
 
+      # A wrapper method for the ipmitool's 'power reset' command that can be used to perform a hard-reset
+      # on a node that is currently powered on.  Note that it is an error to try to perform a hard-reset of
+      # a node that is currently turned off.  You can only perform a hard-reset on nodes that are currently
+      # powered on.
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, String>] an array containing a Boolean indicating whether or not the
+      #     'power reset' command succeeded and a String containing the results of that command
       def power_reset(host_ip, username, passwd)
         command_failed, power_output = run_ipmi_command(host_ip, username, passwd, 'power', 'status')
         if command_failed
@@ -156,17 +234,32 @@ module ProjectRazor
 
       private
 
+      # A wrapper for the underlying ipmitool system command.  Wraps this command up in a timer
+      # ()so that the caller will not wait longer than EXT_COMMAND_TIMEOUT milliseconds for the
+      # ipmitool command to return) and handles errors that may be returned by the ipmtool command.
+      #
+      # @param host_ip [String] the IP address of the BMC to query for 'power status' information
+      # @param username [String] the IPMI username to use for the query
+      # @param passwd [String] the IPMI password to use for the query
+      # @param cmd_and_args [Array<String>] an array of strings containing the command to run
+      #     and the arguments to that command; will appear as multiple arguments in the method
+      #     call used by the caller
+      # @return [Array<Boolean, String>] an array containing a Boolean indicating whether or not the
+      #     'ipmitool' command failed (true indicates failure) and a String containing the results
+      #     of that command (or the error message if the command failed)
       def run_ipmi_command(host_ip, username, passwd, *cmd_and_args)
         # if the ipmitool command does not exist, need to return an error now
         unless @ipmitool_exists
           return [true, "Command 'ipmitool' does not exist; install ipmitool package and restart server"]
         end
         command_str = cmd_and_args.join(' ')
-        command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str} 2> /dev/null"
+        command = "ipmitool -I lanplus -H #{host_ip} -U #{username} -P #{passwd} #{command_str} 2>&1"
         begin
           timeout = EXT_COMMAND_TIMEOUT / 1000.0
           Timeout::timeout(timeout) do
-            return [false, %x[#{command}]]
+            output = %x[#{command}]
+            return [true, output] if /Error/.match(output)
+            return [false, output]
           end
         rescue Timeout::Error
           return [true, "External Command Timeout (#{EXT_COMMAND_TIMEOUT} msecs) exceeded while executing '#{command}'"]
@@ -175,6 +268,14 @@ module ProjectRazor
         end
       end
 
+      # Takes the output of the query-style ipmitool commands and converts them to a Hash of name/value
+      # pairs (where the names are the properties, as Symbols, and the values are either Strings or arrays of
+      # Strings representing the values for those properties)
+      # @param ipmi_output [String] the raw output from one of the query-style ipmitool commands
+      # @param delimiter [String] the delimiter that should be used to separate the name/value pairs in the
+      #     raw ipmitool command output
+      # @return [Hash<String, Array<String>>] a Hash map containing the names of the properties as keys and
+      #     an Array of String values for that properties as the matching Hash map values.
       def ipmi_output_to_hash(ipmi_output, delimiter)
         array = ipmi_output.split("\n")
         split_hash = Hash.new

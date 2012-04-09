@@ -30,6 +30,7 @@ require "project_razor/tagging"
 require "project_razor/policy_rules"
 require "project_razor/image_service"
 require "project_razor/power_control"
+require "project_razor/system"
 
 
 $data = ProjectRazor::Data.new

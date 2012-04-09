@@ -17,7 +17,7 @@ module ProjectRazor
     class Bmc < ProjectRazor::Slice::Base
       include(ProjectRazor::Logging)
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
-      # @param [Array] args
+      # @param args [Array]
       def initialize(args)
         super(args)
         # Here we create a hash of the command string to the method it corresponds to for routing.
@@ -120,55 +120,70 @@ module ProjectRazor
         change_bmc_power_state("reset")
       end
 
-      # Run an ipmitool "power_status" on the node
+      # Run an ipmitool "power status" command on the node
       def power_status_bmc
         logger.debug "ipmitool 'power_status' called"
         @command_name = "power_status_bmc"
         run_ipmi_query_cmd("power_status")
       end
 
-      # Run an ipmitool "bmc_info" on the node
+      # Run an ipmitool "bmc info" command on the node
       def bmc_info_bmc
         logger.debug "ipmitool 'bmc_info' called"
         @command_name = "bmc_info_bmc"
         run_ipmi_query_cmd("bmc_info")
       end
 
-      # Run an ipmitool "bmc_getenables" on the node
+      # Run an ipmitool "bmc getenables" command on the node
       def bmc_getenables_bmc
         logger.debug "ipmitool 'bmc_getenables' called"
         @command_name = "bmc_getenables_bmc"
-        run_ipmi_query_cmd("bmc_getenables")
+        run_ipmi_query_cmd("")
       end
 
-      # Run an ipmitool "bmc_guid" on the node
+      # Run an ipmitool "bmc guid" command on the node
       def bmc_guid_bmc
         logger.debug "ipmitool 'bmc_guid' called"
         @command_name = "bmc_guid_bmc"
         run_ipmi_query_cmd("bmc_guid")
       end
 
-      # Run an ipmitool "chassis_status" on the node
+      # Run an ipmitool "chassis status" command on the node
       def chassis_status_bmc
         logger.debug "ipmitool 'chassis_status' called"
         @command_name = "chassis_status_bmc"
         run_ipmi_query_cmd("chassis_status")
       end
 
-      # Run an ipmitool "lan_print" on the node
+      # Run an ipmitool "lan print" command on the node
       def lan_print_bmc
         logger.debug "ipmitool 'lan_print' called"
         @command_name = "lan_print_bmc"
         run_ipmi_query_cmd("lan_print")
       end
 
-      # Run an ipmitool "fru_print" on the node
+      # Run an ipmitool "fru print" command on the node
       def fru_print_bmc
         logger.debug "ipmitool 'fru_print' called"
         @command_name = "fru_print_bmc"
         run_ipmi_query_cmd("fru_print")
       end
 
+      # Handler for running IPMI-style queries against the underlying bmc node
+      #
+      # Possible values for the ipmitool_cmd parameter are as follows:
+      #
+      #     "power_status"    =>  returns the current power state of the node (on, off or unknown)
+      #     "bmc_info"        =>  returns the output of the ipmitool "bmc info" command as a hash map
+      #     "bmc_getenables"  => returns the output of the ipmitool "bmc getenables" command as a hash map
+      #     "bmc_guid"        => returns the output of the ipmitool "bmc guid" command as a hash map
+      #     "chassis_status"  => returns the output of the ipmitool "chassis status" command as a hash map
+      #     "lan_print"       => returns the output of the ipmitool "lan print" command as a hash map
+      #     "fru_print"       => returns the output of the ipmitool "fru print" command as a hash map
+      #
+      # This method is meant to be invoked from the various commands provided by
+      # the slice to query the underlying bmc for information
+      # @param ipmitool_cmd [String]
       def run_ipmi_query_cmd(ipmitool_cmd)
         if @web_command
           @command_query_string = @command_array.shift
@@ -202,7 +217,6 @@ module ProjectRazor
       end
 
       # Handler for changing power state of a bmc node to a new state
-      # @param [String] new_state
       #
       # Possible values for the new_state parameter are as follows:
       #
@@ -213,6 +227,7 @@ module ProjectRazor
       #
       # This method is meant to be invoked from the various commands provided by
       # the slice to change the power-state of the node
+      # @param new_state [String]
       def change_bmc_power_state(new_state)
         if @web_command
           @command_query_string = @command_array.shift
@@ -283,6 +298,13 @@ module ProjectRazor
         end
       end
 
+      # Updates the '@current_power_state' and '@board_serial_number' fields in the bmc_hash
+      # using run_ipmi_query calls to the underlying ProjectRazor::PowerControl::Bmc object.
+      # The bmc_hash is modified during the call and, as a result, contains the correct current
+      # values for these two fields in the bmc_hash when control is returned to the caller
+      #
+      # @param bmc [ProjectRazor::PowerControl::Bmc]
+      # @param bmc_hash [Hash]
       def update_bmc_hash!(bmc, bmc_hash)
         # values to return if the ipmitool command does not succeed
         bmc_hash["@current_power_state"] = "unknown"
@@ -295,9 +317,22 @@ module ProjectRazor
         bmc_hash["@board_serial_number"] = fru_hash[:Board_Serial] if command_success
       end
 
-      # Inserts bmc using hash
-      # @param [Hash] bmc_hash
-      # @return [ProjectRazor::Bmc]
+      # Inserts a new Bmc object into the database (or updates a matching Bmc object in the database
+      # where the match is determined based on uuid values) using the bmc_hash as input.  There are
+      # three possible outcomes from this method:
+      #
+      #     1. If there is a node who's uuid value matches that found in the '@uuid' field of the
+      #        bmc_hash, and if the meta-data contained in that object ('@mac', '@ip', '@current_power_state',
+      #        or '@board_serial_number') differ from those found in the bmc_hash, then that object
+      #        is updated in the database, and the updated object is returned to the caller
+      #     2. If there is no matching object (by uuid), then a new object is created using the bmc_hash
+      #        as input, that new object is persisted to the database, and the new object is returned
+      #        to the caller
+      #     3. If there is a matching object but the meta-data values it contains are the same as those
+      #        found in the bmc_hash object, then the matching object is returned to the caller unchanged.
+      #
+      # @param bmc_hash [Hash]
+      # @return [ProjectRazor::PowerControl::Bmc]
       def insert_bmc(bmc_hash)
         setup_data
         bmc = @data.fetch_object_by_uuid(:bmc, bmc_hash['@uuid'])
@@ -336,6 +371,12 @@ module ProjectRazor
         end
       end
 
+      # searches for a Bmc node that matches the '@uuid' value contained in the input bmc_hash
+      # argument, then refreshes the current power state in that Bmc object and returns it to
+      # the caller
+      #
+      # @param bmc_hash [Hash]
+      # @return [ProjectRazor::PowerControl::Bmc]
       def get_bmc(bmc_hash)
         setup_data
         existing_bmc = @data.fetch_object_by_uuid(:bmc, bmc_hash['@uuid'])
@@ -343,6 +384,7 @@ module ProjectRazor
         existing_bmc
       end
 
+      # prints out an array of Bmc nodes in a tabular form (using the centralized print_object_array method)
       def query_bmc
         bmc_array = get_object("bmc", :bmc)
         if bmc_array
