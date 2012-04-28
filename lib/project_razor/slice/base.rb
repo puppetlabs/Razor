@@ -7,6 +7,38 @@ require "colored"
 # TODO - change help printing to multi-line with header and description
 # TODO - add ability to hide commands from CLI help
 
+# here, we define a Stack class that simply delegates the equivalent "push", "pop",
+# "to_s" and "clear" calls to the underlying Array object using the delegation
+# methods provided by Ruby through the Forwardable class.  We could do the same
+# thing using an Array, but that wouldn't let us restrict the methods that
+# were supported by our Stack to just those methods that a stack should have
+
+require "forwardable"
+
+class Stack
+  extend Forwardable
+  def_delegators :@array, :push, :pop, :to_s, :clear, :count
+
+  # initializes the underlying array for the stack
+  def initialize
+    @array = []
+  end
+
+  # looks at the last element pushed onto the stack
+  def look
+    @array.last
+  end
+
+  # peeks down to the n-th element in the stack (zero is the top,
+  # if the 'n' value that is passed is deeper than the stack, it's
+  # an error (and will result in an IndexError being thrown)
+  def peek(n = 0)
+    stack_idx = -(n+1)
+    @array[stack_idx]
+  end
+
+end
+
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
@@ -30,6 +62,7 @@ module ProjectRazor
         @slice_commands = {}
         @web_command = false
         @last_arg = nil
+        @prev_args = Stack.new
       end
 
       # Default call method for a slice
@@ -122,6 +155,7 @@ module ProjectRazor
                 #puts "**** Command matches - evaluating action"
                 #puts "removing arg"
                 @last_arg = @command_array.shift
+                @prev_args.push(@last_arg)
                 return eval_action(@command_hash[k])
               end
             when "String"
@@ -130,6 +164,7 @@ module ProjectRazor
                 #puts "**** Command matches - evaluating action"
                 #puts "removing arg"
                 @last_arg = @command_array.shift
+                @prev_args.push(@last_arg)
                 return eval_action(@command_hash[k])
               end
             when "Regexp"
@@ -138,6 +173,7 @@ module ProjectRazor
                 #puts "**** Command matches - evaluating action"
                 #puts "removing arg"
                 @last_arg = @command_array.shift
+                @prev_args.push(@last_arg)
                 return eval_action(@command_hash[k])
               end
             when "Array"
@@ -145,6 +181,7 @@ module ProjectRazor
               if eval_command_array(k)
                 #puts "removing arg"
                 @last_arg =  @command_array.shift
+                @prev_args.push(@last_arg)
                 return eval_action(@command_hash[k])
               end
             else

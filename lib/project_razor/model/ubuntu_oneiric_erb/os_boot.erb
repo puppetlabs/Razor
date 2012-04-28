@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# This is a patch for lack of DNS in my lab (Not needed if you have proper DNS, .nick)
+sed -i '4 i\
+192.168.99.50   puppet learn puppet.razor-dev.local learn.razor-dev.local' /etc/hosts
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "added_puppet_hosts_ok") %> || curl <%= callback_url("postinstall", "added_puppet_hosts_fail") %>
+
+hostname <%= hostname %>
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
+
+sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && <%= callback_url("postinstall", "sources_fix") %>
+apt-get -y update
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_update_ok") %> || curl <%= callback_url("postinstall", "apt_update_fail") %>
+
+apt-get -y upgrade
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_upgrade_ok") %> || curl <%= callback_url("postinstall", "apt_upgrade_fail") %>
+
+apt-get -y install rubygems facter
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_install_ok") %> || curl <%= callback_url("postinstall", "apt_install_fail") %>
+
+# Get current IP
+node_ip=`facter ipaddress`
+# Send IP up
+curl <%= callback_url("postinstall", "send_ips") %>/$node_ip
+# get final script
+curl <%= callback_url("postinstall", "boot") %> | sh

@@ -130,7 +130,7 @@ describe ProjectRazor::Engine do
       # We should now have a binding for our node
       @engine.bound_policy.count.should == 1
       @engine.bound_policy[0].node_uuid.should == "TESTRSPECENGINE"
-      @engine.bound_policy[0].uuid.should == new_policy_rule.uuid
+      @engine.bound_policy[0].uuid.should_not == new_policy_rule.uuid
     end
   end
 

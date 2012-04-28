@@ -69,7 +69,8 @@ module ProjectRazor
         fact_excl_pattern_array = ["(^facter.*$)", "(^id$)", "(^kernel.*$)", "(^memoryfree$)",
                                    "(^operating.*$)", "(^osfamily$)", "(^path$)", "(^ps$)",
                                    "(^ruby.*$)", "(^selinux$)", "(^ssh.*$)", "(^swap.*$)",
-                                   "(^timezone$)", "(^uniqueid$)", "(^uptime.*$)"]
+                                   "(^timezone$)", "(^uniqueid$)", "(^uptime.*$)","(.*json_str$)"]
+
         @mk_fact_excl_pattern = fact_excl_pattern_array.join("|")
         @mk_log_level = "Logger::ERROR"
 

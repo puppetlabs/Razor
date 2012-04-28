@@ -13,6 +13,7 @@ module ProjectRazor
     # @author Nicholas Weaver
     # @abstract
     class VMwareESXi5Simple < ProjectRazor::Model::Base
+      include(ProjectRazor::Logging)
 
       # Assigned image
       attr_accessor :image_uuid

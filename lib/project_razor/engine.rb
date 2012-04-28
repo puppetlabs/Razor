@@ -5,6 +5,7 @@
 # @author Nicholas Weaver
 
 require "singleton"
+require "json"
 
 
 module ProjectRazor
@@ -22,10 +23,6 @@ module ProjectRazor
     def bound_policy
       $data.fetch_all_objects(:bound_policy)
     end
-
-
-
-
 
     #####################
 
@@ -144,23 +141,23 @@ module ProjectRazor
     def mk_eval_vs_policy_rule(node)
       logger.debug "Evaluating policy rules vs Node #{node.uuid}"
       begin
-      # Loop through each rule checking node's tags to see if that match
-      policy_rules.get.each do
-      |pl|
-        # Make sure there is at least one tag
-        if pl.tags.count > 0
-          if check_tags(node.tags, pl.tags)
-            logger.debug "Matching policy rule (#{pl.label}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
-            # We found a policy that matches
-            # we call the policy binding and exit loop
-            mk_bind_policy(node, pl)
-            return
+        # Loop through each rule checking node's tags to see if that match
+        policy_rules.get.each do
+        |pl|
+          # Make sure there is at least one tag
+          if pl.tags.count > 0
+            if check_tags(node.tags, pl.tags)
+              logger.debug "Matching policy rule (#{pl.label}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
+              # We found a policy that matches
+              # we call the policy binding and exit loop
+              mk_bind_policy(node, pl)
+              return
+            end
+          else
+            logger.error "Policy (#{pl.label}) has no tags configured"
           end
-        else
-          logger.error "Policy (#{pl.label}) has no tags configured"
+          logger.debug "No matching rules"
         end
-        logger.debug "No matching rules"
-      end
       rescue => e
         logger.error e.message
       end
@@ -228,9 +225,9 @@ module ProjectRazor
           $data.persist_object(bound_policy)
           return boot_response
         else
-        #There is not bound policy so we boot the MK
-        logger.debug "No active policy found - uuid: #{node.uuid}"
-        default_mk_boot(uuid)
+          #There is not bound policy so we boot the MK
+          logger.debug "No active policy found - uuid: #{node.uuid}"
+          default_mk_boot(uuid)
         end
       else
 
@@ -243,9 +240,9 @@ module ProjectRazor
     end
 
 
-    def state_checkin
-
-    end
+    #def state_checkin
+    #
+    #end
 
 
     def find_bound_policy(node)
@@ -272,17 +269,6 @@ module ProjectRazor
 
 
 
-
-    ######## Boot init section
-
-
-
-
-
-
-    ########
-
-
     ########
     # Util #
     ########
@@ -306,15 +292,39 @@ module ProjectRazor
     def node_tags(node)
       node.attributes_hash
       tag_policies = $data.fetch_all_objects(:tag)
-
+      tag_policies = tag_policies + get_system_tags
       tags = []
       tag_policies.each do
       |tag_pol|
         if tag_pol.check_tag_rule(node.attributes_hash)
-          tags << tag_pol.tag
+          tags << tag_pol.get_tag(node.attributes_hash)
         end
       end
+      # TODO remove any duplicates
+      get_system_tags
       tags
+    end
+
+    def get_system_tags
+      system_tag_rules = []
+      system_tag_rules_dir = File.join(File.dirname(__FILE__), "tagging/system_rules/**/*.json")
+      Dir.glob(system_tag_rules_dir).each do
+      |json_file|
+        begin
+          system_tag_rules << JSON.parse(File.read(json_file))
+        rescue => e
+          logger.error "parsing error with json file: #{json_file}"
+        end
+      end
+      system_tag_rules.map! do
+      |tr|
+        begin
+          ProjectRazor::Tagging::TagRule.new(tr)
+        rescue => e
+          logger.error "converting to object error with hash: #{tr.inspect}"
+        end
+      end
+      system_tag_rules
     end
   end
 end

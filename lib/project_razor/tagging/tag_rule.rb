@@ -4,12 +4,10 @@
 module ProjectRazor
   module Tagging
     class TagRule < ProjectRazor::Object
+      include(ProjectRazor::Logging)
       attr_accessor :name
       attr_accessor :tag
       attr_accessor :tag_matchers
-
-      # TODO - method for setting tags that removes duplicates
-
       def initialize(hash)
         super()
         @name = "Tag Rule: #{@uuid}"
@@ -19,6 +17,72 @@ module ProjectRazor
 
         from_hash(hash) unless hash == nil
         tag_matcher_from_hash unless hash == nil
+      end
+
+      # This method is called by the engine on tagging
+      # It allows us to parse the tag metaname vars and reply back with a correct tag
+      def get_tag(meta)
+        sanitize_tag parse_tag_metadata_vars(meta)
+      end
+
+      # Remove symbols, whitespace, junk from tags
+      # tags are alphanumeric mostly (with the exception of '%, =, -, _')
+      def sanitize_tag(in_tag)
+        in_tag.gsub(/[^\w%=-\\+]+/,"")
+      end
+
+      # Used for parsing tag metanaming vars
+      def parse_tag_metadata_vars(meta)
+        begin
+        return tag unless meta
+        new_tag = tag
+        # Direct value metaname var
+        # pattern:  %V=key_name-%
+        # Where 'key_name' is the key name from the metadata hash
+        # directly inserts the value or nothing if nil
+        direct_value = new_tag.scan(/%V=[\w ]*-%/)
+        direct_value.map! do |dv|
+          {
+              :var => dv,
+              :key_name => dv.gsub(/%V=|-%/, ""),
+              :value => meta[dv.gsub(/%V=|-%/, "")]
+          }
+        end
+        direct_value.each do
+        |dv|
+          dv[:value] ||= ""
+          new_tag = new_tag.gsub(dv[:var].to_s,dv[:value].to_s)
+        end
+
+
+        # Selected value metaname var
+        # pattern:  %R=selection_pattern:key_name-%
+        # Where 'key_name' is the key name from the metadata hash
+        # Where 'selection_pattern' is a Regex string for selecting a portion of the value from the key name in the metadata hash
+        # directly inserts the value or nothing if nil
+        selected_value = new_tag.scan(/%R=.+:[\w]+-%/)
+        selected_value.map! do |dv|
+          {
+              :var => dv,
+              :var_string => dv.gsub(/%R=|-%/, ""),
+              :key_name => dv.gsub(/%R=|-%/, "").split(":")[1],
+              :pattern => Regexp.new(dv.gsub(/%R=|-%/, "").split(":").first)
+          }
+        end
+
+        selected_value.each do
+        |sv|
+          if sv[:pattern] && sv[:key_name]
+            sv[:value] = sv[:pattern].match(meta[sv[:key_name]]).to_s
+          end
+          sv[:value] ||= ""
+          new_tag = new_tag.gsub(sv[:var].to_s,sv[:value].to_s)
+        end
+        rescue => e
+          logger.error "ERROR: #{p e}"
+          tag
+        end
+        new_tag
       end
 
       def check_tag_rule(attributes_hash)
@@ -117,12 +181,21 @@ module ProjectRazor
         return @name, @tag, @uuid
       end
 
+      def print_item_header
+        ["Name", "Tags", "UUID"]
+      end
+
+      def print_item
+        system_name = @system ? @system.name : "none"
+        [@name, @tag, @uuid]
+      end
+
       def line_color
-        :white_on_blue
+        :white_on_black
       end
 
       def header_color
-        :blue_on_white
+        :red_on_black
       end
 
 

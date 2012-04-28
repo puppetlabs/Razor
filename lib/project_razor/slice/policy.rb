@@ -82,7 +82,7 @@ module ProjectRazor
         if callback != nil
           setup_data
           node = @data.fetch_object_by_uuid(:node, bound_policy.node_uuid)
-          callback_return = bound_policy.model.send(callback, @command_array, node, bound_policy.uuid)
+          callback_return = bound_policy.model.callback_init(callback, @command_array, node, bound_policy.uuid, bound_policy.system)
           bound_policy.update_self
           puts callback_return
         else

@@ -1,0 +1,12 @@
+{
+    "@name": "memory",
+    "@tag": "memsize_%R=\\d+:mk_hw_mem_size-%",
+    "@tag_matchers": [
+        {
+            "@key": "mk_hw_mem_size",
+            "@value": "\\w+",
+            "@compare": "like",
+            "@inverse": "false"
+        }
+    ]
+}

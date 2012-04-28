@@ -1,6 +1,7 @@
 # EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
+# TODO add 'ALL' matcher compare
 
 module ProjectRazor
   module Tagging
@@ -52,7 +53,7 @@ module ProjectRazor
           when "like"
             logger.debug "Checking if key:#{@key}=#{property_value} is like matcher pattern:#{@value}"
             reg_ex = Regexp.new(@value)
-            if (reg_ex =~ property_value) != nil
+            if (reg_ex =~ property_value.to_s) != nil
               logger.debug "Match found #{ret}"
               return ret
             else

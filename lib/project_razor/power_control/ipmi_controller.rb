@@ -11,7 +11,12 @@ require 'singleton'
 require 'timeout'
 
 # time to wait for an external command (in milliseconds)
-EXT_COMMAND_TIMEOUT = 2000 unless EXT_COMMAND_TIMEOUT
+begin
+  EXT_COMMAND_TIMEOUT = 2000 unless EXT_COMMAND_TIMEOUT
+rescue
+  EXT_COMMAND_TIMEOUT = 2000
+end
+
 
 module ProjectRazor
   module PowerControl

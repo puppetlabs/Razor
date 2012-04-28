@@ -1,0 +1,12 @@
+{
+    "@name": "vm_type",
+    "@tag": "%V=virtual-%_vm",
+    "@tag_matchers": [
+        {
+            "@key": "is_virtual",
+            "@value": "true",
+            "@compare": "equal",
+            "@inverse": "false"
+        }
+    ]
+}

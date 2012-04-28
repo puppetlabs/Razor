@@ -6,6 +6,7 @@
 module ProjectRazor
   module Policy
     class VMwareHypervisor < ProjectRazor::Policy::Base
+      include(ProjectRazor::Logging)
 
       # @param hash [Hash]
       def initialize(hash)

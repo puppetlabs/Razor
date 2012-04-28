@@ -4,7 +4,7 @@
 require "logger"
 
 LOG_LEVEL = Logger::DEBUG
-LOG_MAX_SIZE = 2048576
+LOG_MAX_SIZE = 10048576
 LOG_MAX_FILES = 10
 
 # Module used for all logging. Needs to be included in any ProjectRazor class that needs logging.

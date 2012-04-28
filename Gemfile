@@ -1,6 +1,7 @@
 # A sample Gemfile
 source "http://rubygems.org"
 
+gem "rake"
 gem "mongo"
 gem "bson"
 gem "bson_ext"
@@ -15,3 +16,5 @@ gem "bluepill"
 gem "autotest"
 gem "redcarpet"
 gem "mocha"
+gem "net-ssh"
+gem "require_all"

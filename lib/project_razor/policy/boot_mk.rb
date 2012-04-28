@@ -6,6 +6,7 @@ module ProjectRazor
     # ProjectRazor Policy Default class
     # Used for default booting of Razor MK
     class BootMK< ProjectRazor::Policy::Base
+      include(ProjectRazor::Logging)
 
       # @param hash [Hash]
       def initialize(hash)

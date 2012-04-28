@@ -57,7 +57,7 @@ class ProjectRazor::Object
 
   # Return a new UUID string
   def create_uuid
-    logger.debug "Generate UUID"
+    #logger.debug "Generate UUID" - commented out because it just junks up the log right now. TODO leave debug when Info is switched
     UUID.generate(format = :compact)
   end
 

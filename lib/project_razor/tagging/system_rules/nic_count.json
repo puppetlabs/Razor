@@ -1,0 +1,12 @@
+{
+    "@name": "nic_count",
+    "@tag": "nics_%V=mk_hw_nic_count-%",
+    "@tag_matchers": [
+        {
+            "@key": "mk_hw_nic_count",
+            "@value": "\\d+",
+            "@compare": "like",
+            "@inverse": "false"
+        }
+    ]
+}
