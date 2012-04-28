@@ -14,5 +14,5 @@ This file is intended for developers for the Razor project.
 
 ## Testing
 
-   rake spec
-   rake spec_html
+    rake spec
+    rake spec_html

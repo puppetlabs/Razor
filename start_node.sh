@@ -8,4 +8,4 @@
 
 killall -2 node
 nohup node ./bin/api.js &
-nohup node .//bin/image_svc.js &
+nohup node ./bin/image_svc.js &
