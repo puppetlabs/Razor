@@ -42,6 +42,7 @@ module ProjectRazor
         @system_type = false # by default
         @final_state = :nothing
         @counter = 0
+        @result = nil
                              # Model Log
         @log = []
         @_collection = :model
@@ -101,20 +102,31 @@ module ProjectRazor
                 :node_uuid => node_bound.uuid,
                 :timestamp => Time.now.to_i)
         # If in final state we check system assignment
-        if @current_state.to_s == @final_state.to_s || @current_state.to_s == "system_fail"
+        if @current_state.to_s == @final_state.to_s # Enable to help with system debug || @current_state.to_s == "system_fail"
           system_check
         end
       end
 
       def fsm_log(options)
         logger.debug "state update: #{options[:old_state]} => #{options[:state]} on #{options[:action]} for #{options[:node_uuid]}"
+        options[:result] = @result
+        options[:result] ||= "n/a"
         @log << options
+        @result = nil
       end
 
       def system_check
         # We need to check if a system is attached
         unless @system
           logger.error "No system defined"
+          @result = "No system attached"
+          @current_state = :complete_no_system
+          fsm_log(:state => @current_state,
+                  :old_state => @final_state,
+                  :action => :system_check,
+                  :method => :system_check,
+                  :node_uuid => node_bound.uuid,
+                  :timestamp => Time.now.to_i)
           return
         end
         case @system_type
@@ -135,18 +147,18 @@ module ProjectRazor
 
       def node_metadata
         begin
-        logger.debug "Building metadata"
-        meta = {}
-        logger.debug "Adding razor stuff"
-        meta[:razor_tags] = @node.tags.join(',')
-        meta[:razor_node_uuid] = @node.uuid
-        meta[:razor_bound_policy_uuid] = @policy_uuid
-        meta[:razor_model_uuid] = @uuid
-        meta[:razor_model_name] = @name
-        meta[:razor_model_description] = @description
-        meta[:razor_model_type] = @type.to_s
-        meta[:razor_policy_count] = @counter.to_s
-        logger.debug "Finished metadata build"
+          logger.debug "Building metadata"
+          meta = {}
+          logger.debug "Adding razor stuff"
+          meta[:razor_tags] = @node.tags.join(',')
+          meta[:razor_node_uuid] = @node.uuid
+          meta[:razor_bound_policy_uuid] = @policy_uuid
+          meta[:razor_model_uuid] = @uuid
+          meta[:razor_model_name] = @name
+          meta[:razor_model_description] = @description
+          meta[:razor_model_type] = @type.to_s
+          meta[:razor_policy_count] = @counter.to_s
+          logger.debug "Finished metadata build"
         rescue => e
           logger.error "metadata error: #{p e}"
         end

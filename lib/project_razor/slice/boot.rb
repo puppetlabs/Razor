@@ -2,46 +2,70 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "json"
-require "yaml"
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
   module Slice
-    # ProjectRazor Slice Boot
-    # Used for all boot logic by node
+
+    # ProjectRazor Slice Node (NEW)
+    # Used for policy management
     # @author Nicholas Weaver
     class Boot < ProjectRazor::Slice::Base
-      include(ProjectRazor::Logging)
-      # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args
       def initialize(args)
         super(args)
-
-        # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:default => "boot_called"}
-        @slice_commands_help = {:default => "boot"}
+        @hidden = true
+        @new_slice_style = true
+        @slice_commands = {:boot => "boot_call",
+                           :default => :boot,
+                           :else => :boot}
         @slice_name = "Boot"
         @engine = ProjectRazor::Engine.instance
       end
 
-      def boot_called
+      def boot_call
+        @command = :boot_call
         if @web_command
-          @command_query_string = @command_array.shift
-          if @command_query_string != "{}" && @command_query_string != nil
-            params = JSON.parse(@command_query_string)
-            mac_address = params['mac']
-            uuid = mac_address.gsub(":","")
-            logger.debug "Boot called by Node(MAC: #{mac_address}  UUID:#{uuid})"
+          # Grab next arg as json string var
+          json_string = @command_array.first
+          # Validate JSON
+          if is_valid_json?(json_string)
+            # Grab vars as hash using sanitize to strip the @ prefix if used
+            @vars_hash = sanitize_hash(JSON.parse(json_string))
 
-            logger.debug "Calling Engine for boot script"
-            puts @engine.boot_checkin(uuid)
-
+            if @vars_hash['mac']
+              @vars_hash['hw_id'] = @vars_hash['mac']
+            end
+            @hw_id = @vars_hash['hw_id']
+          else
+            # Invalid call, somehow API has an issue - tell node to reboot
+            error_reboot_node "Bad JSON"
             return
           end
+        else
+          slice_error("Not implemented for CLI")
+          return
         end
-        slice_error("NotImplemented")
+
+        return slice_error("Must Provide Hardware IDs[hw_id]") unless validate_arg(@hw_id)
+        @hw_id = @hw_id.split("_") unless @hw_id.respond_to?(:each)
+        unless @hw_id.count > 0
+          error_reboot_node "Must Provide At Least One Hardware ID [hw_id]"
+          return
+        end
+
+        @hw_id.map! {|hw| hw.gsub(":","").upcase}
+        logger.info "Boot called by Node (HW_ID: #{@hw_id})"
+        logger.info "Calling Engine for boot script"
+        puts @engine.boot_checkin(@hw_id)
+      end
+
+      def error_reboot_node(msg)
+        puts "#{msg}\necho API Error, will reboot in 30 seconds\nsleep 30\nreboot\n"
       end
     end
   end
 end
+
+

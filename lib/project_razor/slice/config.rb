@@ -2,28 +2,32 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "json"
+require "yaml"
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
   module Slice
-    # ProjectRazor Slice Template
-    # Template
+    # ProjectRazor Slice Boot
+    # Used for all boot logic by node
     # @author Nicholas Weaver
     class Config < ProjectRazor::Slice::Base
-
-      # init
+      include(ProjectRazor::Logging)
+      # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args
       def initialize(args)
         super(args)
-        # Define your commands and help text
+        @new_slice_style = true
+        @hidden = true
+        # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:read => "read_config",
-                           :default => "read_config"}
-        @slice_commands_help = {:read => "config [read]"}
+                           :ipxe => "generate_ipxe_script",
+                           :default => :read,
+                           :else => :read}
         @slice_name = "Config"
+        @engine = ProjectRazor::Engine.instance
       end
 
-      # Reads the ProjectRazor config
       def read_config
         setup_data
         if @web_command # is this a web command
@@ -36,8 +40,21 @@ module ProjectRazor
             print "#{val} \n".green
           end
         end
-
       end
+
+      def generate_ipxe_script
+        setup_data
+
+        @ipxe_options = {}
+        @ipxe_options[:style] = :new
+        @ipxe_options[:uri] =  @data.config.mk_uri
+        @ipxe_options[:timeout_sleep] = 15
+        @ipxe_options[:nic_max] = 7
+
+        ipxe_script = File.join(File.dirname(__FILE__), "config/razor.ipxe.erb")
+        puts ERB.new(File.read(ipxe_script)).result(binding)
+      end
+
     end
   end
 end

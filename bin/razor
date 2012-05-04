@@ -98,14 +98,17 @@ end
 
 def print_loaded_slices
   print "\nLoaded slices:\n\t"
-  x = 0
-  @slice_array.each do |slice|
-    print "[#{slice.downcase}] ".white unless slice.downcase == "base" || slice.downcase == "template"
-    if x >= 6
-      print "\n\t"
-      x = 0
+  x = 1
+  @slice_array.sort.each do |slice|
+    slice_obj = Object.full_const_get(SLICE_PREFIX + slice.capitalize).new([])
+    unless slice_obj.hidden
+      print "[#{slice.downcase}] ".white
+      if x > 5
+        print "\n\t"
+        x = 0
+      end
+      x += 1
     end
-    x += 1
   end
   print "\n"
 end
@@ -124,13 +127,13 @@ if $0 == __FILE__
     while ARGV[0] && ARGV[0].start_with?("-")
       switch = ARGV.shift
       case switch
-        when "-w"
+        when "--web-command", "-w"
           @web_command = true
-        when "--debug"
+        when "--debug", "-d"
           @debug = true
-        when "--verbose"
+        when "--verbose", "-v"
           @verbose = true
-        when "--no-color-out"
+        when "--no-color-out","-nc"
           # if this flag is set, override the default behavior of the underlying "colorize" method
           # from the "Colored" module so that it just returns the string that was passed into it
           # (this will have the effect of turning off any color that might be included in any of

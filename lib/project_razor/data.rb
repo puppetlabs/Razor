@@ -62,6 +62,28 @@ module ProjectRazor
       nil
     end
 
+    # Fetches a document from database with a specific 'uuid'. This form uses partial matching of 'uuid' and only returns if a single entry matches otherwise it returns nil
+    #
+    # @param [Symbol] object_symbol
+    # @param [String] object_uuid
+    # @return [Object, nil]
+    def fetch_object_by_uuid_pattern(object_symbol, object_uuid_pattern)
+      logger.debug "Fetching object by pattern  (#{object_uuid_pattern}) in collection (#{object_symbol})"
+      found_objects = []
+      fetch_all_objects(object_symbol).each do
+      |object|
+        scan_array = object.uuid.scan(object_uuid_pattern)
+        found_objects << object if scan_array.count > 0
+        #return object if object.uuid == object_uuid
+      end
+      if found_objects.count == 1
+        found_objects.first
+      else
+        nil
+      end
+
+    end
+
     # Fetches a document from database using a filter hash - which matches any objects using ProjectRazor::Filtering module
     #
     # @param [Symbol] object_symbol

@@ -52,30 +52,11 @@ module ProjectRazor
 
 
     #####################
-
-
-    # MK POLICY CHECKIN
-    # Look for applicable policies
-    # If found, bind, and reboot
-
-
-    # BOOT POLICY CHECKIN
-    # Look for applied policies
-    # If found pass state receive boot script (install, boot)
-
-
-    # STATE POLICY CHECKIN (Called by node install or ops & node_babysitter daemon)
-    # Call-in for a state change for a node with a bound policy
-    # Used to drive state changes within model and polling actions
-
-    #####################
     ##### MK Section ####
     #####################
 
-    def mk_checkin(input_uuid, last_state)
+    def mk_checkin(uuid, last_state)
       old_timestamp = 0 # we set this early in case a timestamp field is nil
-
-      uuid  = uuid_sanitize(input_uuid)
                         # We attempt to fetch the node object
       node = $data.fetch_object_by_uuid(:node, uuid)
 
@@ -198,43 +179,42 @@ module ProjectRazor
     ##### Boot Section ####
     #######################
 
-    def boot_checkin(input_uuid)
+    def boot_checkin(hw_id)
       # Called by a node boot process
 
-      # We sanitize the UUID to prevent compare issues
-      uuid  = uuid_sanitize(input_uuid)
 
-      logger.debug "Request for boot - uuid: #{uuid}"
+
+
+      logger.info "Request for boot - hw_id: #{hw_id}"
 
       # We attempt to fetch the node object
-      node = $data.fetch_object_by_uuid(:node, uuid)
-
+      node = lookup_node_by_hw_id(:hw_id => hw_id)
 
       # If the node is in the DB we can check for bound policy on it
       if node != nil
         # Node is in DB, lets check for policy
-        logger.debug "Node identified - uuid: #{node.uuid}"
+        logger.info "Node identified - uuid: #{node.uuid}"
         bound_policy = find_bound_policy(node)  # commented out until refactor
 
         #If there is a bound policy we pass it the node to a common
         #method call from a boot
         if bound_policy
           # Call the bound policy boot_call
-          logger.debug "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
+          logger.info "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
           boot_response = bound_policy.boot_call(node)
           $data.persist_object(bound_policy)
           return boot_response
         else
           #There is not bound policy so we boot the MK
-          logger.debug "No active policy found - uuid: #{node.uuid}"
-          default_mk_boot(uuid)
+          logger.info "No active policy found - uuid: #{node.uuid}"
+          default_mk_boot(node.uuid)
         end
       else
 
         # Node isn't in DB, we boot it into the MK
         # This is a default behavior
-        logger.debug "Node unknown - uuid: #{uuid}"
-        default_mk_boot(uuid)
+        logger.info "Node unknown - hw_id: #{hw_id}"
+        default_mk_boot("unknown")
       end
 
     end
@@ -250,7 +230,7 @@ module ProjectRazor
       bound_policies.each do
       |bp|
         # If we find a bound policy we return it
-        return bp if uuid_sanitize(bp.node_uuid) == uuid_sanitize(node.uuid)
+        return bp if bp.node_uuid == node.uuid
       end
       # Otherwise we return false indicating we have no policy
       false
@@ -260,7 +240,7 @@ module ProjectRazor
 
 
     def default_mk_boot(uuid)
-      logger.debug "Responding with MK Boot - uuid: #{uuid}"
+      logger.info "Responding with MK Boot - Node: #{uuid}"
       default = ProjectRazor::Policy::BootMK.new({})
       default.get_boot_script
     end
@@ -273,6 +253,100 @@ module ProjectRazor
     # Util #
     ########
 
+    # This finds the correct node object with the provided node id's
+    # If a new hw_id is sent and it not used somewhere else, it is added to the node's list
+    #
+
+    # @param [Hash] options
+    # @return [Object,nil]
+    def lookup_node_by_hw_id(options = {:hw_id => []})
+      unless options[:hw_id].count > 0
+        return nil
+      end
+      matching_nodes = []
+      nodes = $data.fetch_all_objects(:node)
+      nodes.each do
+      |node|
+        matching_hw_id = node.hw_id & options[:hw_id]
+        matching_nodes << node if matching_hw_id.count > 0
+      end
+
+      if matching_nodes.count > 1
+        # uh oh - we have more than one
+        # This should have been fixed during reg
+        # this is fatal - we raise an error
+        resolve_node_hw_id_collision
+        matching_nodes = [lookup_node_by_hw_id(options)]
+      end
+
+      if matching_nodes.count == 1
+        matching_nodes.first
+      else
+        nil
+      end
+    end
+
+
+    # This creates a new node with the provided hw_ids and returns the new object
+    #
+    # @param [Hash] options
+    # @return [Object,nil]
+    def register_new_node_with_hw_id(node_object)
+      # Ensure we have at least one hw_id
+      unless node_object.hw_id.count > 0
+        logger.error "Cannot register node without hw_id"
+        return nil
+      end
+      # Verify none of the hw_id's are in use
+      existing_node = lookup_node_by_hw_id(:hw_id => node_object.hw_id)
+      if existing_node
+        logger.error "Cannot register node with duplicate HW ID to existing node #{(existing_node.hw_id & node_object.hw_id).inspect} #{existing_node.uuid} #{node_object.uuid}"
+        return nil
+      end
+      # Create new node object with node object
+      new_node = $data.persist_object(node_object)
+      # run the resolve to be sure we don't have a conflict
+      resolve_node_hw_id_collision
+      new_node
+    end
+
+
+    # This is a failsafe should a duplicate hw_id happen. It removes the conflicted hw_id from a node object with the older timestamp
+    #
+    # @param [Array] hw_id
+    def resolve_node_hw_id_collision
+      # Get all nodes
+      nodes = $data.fetch_all_objects(:node)
+      # This will hold all hw_id's (not unique)'
+      all_hw_id = []
+      # Take each hw_id and add to our all_hw_id array
+      nodes.each {|node| all_hw_id += node.hw_id }
+      # Loop through each hw_id
+      all_hw_id.each do
+      |hwid|
+        # This will hold nodes that match
+        matching_nodes = []
+        # loops through each node
+        nodes.each do
+        |node|
+          # If the hwid is in the node.hw_id array then we add to the matching ndoes array
+          matching_nodes << node if (node.hw_id & [hwid]).count > 0
+        end
+        # If we have more than one node we have a conflict
+        # We sort by timestamp ascending
+        matching_nodes.sort! {|a,b| a.timestamp <=> b.timestamp}
+        # We remove the first one, any that remain will be cleaned of the hwid
+        matching_nodes.shift
+        # We remove the hw_id from each and persist
+        matching_nodes.each do
+        |node|
+          node.hw_id.delete(hwid)
+          node.update_self
+        end
+      end
+      nil
+    end
+
     def check_tags(node_tags, policy_tags)
       logger.debug "Node Tags: #{node_tags}"
       logger.debug "Policy Tags: #{policy_tags}"
@@ -284,8 +358,9 @@ module ProjectRazor
     end
 
     def uuid_sanitize(uuid)
-      uuid = uuid.gsub(/[:;,]/,"")
-      uuid.upcase
+      #uuid = uuid.gsub(/[:;,]/,"")
+      #uuid.upcase
+      uuid
     end
 
 
@@ -326,5 +401,7 @@ module ProjectRazor
       end
       system_tag_rules
     end
+
   end
 end
+

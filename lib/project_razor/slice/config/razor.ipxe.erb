@@ -1,0 +1,14 @@
+#!ipxe
+<% (0..@ipxe_options[:nic_max]).each do |index| %>
+isset ${net<%= index %>/mac} && dhcp net<%= index %> ||
+<% end %>
+
+<% if @ipxe_options[:style] == :old %>
+chain <%= @ipxe_options[:uri] %>/razor/api/boot?mac=${net0/mac} || goto error
+<% else %>
+chain <%= @ipxe_options[:uri] %>/razor/api/boot?hw_id=<%= "#{(1..@ipxe_options[:nic_max]).inject('${net0/mac}') {|x,y| x << "_${net#{y.to_s}/mac}"}}" %> || goto error
+<% end %>
+
+:error
+sleep <%= @ipxe_options[:timeout_sleep] %>
+reboot

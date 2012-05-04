@@ -2,6 +2,7 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 require "uuid"
+require "base62"
 require "colored"
 require "project_razor/utility"
 require "project_razor/logging"
@@ -58,7 +59,8 @@ class ProjectRazor::Object
   # Return a new UUID string
   def create_uuid
     #logger.debug "Generate UUID" - commented out because it just junks up the log right now. TODO leave debug when Info is switched
-    UUID.generate(format = :compact)
+    # using base62 gem now to make UUID string shorter by using 62 bit base.
+    UUID.generate(format = :compact).to_i(16).base62_encode
   end
 
   # When called it creates a new dynamic object used for printing Hashes using slice printing
@@ -69,6 +71,16 @@ class ProjectRazor::Object
         @print_items = print_items
         @line_color = line_color
         @header_color = header_color
+
+        @print_items.map! do
+          |pi|
+          case pi
+            when nil, ""
+              "n/a"
+            else
+              pi
+          end
+        end
       end
       attr_reader :print_header, :print_items, :line_color, :header_color
     end

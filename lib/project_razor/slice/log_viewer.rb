@@ -121,7 +121,11 @@ class File
           end
           (match_data && after_cutoff)
         }
-        matching_lines.unshift(chunk_matching_lines) if chunk_matching_lines
+        if matching_lines.size > 0 && chunk_matching_lines
+          matching_lines = chunk_matching_lines.concat(matching_lines)
+        elsif chunk_matching_lines
+          matching_lines.concat(chunk_matching_lines)
+        end
         # reset the "lines" value to the number of lines we found that matched, then
         # continue the loop (if that's not enough to satisfy the requested number of
         # tailed lines)
@@ -156,9 +160,9 @@ end
 module ProjectRazor
   module Slice
 
-    # ProjectRazor Slice System
-    # Used for system management
-    # @author Nicholas Weaver
+    # ProjectRazor Slice LogViewer
+    # Used for log viewing
+    # @author Tom McSweeney
     class Logviewer < ProjectRazor::Slice::Base
 
       # this regular expression should parse out the timestamp for the
@@ -174,6 +178,7 @@ module ProjectRazor
       def initialize(args)
 
         super(args)
+        @hidden = false
         @new_slice_style = true # switch to new slice style
 
         # define a couple of "help strings" (for the tail and filter commands)

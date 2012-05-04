@@ -50,7 +50,7 @@ module ProjectRazor
       include(ProjectRazor::SliceUtil::Common)
 
       # Bool for indicating whether this was driven from Node.js
-      attr_accessor :command_array, :slice_name, :slice_commands, :web_command
+      attr_accessor :command_array, :slice_name, :slice_commands, :web_command, :hidden
       attr_accessor :verbose
       attr_accessor :debug
 
@@ -63,6 +63,7 @@ module ProjectRazor
         @web_command = false
         @last_arg = nil
         @prev_args = Stack.new
+        @hidden = true
       end
 
       # Default call method for a slice

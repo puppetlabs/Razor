@@ -1,5 +1,5 @@
 {
-    "@name": "cpu_vendoer",
+    "@name": "cpu_vendor",
     "@tag": "%V=mk_hw_bus_vendor-%",
     "@tag_matchers": [
         {

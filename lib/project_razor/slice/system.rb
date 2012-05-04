@@ -21,6 +21,7 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         super(args)
+        @hidden = false
         @new_slice_style = true # switch to new slice style
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:add => "add_system",

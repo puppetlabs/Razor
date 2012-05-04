@@ -20,6 +20,7 @@ module ProjectRazor
       # @param args [Array]
       def initialize(args)
         super(args)
+        @hidden = false
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {:register => "register_bmc",
                            :get => "query_bmc",

@@ -107,12 +107,15 @@ module ProjectRazor
         @arg = @args_array.shift
         case @arg
           when  "start"
+            @result = "Acknowledged preseed read"
             fsm_action(:preseed_start, :preseed)
             return "ok"
           when "end"
+            @result = "Acknowledged preseed end"
             fsm_action(:preseed_end, :preseed)
             return "ok"
           when "file"
+            @result = "Replied with preseed file"
             fsm_action(:preseed_file, :preseed)
             return generate_preseed(@policy_uuid)
           else
@@ -149,11 +152,13 @@ module ProjectRazor
 
 
       def os_boot_script(policy_uuid)
+        @result = "Replied with os boot script"
         os_boot = File.join(File.dirname(__FILE__), "ubuntu_oneiric_erb/os_boot.erb")
         ERB.new(File.read(os_boot)).result(binding)
       end
 
       def os_complete_script(node)
+        @result = "Replied with os complete script"
         os_complete = File.join(File.dirname(__FILE__), "ubuntu_oneiric_erb/os_complete.erb")
         ERB.new(File.read(os_complete)).result(binding)
       end
@@ -229,6 +234,7 @@ module ProjectRazor
         @node_bound = node
         case @current_state
           when :init, :preinstall
+            @result = "Starting Ubuntu model install"
             ret = start_install(node, policy_uuid)
           when :postinstall, :os_complete, :system_check, :system_fail, :system_success
             ret = local_boot(node)

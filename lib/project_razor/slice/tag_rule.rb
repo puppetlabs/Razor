@@ -16,6 +16,7 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         super(args)
+        @hidden = false
         # Define your commands and help text
         @slice_commands = {:default => "get_tag",
                            :get => "get_tag",

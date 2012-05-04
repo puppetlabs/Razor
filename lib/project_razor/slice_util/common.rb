@@ -128,7 +128,7 @@ module ProjectRazor
       # @param collection [Symbol] collection symbol
       def return_objects_using_uuid(collection, uuid)
         setup_data
-        @data.fetch_object_by_uuid(collection, uuid)
+        @data.fetch_object_by_uuid_pattern(collection, uuid)
       end
 
 
@@ -149,64 +149,64 @@ module ProjectRazor
 
       ########### Common Slice Printing ###########
 
-      def print_policy_rules(rules_array)
-        unless @web_command
-          puts "Policy Rules:"
-          unless @verbose
-            rules_array.each do |rule|
-              print "   Order: " + "#{rule.line_number}".yellow
-              print "  Label: " + "#{rule.label}".yellow
-              print "  Type: " + "#{rule.type}".yellow
-              print "  Model label: " + "#{rule.model.label}".yellow
-              print "  Model type: " + "#{rule.model.type}".yellow
-              print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
-              print "  UUID: " + "#{rule.uuid}\n\n".yellow
-            end
-          else
-            rules_array.each { |rule| print_object_details_cli(rule) }
-          end
-        else
-          rules_array = rules_array.collect { |rule| rule.to_hash }
-          slice_success(rules_array, false)
-        end
-      end
+      #def print_policy_rules(rules_array)
+      #  unless @web_command
+      #    puts "Policy Rules:"
+      #    unless @verbose
+      #      rules_array.each do |rule|
+      #        print "   Order: " + "#{rule.line_number}".yellow
+      #        print "  Label: " + "#{rule.label}".yellow
+      #        print "  Type: " + "#{rule.type}".yellow
+      #        print "  Model label: " + "#{rule.model.label}".yellow
+      #        print "  Model type: " + "#{rule.model.type}".yellow
+      #        print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
+      #        print "  UUID: " + "#{rule.uuid}\n\n".yellow
+      #      end
+      #    else
+      #      rules_array.each { |rule| print_object_details_cli(rule) }
+      #    end
+      #  else
+      #    rules_array = rules_array.collect { |rule| rule.to_hash }
+      #    slice_success(rules_array, false)
+      #  end
+      #end
 
-      def print_policy_rules_bound(rules_array)
-        unless @web_command
-          puts "Bound Policy:"
-          unless @verbose
-            rules_array.each do |rule|
-              print "    Label: " + "#{rule.label}".yellow
-              print "  Type: " + "#{rule.type}".yellow
-              print "  Model label: " + "#{rule.model.label}".yellow
-              print "  Model type: " + "#{rule.model.type}".yellow
-              print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
-              print "    UUID: " + "#{rule.uuid}".yellow
-              print "  Node UUID: " + "#{rule.node_uuid}".yellow
-              print "  Current state: " + "#{rule.model.current_state}\n\n".yellow
-            end
-          else
-            rules_array.each { |rule| print_object_details_cli(rule) }
-          end
-        else
-          rules_array = rules_array.collect { |rule| rule.to_hash }
-          slice_success(rules_array, false)
-        end
-      end
+      #def print_policy_rules_bound(rules_array)
+      #  unless @web_command
+      #    puts "Bound Policy:"
+      #    unless @verbose
+      #      rules_array.each do |rule|
+      #        print "    Label: " + "#{rule.label}".yellow
+      #        print "  Type: " + "#{rule.type}".yellow
+      #        print "  Model label: " + "#{rule.model.label}".yellow
+      #        print "  Model type: " + "#{rule.model.type}".yellow
+      #        print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
+      #        print "    UUID: " + "#{rule.uuid}".yellow
+      #        print "  Node UUID: " + "#{rule.node_uuid}".yellow
+      #        print "  Current state: " + "#{rule.model.current_state}\n\n".yellow
+      #      end
+      #    else
+      #      rules_array.each { |rule| print_object_details_cli(rule) }
+      #    end
+      #  else
+      #    rules_array = rules_array.collect { |rule| rule.to_hash }
+      #    slice_success(rules_array, false)
+      #  end
+      #end
 
-      def print_policy_types(types_array)
-        unless @web_command
-          puts "Valid Policy Types:"
-          unless @verbose
-            types_array.each { |type| puts "\t#{type.type} ".yellow + " :  #{type.description}" }
-          else
-            types_array.each { |type| print_object_details_cli(type) }
-          end
-        else
-          types_array = types_array.collect { |type| type.to_hash }
-          slice_success(types_array, false)
-        end
-      end
+      #def print_policy_types(types_array)
+      #  unless @web_command
+      #    puts "Valid Policy Types:"
+      #    unless @verbose
+      #      types_array.each { |type| puts "\t#{type.type} ".yellow + " :  #{type.description}" }
+      #    else
+      #      types_array.each { |type| print_object_details_cli(type) }
+      #    end
+      #  else
+      #    types_array = types_array.collect { |type| type.to_hash }
+      #    slice_success(types_array, false)
+      #  end
+      #end
 
       def print_model_configs(model_array)
         unless @web_command
@@ -312,37 +312,37 @@ module ProjectRazor
         end
       end
 
-      def print_policy_bound_log(bound_policy)
-        unless @web_command
-          puts "Bound policy log for Node(#{bound_policy.node_uuid}):"
-
-          unless @verbose
-            print "\t" + "(Model call) (Action) | (Original state) => (New state) | (Time)\n".red_on_black
-            bound_policy.model.log.each do
-            |log_item|
-              print "\t#{log_item["method"]}##{log_item["action"]} | ".white_on_black
-              print "#{log_item["old_state"]} => #{log_item["state"]}".white_on_black
-              print " | #{Time.at(log_item["timestamp"].to_i)}\n".white_on_black
-            end
-
-          else
-            bound_policy.model.log.each do
-            |log_item|
-              log_item.instance_variables.each do
-              |iv|
-                unless iv.to_s.start_with?("@_")
-                  key = iv.to_s.sub("@", "")
-                  print "#{key}: "
-                  print "#{log_item.instance_variable_get(iv)}  ".green
-                end
-              end
-              print "\n"
-            end
-          end
-        else
-          slice_success(bound_policy.model.log, false)
-        end
-      end
+      #def print_policy_bound_log(bound_policy)
+      #  unless @web_command
+      #    puts "Bound policy log for Node(#{bound_policy.node_uuid}):"
+      #
+      #    unless @verbose
+      #      print "\t" + "(Model call) (Action) | (Original state) => (New state) | (Time)\n".red_on_black
+      #      bound_policy.model.log.each do
+      #      |log_item|
+      #        print "\t#{log_item["method"]}##{log_item["action"]} | ".white_on_black
+      #        print "#{log_item["old_state"]} => #{log_item["state"]}".white_on_black
+      #        print " | #{Time.at(log_item["timestamp"].to_i)}\n".white_on_black
+      #      end
+      #
+      #    else
+      #      bound_policy.model.log.each do
+      #      |log_item|
+      #        log_item.instance_variables.each do
+      #        |iv|
+      #          unless iv.to_s.start_with?("@_")
+      #            key = iv.to_s.sub("@", "")
+      #            print "#{key}: "
+      #            print "#{log_item.instance_variable_get(iv)}  ".green
+      #          end
+      #        end
+      #        print "\n"
+      #      end
+      #    end
+      #  else
+      #    slice_success(bound_policy.model.log, false)
+      #  end
+      #end
 
       def print_tag_rule_old(rule_array)
         if rule_array.respond_to?(:each)
@@ -351,7 +351,6 @@ module ProjectRazor
         else
           slice_success(rule_array.to_hash, false)
         end
-
       end
 
       def print_tag_rule(object_array)
@@ -428,10 +427,9 @@ module ProjectRazor
         end
       end
 
-
-
-
-      def print_object_array(object_array, title = nil)
+      def print_object_array(object_array, title = nil, options = {})
+        # This is for backwards compatibility
+        title = options[:title] unless title
         unless @web_command
           puts title if title
           unless object_array.count > 0
@@ -443,7 +441,7 @@ module ProjectRazor
             line_colors = []
             header_color = :white
 
-            if object_array.count == 1
+            if object_array.count == 1 && options[:style] != :table
               puts print_single_item(object_array.first)
             else
               object_array.each do

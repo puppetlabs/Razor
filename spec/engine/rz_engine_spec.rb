@@ -44,7 +44,7 @@ describe ProjectRazor::Engine do
       state = "idle"
 
       json_hash = {}
-      json_hash["@uuid"] = "TESTRSPECENGINE"
+      json_hash["@uuid"] = "01234567890"
       json_hash["@last_state"] = state
       json_hash["@attributes_hash"] = {"hostname" => "rspec.engine.testing.local",
                                        "ip_address" => "1.1.1.1"}
@@ -54,17 +54,17 @@ describe ProjectRazor::Engine do
       response_hash = JSON.parse(res.body)
 
       response_hash['errcode'].should == 0
-      response_hash['response']['@uuid'].should == "TESTRSPECENGINE"
+      $node_uuid = response_hash['response']['@uuid']
 
-      node = @data.fetch_object_by_uuid(:node, "TESTRSPECENGINE")
+      node = @data.fetch_object_by_uuid(:node, $node_uuid)
       node.timestamp = (Time.now.to_i - @config.register_timeout) - 1
       node.update_self
 
-      @engine.mk_checkin("TESTRSPECENGINE", "idle").should == {"command_name"=>:register, "command_param"=>{}}
+      @engine.mk_checkin($node_uuid, "idle").should == {"command_name"=>:register, "command_param"=>{}}
     end
 
     it "should tell a known node with regular checkin and no applicable policy: acknowledge" do
-      @engine.mk_checkin("TESTRSPECENGINE", "idle").should == {"command_name"=>:acknowledge, "command_param"=>{}}
+      @engine.mk_checkin($node_uuid, "idle").should == {"command_name"=>:acknowledge, "command_param"=>{}}
     end
 
     it "should bind a policy to a known node who is tagged to a matching rule (single tag node, single tag rule)" do
@@ -102,7 +102,7 @@ describe ProjectRazor::Engine do
       tag_rules[0].tag_matchers.count.should == 1
 
       # Get out node
-      node = @data.fetch_object_by_uuid(:node, "TESTRSPECENGINE")
+      node = @data.fetch_object_by_uuid(:node, $node_uuid)
       # Make sure our tag is applied dynamically
       node.tags.should == %W(RSPEC_ENGINE)
 
@@ -125,11 +125,11 @@ describe ProjectRazor::Engine do
 
       # Now we do a checkin for our node
       # This should trigger a policy binding because of a match to the policy rules tag and the node's tag
-      @engine.mk_checkin("TESTRSPECENGINE", "idle").should == {"command_name"=>:acknowledge, "command_param"=>{}}
+      @engine.mk_checkin($node_uuid, "idle").should == {"command_name"=>:acknowledge, "command_param"=>{}}
 
       # We should now have a binding for our node
       @engine.bound_policy.count.should == 1
-      @engine.bound_policy[0].node_uuid.should == "TESTRSPECENGINE"
+      @engine.bound_policy[0].node_uuid.should == $node_uuid
       @engine.bound_policy[0].uuid.should_not == new_policy_rule.uuid
     end
   end
