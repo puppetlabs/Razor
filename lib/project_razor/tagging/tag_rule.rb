@@ -186,7 +186,6 @@ module ProjectRazor
       end
 
       def print_item
-        system_name = @system ? @system.name : "none"
         [@name, @tag, @uuid]
       end
 

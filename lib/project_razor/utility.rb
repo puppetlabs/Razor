@@ -98,21 +98,26 @@ module ProjectRazor
     # @param [String] namespace_prefix
     # @param [String] type_name
     # @return [true|false]
-    def is_valid_type?(namespace_prefix, type_name = "default")
+    def is_valid_type?(namespace_prefix, template_name = "default")
       get_child_types(namespace_prefix).each do
-        |type|
-        return true if type.type.to_s.strip == type_name.strip && !type.hidden
+        |template|
+        return true if template.template.to_s.strip == template_name.strip && !template.hidden
       end
       false
     end
 
-    def new_object_from_type_name(namespace_prefix, object_type_name)
+
+    alias :is_valid_template? :is_valid_type?
+
+    def new_object_from_template_name(namespace_prefix, object_template_name)
       get_child_types(namespace_prefix).each do
-      |type|
-        return type if type.type.to_s == object_type_name
+      |template|
+        return template if template.template.to_s == object_template_name
       end
-      type
+      template
     end
+
+    alias :new_object_from_type_name :new_object_from_template_name
 
 
     def is_valid_json?(json_string)

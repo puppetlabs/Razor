@@ -69,17 +69,17 @@ describe ProjectRazor::Persist::Controller do
       #create junk model with random updates
       (0..rand(10)).each do
         |x|
-        temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_junk#{x}", :@model_type => "base", :@values_hash => {"junk" => "1"}})
+        temp_model = ProjectRazor::ModelTemplate::Base.new({:@name => "rspec_junk#{x}", :@model_type => "base", :@values_hash => {"junk" => "1"}})
         temp_model._persist_ctrl = @persist
         (0..rand(10)).each do
           @persist.object_hash_update(temp_model.to_hash, :model)
         end
       end
-      @model1 = ProjectRazor::Model::Base.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
+      @model1 = ProjectRazor::ModelTemplate::Base.new({:@name => "rspec_modelname01", :@model_type => "base", :@values_hash => {"a" => "1"}})
       @model1._persist_ctrl = @persist
-      @model2 = ProjectRazor::Model::Base.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "454"}})
+      @model2 = ProjectRazor::ModelTemplate::Base.new({:@name => "rspec_modelname02", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "454"}})
       @model2._persist_ctrl = @persist
-      @model3 = ProjectRazor::Model::Base.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
+      @model3 = ProjectRazor::ModelTemplate::Base.new({:@name => "rspec_modelname03", :@uuid => @model1.uuid , :@model_type => "base", :@values_hash => {"a" => "1000"}})
       @model3._persist_ctrl = @persist
     end
 

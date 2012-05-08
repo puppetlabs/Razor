@@ -5,14 +5,14 @@
 # Root namespace for ProjectRazor
 # @author Nicholas Weaver
 module ProjectRazor
-  module System
+  module BrokerPlugin
 
-    # Root namespace for Systems defined in ProjectRazor for node hand off
+    # Root namespace for Brokers defined in ProjectRazor for node hand off
     # @author Nicholas Weaver
     # @abstract
     class Base < ProjectRazor::Object
       attr_accessor :name
-      attr_accessor :type
+      attr_accessor :plugin
       attr_accessor :servers
       attr_accessor :description
       attr_accessor :user_description
@@ -21,12 +21,17 @@ module ProjectRazor
       def initialize(hash)
         super()
         @hidden = true
-        @type = :base
+        @plugin = :base
         @servers = []
-        @description = "Base system type - not used"
-        @_collection = :systems
+        @description = "Base broker plugin - not used"
+        @_collection = :broker
         from_hash(hash) if hash
       end
+
+      def template
+        @plugin
+      end
+
 
       def agent_hand_off(options = {})
 
@@ -36,19 +41,19 @@ module ProjectRazor
 
       end
 
-      # Method call for validating that a System instance successfully received the node
-      def validate_system_hand_off(options = {})
+      # Method call for validating that a Broker instance successfully received the node
+      def validate_broker_hand_off(options = {})
         # return false because the Base object does nothing
         # Child objects do not need to call super
         false
       end
 
       def print_header
-        return "Name", "Description", "Type", "Servers", "UUID"
+        return "Name", "Description", "Plugin", "Servers", "UUID"
       end
 
       def print_items
-        return @name, @user_description, @type.to_s, "[#{@servers.join(",")}]", @uuid
+        return @name, @user_description, @plugin.to_s, "[#{@servers.join(",")}]", @uuid
       end
 
       def line_color

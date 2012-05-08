@@ -31,7 +31,7 @@ module ProjectRazor
       end
 
       # Used to add an image to the service
-      # Within each child class the methods are overridden for that child type
+      # Within each child class the methods are overridden for that child template
       def add(src_image_path, image_svc_path, extra)
         set_image_svc_path(image_svc_path)
 
@@ -95,7 +95,7 @@ module ProjectRazor
       end
 
       # Used to remove an image to the service
-      # Within each child class the methods are overridden for that child type
+      # Within each child class the methods are overridden for that child template
       def remove(image_svc_path)
         set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
         cleanup([false ,""])
@@ -103,7 +103,7 @@ module ProjectRazor
       end
 
       # Used to verify an image within the filesystem (local/remote/possible Glance)
-      # Within each child class the methods are overridden for that child type
+      # Within each child class the methods are overridden for that child emplate
       def verify(image_svc_path)
         set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
         get_dir_hash(image_path) == @verification_hash

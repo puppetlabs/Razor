@@ -6,7 +6,7 @@ require "json"
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
-  module Model
+  module ModelTemplate
     # Root Model object
     # @author Nicholas Weaver
     # @abstract
@@ -15,13 +15,13 @@ module ProjectRazor
 
       attr_accessor :name
       attr_accessor :label
-      attr_accessor :type
+      attr_accessor :template
       attr_accessor :description
       attr_accessor :hidden
       attr_accessor :callback
       attr_accessor :current_state
       attr_accessor :node_bound
-      attr_accessor :system_type
+      attr_accessor :broker_plugin
       attr_accessor :final_state
       attr_accessor :counter
       attr_accessor :log
@@ -32,14 +32,14 @@ module ProjectRazor
         super()
         @name = "model_base"
         @hidden = true
-        @type = :base
-        @description = "Base model type"
+        @template = :base
+        @description = "Base model template"
         @req_metadata_hash = {}
         @callback = {}
         @current_state = :init
         @node_bound = nil
         @policy_bound = nil
-        @system_type = false # by default
+        @broker_plugin = false # by default
         @final_state = :nothing
         @counter = 0
         @result = nil
@@ -49,8 +49,8 @@ module ProjectRazor
         from_hash(hash) unless hash == nil
       end
 
-      def callback_init(callback_namespace, args_array, node, policy_uuid, system)
-        @system = system
+      def callback_init(callback_namespace, args_array, node, policy_uuid, broker)
+        @broker = broker
         @args_array = args_array
         @node = node
         @policy_uuid = policy_uuid
@@ -59,15 +59,15 @@ module ProjectRazor
       end
 
       def fsm
-        # used to defined base tree elements like System
+        # used to defined base tree elements like Broker
         base_fsm_tree = {
-            :system_fail => {
-                :else => :system_fail,
+            :broker_fail => {
+                :else => :broker_fail,
                 :retry => @final_state},
-            :system_wait => {
-                :else => :system_wait},
-            :system_success => {
-                :else => :system_success}
+            :broker_wait => {
+                :else => :broker_wait},
+            :broker_success => {
+                :else => :broker_success}
         }
         fsm_tree.merge base_fsm_tree
       end
@@ -101,9 +101,9 @@ module ProjectRazor
                 :method => method,
                 :node_uuid => node_bound.uuid,
                 :timestamp => Time.now.to_i)
-        # If in final state we check system assignment
-        if @current_state.to_s == @final_state.to_s # Enable to help with system debug || @current_state.to_s == "system_fail"
-          system_check
+        # If in final state we check broker assignment
+        if @current_state.to_s == @final_state.to_s # Enable to help with broker debug || @current_state.to_s == "broker_fail"
+          broker_check
         end
       end
 
@@ -115,32 +115,32 @@ module ProjectRazor
         @result = nil
       end
 
-      def system_check
-        # We need to check if a system is attached
-        unless @system
-          logger.error "No system defined"
-          @result = "No system attached"
-          @current_state = :complete_no_system
+      def broker_check
+        # We need to check if a broker is attached
+        unless @broker
+          logger.error "No broker defined"
+          @result = "No broker attached"
+          @current_state = :complete_no_broker
           fsm_log(:state => @current_state,
                   :old_state => @final_state,
-                  :action => :system_check,
-                  :method => :system_check,
+                  :action => :broker_check,
+                  :method => :broker_check,
                   :node_uuid => node_bound.uuid,
                   :timestamp => Time.now.to_i)
           return
         end
-        case @system_type
+        case @broker_plugin
           when :agent
-            return system_agent_handoff
+            return broker_agent_handoff
           when :proxy
             return false # Replace with proxy handling
           else
-            return false # Systems disabled for model
+            return false # Brokers disabled for model
         end
         false
       end
 
-      def system_agent_handoff
+      def broker_agent_handoff
         # Implemented by child model
         false
       end
@@ -152,11 +152,11 @@ module ProjectRazor
           logger.debug "Adding razor stuff"
           meta[:razor_tags] = @node.tags.join(',')
           meta[:razor_node_uuid] = @node.uuid
-          meta[:razor_bound_policy_uuid] = @policy_uuid
+          meta[:razor_active_model_uuid] = @policy_uuid
           meta[:razor_model_uuid] = @uuid
           meta[:razor_model_name] = @name
           meta[:razor_model_description] = @description
-          meta[:razor_model_type] = @type.to_s
+          meta[:razor_model_template] = @template.to_s
           meta[:razor_policy_count] = @counter.to_s
           logger.debug "Finished metadata build"
         rescue => e
@@ -170,11 +170,11 @@ module ProjectRazor
       end
 
       def print_header
-        return "Label", "Type", "Description", "UUID"
+        return "Label", "Template", "Description", "UUID"
       end
 
       def print_items
-        return @label, @type.to_s, @description, @uuid
+        return @label, @template.to_s, @description, @uuid
       end
 
       def line_color

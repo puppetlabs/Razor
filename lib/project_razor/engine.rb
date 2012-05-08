@@ -13,15 +13,15 @@ module ProjectRazor
     include(ProjectRazor::Logging)
     include(Singleton)
 
-    attr_accessor :policy_rules
+    attr_accessor :policies
 
     def initialize
-      # create the singelton for policy_rules
-      @policy_rules = ProjectRazor::PolicyRules.instance
+      # create the singelton for policies
+      @policies = ProjectRazor::Policies.instance
     end
 
-    def bound_policy
-      $data.fetch_all_objects(:bound_policy)
+    def get_active_models
+      $data.fetch_all_objects(:active)
     end
 
     #####################
@@ -88,19 +88,19 @@ module ProjectRazor
           return mk_command(:register,{})
         end
 
-        # Check to see if there is a bound policy
+        # Check to see if there is an active model
         # If there is we will call the mk_call method common to all policies
-        # A bound policy means the node will never evaluate a policy rule
-        # So for safety's sake - we set an extra flag (bound_policy_flag) which
+        # A active model means the node will never evaluate a policy
+        # So for safety's sake - we set an extra flag (active_models_flag) which
         # prevents the policy eval below to run
-        bound_policy = find_bound_policy(node)
+        active_model = find_active_models(node)
 
 
 
 
-        if bound_policy
-          command_array = bound_policy.mk_call(node)
-          bound_policy.update_self
+        if active_model
+          command_array = active_model.mk_call(node)
+          active_model.update_self
           return mk_command(command_array[0],command_array[1])
         else
           # Evaluate node vs policy rules to see if a policy needs to be bound
@@ -122,13 +122,13 @@ module ProjectRazor
     def mk_eval_vs_policy_rule(node)
       logger.debug "Evaluating policy rules vs Node #{node.uuid}"
       begin
-        # Loop through each rule checking node's tags to see if that match
-        policy_rules.get.each do
+        # Loop through each policy checking node's tags to see if that match
+        policies.get.each do
         |pl|
           # Make sure there is at least one tag
           if pl.tags.count > 0
             if check_tags(node.tags, pl.tags)
-              logger.debug "Matching policy rule (#{pl.label}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
+              logger.debug "Matching policy (#{pl.label}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
               # We found a policy that matches
               # we call the policy binding and exit loop
               mk_bind_policy(node, pl)
@@ -146,12 +146,12 @@ module ProjectRazor
     end
 
 
-    def mk_bind_policy(node, policy_rule)
-      if policy_rule.bind_me(node)
-        logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy_rule.label})"
-        $data.persist_object(policy_rule)
+    def mk_bind_policy(node, policy)
+      if policy.bind_me(node)
+        logger.debug "Binding policy for Node (#{node.uuid}) to Policy (#{policy.label})"
+        $data.persist_object(policy)
       else
-        logger.error "Cannot bind Node (#{node.uuid}) to Policy (#{policy_rule.label})"
+        logger.error "Cannot bind Node (#{node.uuid}) to Policy (#{policy.label})"
       end
     end
 
@@ -190,22 +190,22 @@ module ProjectRazor
       # We attempt to fetch the node object
       node = lookup_node_by_hw_id(:hw_id => hw_id)
 
-      # If the node is in the DB we can check for bound policy on it
+      # If the node is in the DB we can check for active model on it
       if node != nil
         # Node is in DB, lets check for policy
         logger.info "Node identified - uuid: #{node.uuid}"
-        bound_policy = find_bound_policy(node)  # commented out until refactor
+        active_model = find_active_models(node)  # commented out until refactor
 
-        #If there is a bound policy we pass it the node to a common
+        #If there is a active model we pass it the node to a common
         #method call from a boot
-        if bound_policy
-          # Call the bound policy boot_call
-          logger.info "Active policy found (#{bound_policy.label}) for Node uuid: #{node.uuid}"
-          boot_response = bound_policy.boot_call(node)
-          $data.persist_object(bound_policy)
+        if active_model
+          # Call the active model boot_call
+          logger.info "Active policy found (#{active_model.label}) for Node uuid: #{node.uuid}"
+          boot_response = active_model.boot_call(node)
+          $data.persist_object(active_model)
           return boot_response
         else
-          #There is not bound policy so we boot the MK
+          #There is not active model so we boot the MK
           logger.info "No active policy found - uuid: #{node.uuid}"
           default_mk_boot(node.uuid)
         end
@@ -225,11 +225,11 @@ module ProjectRazor
     #end
 
 
-    def find_bound_policy(node)
-      bound_policies = $data.fetch_all_objects(:bound_policy)
-      bound_policies.each do
+    def find_active_models(node)
+      active_models = $data.fetch_all_objects(:active)
+      active_models.each do
       |bp|
-        # If we find a bound policy we return it
+        # If we find a active model we return it
         return bp if bp.node_uuid == node.uuid
       end
       # Otherwise we return false indicating we have no policy
@@ -241,7 +241,7 @@ module ProjectRazor
 
     def default_mk_boot(uuid)
       logger.info "Responding with MK Boot - Node: #{uuid}"
-      default = ProjectRazor::Policy::BootMK.new({})
+      default = ProjectRazor::PolicyTemplate::BootMK.new({})
       default.get_boot_script
     end
 

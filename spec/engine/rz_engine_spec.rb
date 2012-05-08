@@ -16,16 +16,16 @@ describe ProjectRazor::Engine do
 
     # Clean stuff out
     @data.delete_all_objects(:node)
-    @data.delete_all_objects(:policy_rule)
-    @data.delete_all_objects(:bound_policy)
+    @data.delete_all_objects(:policy)
+    @data.delete_all_objects(:active)
     @data.delete_all_objects(:tag)
   end
 
   after (:all) do
     # Clean out what we did
     @data.delete_all_objects(:node)
-    @data.delete_all_objects(:policy_rule)
-    @data.delete_all_objects(:bound_policy)
+    @data.delete_all_objects(:policy)
+    @data.delete_all_objects(:active)
     @data.delete_all_objects(:tag)
   end
 
@@ -107,30 +107,30 @@ describe ProjectRazor::Engine do
       node.tags.should == %W(RSPEC_ENGINE)
 
       # Create a new policy rule
-      new_policy_rule = ProjectRazor::Policy::LinuxDeploy.new({})
-      new_policy_rule.label = "Base Swift Servers - Ubuntu 11.10"
-      new_policy_rule.model = ProjectRazor::Model::Base.new({})
-      new_policy_rule.tags << "RSPEC_ENGINE"
+      new_policy = ProjectRazor::PolicyTemplate::LinuxDeploy.new({})
+      new_policy.label = "Base Swift Servers - Ubuntu 11.10"
+      new_policy.model = ProjectRazor::ModelTemplate::Base.new({})
+      new_policy.tags << "RSPEC_ENGINE"
 
 
       # Make sure we have no policy rules
-      @engine.policy_rules.get.count.should == 0
+      @engine.policies.get.count.should == 0
 
       # We add our policy rule
-      @engine.policy_rules.add(new_policy_rule)
+      @engine.policies.add(new_policy)
 
       # Confirm it is there
-      @engine.policy_rules.get.count.should == 1
-      @engine.policy_rules.get[0].uuid.should == new_policy_rule.uuid
+      @engine.policies.get.count.should == 1
+      @engine.policies.get[0].uuid.should == new_policy.uuid
 
       # Now we do a checkin for our node
       # This should trigger a policy binding because of a match to the policy rules tag and the node's tag
       @engine.mk_checkin($node_uuid, "idle").should == {"command_name"=>:acknowledge, "command_param"=>{}}
 
       # We should now have a binding for our node
-      @engine.bound_policy.count.should == 1
-      @engine.bound_policy[0].node_uuid.should == $node_uuid
-      @engine.bound_policy[0].uuid.should_not == new_policy_rule.uuid
+      @engine.get_active_models.count.should == 1
+      @engine.get_active_models[0].node_uuid.should == $node_uuid
+      @engine.get_active_models[0].uuid.should_not == new_policy.uuid
     end
   end
 

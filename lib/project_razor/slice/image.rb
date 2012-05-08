@@ -11,10 +11,10 @@ module ProjectRazor
 
     # TODO - add inspection to prevent duplicate MK's with identical version to be added
 
-    # ProjectRazor Slice ImageSvc
+    # ProjectRazor Slice Image
     # Used for image management
     # @author Nicholas Weaver
-    class Imagesvc < ProjectRazor::Slice::Base
+    class Image < ProjectRazor::Slice::Base
 
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args
@@ -27,11 +27,11 @@ module ProjectRazor
                            :remove => "remove_image",
                            :default => "list_images",
                            :path => "get_path"}
-        @slice_commands_help = {:add => "imagesvc add " + "[#{get_types}]".white + " (PATH TO ISO)".yellow,
-                                :get => "imagesvc " + "[get]".blue,
-                                :remove => "imagesvc remove " + "(IMAGE UUID)".yellow,
-                                :default => "imagesvc " + "[get]".blue}
-        @slice_name = "Imagesvc"
+        @slice_commands_help = {:add => "image add " + "[#{get_types}]".white + " (PATH TO ISO)".yellow,
+                                :get => "image " + "[get]".blue,
+                                :remove => "image remove " + "(IMAGE UUID)".yellow,
+                                :default => "image " + "[get]".blue}
+        @slice_name = "Image"
       end
 
       #Gets the path to an image or image element
@@ -206,13 +206,13 @@ module ProjectRazor
       def add_os(new_image, iso_path, image_svc_path)
         os_name = @command_array.shift
         if os_name == nil
-          @slice_commands_help[:add] = "imagesvc add os #{iso_path} ".white + "(OS Name) (OS Version)".red
+          @slice_commands_help[:add] = "image add os #{iso_path} ".white + "(OS Name) (OS Version)".red
           return [false, "MissingOSName"]
         end
 
         os_version = @command_array.shift
         if os_version == nil
-          @slice_commands_help[:add] = "imagesvc add os #{iso_path} #{os_name} ".white + "(OS Version)".red
+          @slice_commands_help[:add] = "image add os #{iso_path} #{os_name} ".white + "(OS Version)".red
           return [false, "MissingOSVersion"]
         end
 

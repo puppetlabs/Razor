@@ -153,7 +153,7 @@ module ProjectRazor
     # @param [Hash] object_hash The hash of the object
     # @return [ProjectRazor::Object, ProjectRazor]
     def object_hash_to_object(object_hash)
-      logger.debug "Converting object hash to object (#{object_hash['@classname']})"
+      #logger.debug "Converting object hash to object (#{object_hash['@classname']})"
       begin
       object = Object::full_const_get(object_hash["@classname"]).new(object_hash)
       object._persist_ctrl = @persist_ctrl

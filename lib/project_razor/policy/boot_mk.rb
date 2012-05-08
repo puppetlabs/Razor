@@ -2,10 +2,10 @@
 # Copyright © 2012 EMC Corporation, All Rights Reserved
 
 module ProjectRazor
-  module Policy
+  module PolicyTemplate
     # ProjectRazor Policy Default class
     # Used for default booting of Razor MK
-    class BootMK< ProjectRazor::Policy::Base
+    class BootMK< ProjectRazor::PolicyTemplate::Base
       include(ProjectRazor::Logging)
 
       # @param hash [Hash]
@@ -13,7 +13,7 @@ module ProjectRazor
         super(nil)
 
         @hidden = :true
-        @type = :hidden
+        @template = :hidden
         @description = "Default MK boot object. Hidden"
 
         @data = ProjectRazor::Data.new

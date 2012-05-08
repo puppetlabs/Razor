@@ -9,19 +9,19 @@ module ProjectRazor
 
 
 
-      class ObjectType < ProjectRazor::Object
-        attr_accessor :type, :description
+      class ObjectTemplate < ProjectRazor::Object
+        attr_accessor :template, :description
 
-        def initialize(type, description)
-          @type, @description = type, description
+        def initialize(template, description)
+          @template, @description = template, description
         end
 
         def print_header
-          return "Type", "Description"
+          return "Template", "Description"
         end
 
         def print_items
-          return @type, @description
+          return @template, @description
         end
 
         def line_color
@@ -33,8 +33,24 @@ module ProjectRazor
         end
       end
 
-      # Returns all child types from prefix
-      def get_child_types(namespace_prefix)
+      class ObjectPlugin < ObjectTemplate
+        attr_accessor :plugin, :description
+
+        def initialize(plugin, description)
+          @plugin, @description = plugin, description
+        end
+
+        def print_header
+          return "Plugin", "Description"
+        end
+
+        def print_items
+          return @plugin, @description
+        end
+      end
+
+      # Returns all child templates from prefix
+      def get_child_templates(namespace_prefix)
         temp_hash = {}
         ObjectSpace.each_object do
         |object_class|
@@ -48,11 +64,20 @@ module ProjectRazor
         object_array.each_value.collect { |x| x }.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
       end
 
-      # returns child types as ObjectType (used for printing)
-      def get_types_as_object_types(namespace_prefix)
-        get_child_types(namespace_prefix).map do
-        |system_type|
-          ObjectType.new(system_type.type.to_s, system_type.description) unless system_type.hidden
+      alias :get_child_types :get_child_templates
+
+      # returns child templates as ObjectType (used for printing)
+      def get_templates_as_object_templates(namespace_prefix)
+        get_child_templates(namespace_prefix).map do
+        |template|
+          ObjectTemplate.new(template.template.to_s, template.description) unless template.hidden
+        end.compact
+      end
+
+      def get_plugins_as_object_plugins(namespace_prefix)
+        get_child_templates(namespace_prefix).map do
+        |plugin|
+          ObjectPlugin.new(plugin.plugin.to_s, plugin.description) unless plugin.hidden
         end.compact
       end
 
@@ -120,7 +145,6 @@ module ProjectRazor
       def return_objects(collection)
         setup_data
         @data.fetch_all_objects(collection)
-
       end
 
       # Return objects using uuid
@@ -144,70 +168,6 @@ module ProjectRazor
         print "\n"
       end
 
-
-
-
-      ########### Common Slice Printing ###########
-
-      #def print_policy_rules(rules_array)
-      #  unless @web_command
-      #    puts "Policy Rules:"
-      #    unless @verbose
-      #      rules_array.each do |rule|
-      #        print "   Order: " + "#{rule.line_number}".yellow
-      #        print "  Label: " + "#{rule.label}".yellow
-      #        print "  Type: " + "#{rule.type}".yellow
-      #        print "  Model label: " + "#{rule.model.label}".yellow
-      #        print "  Model type: " + "#{rule.model.type}".yellow
-      #        print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
-      #        print "  UUID: " + "#{rule.uuid}\n\n".yellow
-      #      end
-      #    else
-      #      rules_array.each { |rule| print_object_details_cli(rule) }
-      #    end
-      #  else
-      #    rules_array = rules_array.collect { |rule| rule.to_hash }
-      #    slice_success(rules_array, false)
-      #  end
-      #end
-
-      #def print_policy_rules_bound(rules_array)
-      #  unless @web_command
-      #    puts "Bound Policy:"
-      #    unless @verbose
-      #      rules_array.each do |rule|
-      #        print "    Label: " + "#{rule.label}".yellow
-      #        print "  Type: " + "#{rule.type}".yellow
-      #        print "  Model label: " + "#{rule.model.label}".yellow
-      #        print "  Model type: " + "#{rule.model.type}".yellow
-      #        print "  Tags: " + "#{rule.tags.join(",")}\n".yellow
-      #        print "    UUID: " + "#{rule.uuid}".yellow
-      #        print "  Node UUID: " + "#{rule.node_uuid}".yellow
-      #        print "  Current state: " + "#{rule.model.current_state}\n\n".yellow
-      #      end
-      #    else
-      #      rules_array.each { |rule| print_object_details_cli(rule) }
-      #    end
-      #  else
-      #    rules_array = rules_array.collect { |rule| rule.to_hash }
-      #    slice_success(rules_array, false)
-      #  end
-      #end
-
-      #def print_policy_types(types_array)
-      #  unless @web_command
-      #    puts "Valid Policy Types:"
-      #    unless @verbose
-      #      types_array.each { |type| puts "\t#{type.type} ".yellow + " :  #{type.description}" }
-      #    else
-      #      types_array.each { |type| print_object_details_cli(type) }
-      #    end
-      #  else
-      #    types_array = types_array.collect { |type| type.to_hash }
-      #    slice_success(types_array, false)
-      #  end
-      #end
-
       def print_model_configs(model_array)
         unless @web_command
           puts "Model Configs:"
@@ -229,16 +189,16 @@ module ProjectRazor
         end
       end
 
-      def print_model_types(types_array)
+      def print_model_templates(templates_array)
         if @web_command
-          types_array = types_array.collect { |type| type.to_hash }
-          slice_success(types_array, false)
+          templates_array = templates_array.collect { |template| template.to_hash }
+          slice_success(templates_array, false)
         else
-          puts "Valid Model Types:"
+          puts "Valid Model Templates:"
           if @verbose
-            types_array.each { |type| print_object_details_cli(type) }
+            templates_array.each { |template| print_object_details_cli(template) }
           else
-            types_array.each { |type| puts "\t#{type.name} ".yellow + " :  #{type.description}" }
+            templates_array.each { |template| puts "\t#{template.name} ".yellow + " :  #{template.description}" }
           end
         end
       end

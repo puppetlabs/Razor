@@ -23,8 +23,8 @@ app.get('/razor/image/mk*',
         if (args.length < 2) {
             args_string = args_string + "default "
         }
-
-        exec(razor_bin + " imagesvc path " + args_string, function (err, stdout, stderr) {
+        console.log("LOG" + razor_bin + " image path " + args_string);
+        exec(razor_bin + " image path " + args_string, function (err, stdout, stderr) {
             console.log(stdout);
             path = getPath(stdout);
             respondWithFileMK(path, res)
@@ -35,6 +35,7 @@ app.get('/razor/image/mk*',
 app.get('/razor/image/*',
     function(req, res) {
         path = decodeURIComponent(req.path.replace(/^\/razor\/image/, image_svc_path));
+        console.log(path);
         respondWithFile(path, res);
     });
 

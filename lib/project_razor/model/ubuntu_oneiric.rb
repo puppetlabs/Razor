@@ -9,11 +9,11 @@ require "erb"
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
-  module Model
+  module ModelTemplate
     # Root Model object
     # @author Nicholas Weaver
     # @abstract
-    class UbuntuOneiricMinimal < ProjectRazor::Model::Base
+    class UbuntuOneiricMinimal < ProjectRazor::ModelTemplate::Base
       include(ProjectRazor::Logging)
 
       # Assigned image
@@ -27,7 +27,7 @@ module ProjectRazor
         super(hash)
         # Static config
         @hidden = false
-        @type = :linux_deploy
+        @template = :linux_deploy
         @name = "ubuntu_oneiric_min"
         @description = "Ubuntu Oneiric 11.10 Minimal"
         # Metadata vars
@@ -38,8 +38,8 @@ module ProjectRazor
         @image_uuid = true
         # Image prefix we can attach
         @image_prefix = "os"
-        # Enable agent systems for this model
-        @system_type = :agent
+        # Enable agent brokers for this model
+        @broker_plugin = :agent
         @final_state = :os_complete
         from_hash(hash) unless hash == nil
       end
@@ -64,12 +64,12 @@ module ProjectRazor
          "postinstall" => :postinstall_call,}
       end
 
-      def system_agent_handoff
-        # Ubuntu support agent-based systems that support Linux
+      def broker_agent_handoff
+        # Ubuntu support agent-based brokers that support Linux
 
-        logger.debug "System agent called for: #{@system.name}"
+        logger.debug "Broker agent called for: #{@broker.name}"
 
-        # We need to send username & password to system agent method
+        # We need to send username & password to broker agent method
         # We also need to send our Node's metadata (attributes_hash).
 
         options = {}
@@ -83,21 +83,21 @@ module ProjectRazor
         logger.debug "hostname: #{options[:hostname]}"
         unless @node_ip
           logger.error "Node IP address isn't known"
-          @current_state = :system_fail
+          @current_state = :broker_fail
           fsm_log(:state => @current_state,
                   :old_state => :os_complete,
-                  :action => :system_agent_handoff,
-                  :method => :system,
+                  :action => :broker_agent_handoff,
+                  :method => :broker,
                   :node_uuid => @node_bound.uuid,
                   :timestamp => Time.now.to_i)
         end
         options[:ipaddress] = @node_ip
         logger.debug "ip address: #{options[:ipaddress]}"
-        @current_state = @system.agent_hand_off(options)
+        @current_state = @broker.agent_hand_off(options)
         fsm_log(:state => @current_state,
                 :old_state => :os_complete,
-                :action => :system_agent_handoff,
-                :method => :system,
+                :action => :broker_agent_handoff,
+                :method => :broker,
                 :node_uuid => @node_bound.uuid,
                 :timestamp => Time.now.to_i)
       end
@@ -219,7 +219,7 @@ module ProjectRazor
         @node_bound = node
         case @current_state
           # We need to reboot
-          when :init, :preinstall, :postinstall, :os_validate, :os_complete, :system_check, :system_fail, :system_success
+          when :init, :preinstall, :postinstall, :os_validate, :os_complete, :broker_check, :broker_fail, :broker_success
             ret = [:reboot, {}]
           when :timeout_error, :error_catch
             ret = [:acknowledge, {}]
@@ -236,7 +236,7 @@ module ProjectRazor
           when :init, :preinstall
             @result = "Starting Ubuntu model install"
             ret = start_install(node, policy_uuid)
-          when :postinstall, :os_complete, :system_check, :system_fail, :system_success
+          when :postinstall, :os_complete, :broker_check, :broker_fail, :broker_success
             ret = local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance

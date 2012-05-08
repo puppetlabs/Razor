@@ -8,11 +8,11 @@
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
-  module Model
+  module ModelTemplate
     # Root Model object
     # @author Nicholas Weaver
     # @abstract
-    class VMwareESXi5Simple < ProjectRazor::Model::Base
+    class VMwareESXi5Simple < ProjectRazor::ModelTemplate::Base
       include(ProjectRazor::Logging)
 
       # Assigned image
@@ -30,7 +30,7 @@ module ProjectRazor
 
         # Static config
         @hidden = false
-        @type = :vmware_hypervisor
+        @template = :vmware_hypervisor
         @name = "vmware_esxi5_simple"
         @description = "VMware ESXi 5 Simple Deployment"
 

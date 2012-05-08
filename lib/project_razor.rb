@@ -26,11 +26,10 @@ require "project_razor/slice"
 require "project_razor/persist"
 require "project_razor/model"
 require "project_razor/tagging"
-#require "project_razor/policy_binding"
-require "project_razor/policy_rules"
+require "project_razor/policies"
 require "project_razor/image_service"
 require "project_razor/power_control"
-require "project_razor/system"
+require "project_razor/broker"
 
 
 $data = ProjectRazor::Data.new

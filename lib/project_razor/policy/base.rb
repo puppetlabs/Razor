@@ -4,17 +4,17 @@
 # ProjectRazor Policy Base class
 # Root abstract
 module ProjectRazor
-  module Policy
+  module PolicyTemplate
     class Base< ProjectRazor::Object
       include(ProjectRazor::Logging)
 
       attr_accessor :label
       attr_accessor :line_number
       attr_accessor :model
-      attr_accessor :system
+      attr_accessor :broker
       attr_accessor :tags
       attr_reader :hidden
-      attr_reader :type
+      attr_reader :template
       attr_reader :description
 
       # Used for binding
@@ -29,7 +29,7 @@ module ProjectRazor
         super()
         @tags = []
         @hidden = :true
-        @type = :hidden
+        @template = :hidden
         @description = "Base policy rule object. Hidden"
         @node_uuid = nil
         @bind_timestamp = nil
@@ -37,9 +37,9 @@ module ProjectRazor
         from_hash(hash) unless hash == nil
         # If our policy is bound it is stored in a different collection
         if @bound
-          @_collection = :bound_policy
+          @_collection = :active
         else
-          @_collection = :policy_rule
+          @_collection = :policy
         end
       end
 
@@ -51,7 +51,7 @@ module ProjectRazor
 
           @bound = true
           @uuid = create_uuid
-          @_collection = :bound_policy
+          @_collection = :active
           @bind_timestamp = Time.now.to_i
           @node_uuid = node.uuid
           true
@@ -75,26 +75,26 @@ module ProjectRazor
 
       end
       # Placeholder - may be removed and used within state_call
-      # intended to be called by node or daemon for connection/hand-off to systems
-      def system_call(node, new_state)
+      # intended to be called by node or daemon for connection/hand-off to brokers
+      def broker_call(node, new_state)
 
       end
 
       def print_header
         if @bound
-          return "Label", "Model Label", "Node UUID", "System", "Bind #", "UUID"
+          return "Label", "State", "Node UUID", "System", "Bind #", "UUID"
         else
-          return "#", "Label", "Type", "Tags", "Model Label", "System Name", "Count", "UUID"
+          return "#", "Label", "Template", "Tags", "Model Label", "Broker Target", "Count", "UUID"
         end
       end
 
       def print_items
         if @bound
-          system_name = @system ? @system.name : "none"
-          return @label, @model.type.to_s, @node_uuid, system_name, @model.counter.to_s, @uuid
+          broker_name = @broker ? @broker.name : "none"
+          return @label, @model.current_state.to_s, @node_uuid, broker_name, @model.counter.to_s, @uuid
         else
-          system_name = @system ? @system.name : "none"
-          return @line_number.to_s, @label, @type.to_s, "[#{@tags.join(",")}]", @model.type.to_s, system_name, @model.counter.to_s, @uuid
+          broker_name = @broker ? @broker.name : "none"
+          return @line_number.to_s, @label, @template.to_s, "[#{@tags.join(",")}]", @model.template.to_s, broker_name, @model.counter.to_s, @uuid
         end
       end
 
@@ -102,50 +102,50 @@ module ProjectRazor
         if @bound
           ["UUID",
            "Label",
-           "Type",
+           "Template",
            "Node UUID",
            "Model Label",
            "Model Name",
            "Current State",
-           "System Name",
+           "Broker Target",
            "Bound Number",
            "Bind Time"]
         else
           ["UUID",
            "Line Number",
            "Label",
-           "Type",
+           "Template",
            "Description",
            "Tags",
            "Model Label",
-           "System Name",
+           "Broker Target",
            "Bound Count"]
         end
       end
 
       def print_item
         if @bound
-          system_name = @system ? @system.name : "none"
+          broker_name = @broker ? @broker.name : "none"
           [@uuid,
            @label,
-           @type.to_s,
+           @template.to_s,
            @node_uuid,
            @model.label.to_s,
            @model.name.to_s,
            @model.current_state.to_s,
-           system_name,
+           broker_name,
            @model.counter.to_s,
            Time.at(@bind_timestamp).strftime("%H:%M:%S %m-%d-%Y")]
         else
-          system_name = @system ? @system.name : "none"
+          broker_name = @broker ? @broker.name : "none"
           [@uuid,
            @line_number.to_s,
            @label,
-           @type.to_s,
+           @template.to_s,
            @description,
            "[#{@tags.join(", ")}]",
            @model.label.to_s,
-           system_name,
+           broker_name,
            @model.counter.to_s]
         end
       end
@@ -193,7 +193,6 @@ module ProjectRazor
       end
 
       def print_log_all
-
         # First see if we have the HashPrint class already defined
         begin
           self.class.const_get :HashPrint # This throws an error so we need to use begin/rescue to catch

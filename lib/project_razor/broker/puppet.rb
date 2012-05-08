@@ -3,23 +3,23 @@
 
 # Our puppet plugin which contains the agent & device proxy classes used for hand off
 
-# TODO - Make system properties open rather than rigid
+# TODO - Make broker properties open rather than rigid
 require "erb"
 require "net/ssh"
 
 # Root namespace for ProjectRazor
 # @author Nicholas Weaver
-module ProjectRazor::System
+module ProjectRazor::BrokerPlugin
 
-  # Root namespace for Puppet System type defined in ProjectRazor for node handoff
+  # Root namespace for Puppet Broker plugin defined in ProjectRazor for node handoff
   # @author Nicholas Weaver
-  class Puppet < ProjectRazor::System::Base
+  class Puppet < ProjectRazor::BrokerPlugin::Base
     include(ProjectRazor::Logging)
 
     def initialize(hash)
       super(hash)
 
-      @type = :puppet
+      @plugin = :puppet
       @description = "PuppetLabs PuppetMaster"
       @hidden = false
       from_hash(hash) if hash
@@ -40,7 +40,7 @@ module ProjectRazor::System
       false
     end
 
-    # Method call for validating that a System instance successfully received the node
+    # Method call for validating that a Broker instance successfully received the node
     def validate_hand_off(options = {})
       # Return true until we add validation
       true
@@ -59,14 +59,14 @@ module ProjectRazor::System
         end
       rescue => e
         logger.error "puppet agent error: #{p e}"
-        return :system_fail
+        return :broker_fail
       end
       # set return to fail by default
-      ret = :system_fail
+      ret = :broker_fail
       # set to wait
-      ret = :system_wait if @run_script_str.include?("Exiting; no certificate found and waitforcert is disabled")
+      ret = :broker_wait if @run_script_str.include?("Exiting; no certificate found and waitforcert is disabled")
       # set to success (this meant autosign was likely on)
-      ret = :system_success if @run_script_str.include?("Finished catalog run")
+      ret = :broker_success if @run_script_str.include?("Finished catalog run")
       ret
     end
 

@@ -22,12 +22,12 @@ module ProjectRazor
                            :get => "get_model",
                            :add => "add_model",
                            :remove => "remove_model"}
-        @slice_commands_help = {:get => "imagesvc model ".red + "{get [config|type]}".blue,
-                                :default => "imagesvc model ".red + "{get [config|type]}".blue,
-                                :add_cli => "imagesvc model add".red + " (model_type) (model config name)".blue,
-                                :add_cli_with_image => "imagesvc model add".red + " (model_type) (model config name) {image uuid}".blue,
-                                :add_web => "imagesvc model add".red + " (model_type) (json string)".blue,
-                                :remove => "imagesvc model remove".red + " (model config uuid)".blue}
+        @slice_commands_help = {:get => "razor model ".red + "{get [template]}".blue,
+                                :default => "razor model ".red + "{get [template]}".blue,
+                                :add_cli => "razor model add".red + " (model_template) (model name)".blue,
+                                :add_cli_with_image => "razor model add".red + " (model_template) (model name) {image uuid}".blue,
+                                :add_web => "razor model add".red + " (model_template) (json string)".blue,
+                                :remove => "razor model remove".red + " (model uuid)".blue}
         @slice_name = "Model"
       end
 
@@ -37,24 +37,24 @@ module ProjectRazor
 
         case @arg01
           when "config"
-            get_model_config
-          when "type"
-            get_model_types
+            get_models
+          when "template"
+            get_model_templates
           when "help"
             slice_error("Help", false)
           else
-            get_model_config
+            get_models
         end
       end
 
 
-      def get_model_config
-        print_object_array get_object("model_config", :model), "Model Configs"
+      def get_models
+        print_object_array get_object("models", :model), "Models"
       end
 
-      def get_model_types
-        policy_rules = ProjectRazor::PolicyRules.instance
-        print_model_types policy_rules.get_model_types
+      def get_model_templates
+        policies = ProjectRazor::Policies.instance
+        print_model_templates policies.get_model_templates
       end
 
 
@@ -64,20 +64,20 @@ module ProjectRazor
 
         unless validate_arg(model_uuid)
           slice_error("MissingUUID")
-          get_model_config
+          get_models
           return
         end
 
         setup_data
-        model_config = @data.fetch_object_by_uuid(:model, model_uuid)
+        model = @data.fetch_object_by_uuid(:model, model_uuid)
 
-        unless model_config
+        unless models
           slice_error("CannotFindModelConfig")
-          get_model_config
+          get_models
           return
         end
 
-        if @data.delete_object(model_config)
+        if @data.delete_object(model)
           slice_success("ModelConfigRemoved")
         else
           slice_error("ModelConfigNotRemoved")
@@ -99,23 +99,23 @@ module ProjectRazor
       def add_model_cli
         @command = :add_cli
         @model_name =  @command_array.shift
-        policy_rules = ProjectRazor::PolicyRules.instance
+        policies = ProjectRazor::Policies.instance
 
         unless @model_name != nil
-          slice_error("ModelTypeMissing")
+          slice_error("Model Template Missing")
           return
         end
 
 
-        new_model = policy_rules.is_model_type?(@model_name)
+        new_model = policies.is_model_template?(@model_name)
         unless new_model
-          slice_error("ModelTypeNotFound")
+          slice_error("Model Template Missing")
           return
         end
 
         @model_label =  @command_array.shift
         unless @model_label != nil
-          slice_error("ModelNameMissing")
+          slice_error("Model Name Missing")
           return
         end
 
@@ -155,7 +155,7 @@ module ProjectRazor
           end
 
           unless @image_requested.path_prefix == new_model.image_prefix
-            slice_error("ImageIsNotCorrectType")
+            slice_error("Image Is Not Correct Template")
             valid_images = get_object("images", :images).map! do |i|
               i.path_prefix == new_model.image_prefix ? i : nil
             end.compact!
@@ -267,7 +267,7 @@ module ProjectRazor
 
       def add_model_web
         @command = :add_web
-        @model_type =  @command_array.shift
+        @model_template =  @command_array.shift
         @values_json_string =  @command_array.shift
         slice_error("NotImplemented")
       end
