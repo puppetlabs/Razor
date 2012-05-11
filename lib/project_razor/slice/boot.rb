@@ -17,9 +17,9 @@ module ProjectRazor
         super(args)
         @hidden = true
         @new_slice_style = true
-        @slice_commands = {:boot => "boot_call",
-                           :default => :boot,
-                           :else => :boot}
+        @slice_commands = { :boot    => "boot_call",
+                            :default => :boot,
+                            :else    => :boot }
         @slice_name = "Boot"
         @engine = ProjectRazor::Engine.instance
       end
