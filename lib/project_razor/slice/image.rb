@@ -21,16 +21,25 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden = false
+        @new_slice_style = true # switch to new slice style
         # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:add => "add_image",
-                           :get => "list_images",
-                           :remove => "remove_image",
-                           :default => "list_images",
-                           :path => "get_path"}
-        @slice_commands_help = {:add => "image add " + "[#{get_types}]".white + " (PATH TO ISO)".yellow,
-                                :get => "image " + "[get]".blue,
-                                :remove => "image remove " + "(IMAGE UUID)".yellow,
-                                :default => "image " + "[get]".blue}
+        @slice_commands = {
+          :add     => {
+            :default => "add_image",
+            :help    => "razor image add " + "[#{get_types}]".white + " [/path/to/image]".yellow,
+            :else    => :default,
+           },
+          :get     => "list_images",
+          :remove  => {
+            :default => "remove_image",
+            :help    => "razor image remove " + "(IMAGE UUID)".yellow,
+            :else    => :default,
+           },
+          :default => "list_images",
+          :path    => "get_path",
+          :else    => :help,
+          :help    => 'razor image [add|get|remove|path]',
+        }
         @slice_name = "Image"
       end
 
@@ -40,7 +49,6 @@ module ProjectRazor
       # /%uuid&/%path to file% - gets the file from relative path for image with %uuid%
 
       def get_types
-
         @image_types = get_child_types("ProjectRazor::ImageService::")
         @image_types.map {|x| x.path_prefix.yellow unless x.hidden}.compact.join("|".red)
       end
@@ -57,66 +65,48 @@ module ProjectRazor
                 get_path_with_uuid(@arg)
             end
           else
-            slice_error("MissingArgument")
+            raise ProjectRazor::Error::Slice::MissingArgument, 'image type'
           end
         else
-          slice_error("NotImplemented")
+          raise ProjectRazor::Error::Slice::NotImplemented, 'REST only'
         end
       end
 
       def get_mk_paths
         engine = ProjectRazor::Engine.instance
         default_mk_image = engine.default_mk
+        raise ProjectRazor::Error::Slice::MissingMK unless default_mk_image != nil
 
-        if default_mk_image != nil
-          @option = @command_array.shift
-          if @option != nil
+        @option = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingOption unless @option
 
-            setup_data
-            case @option
-              when "kernel"
-                slice_success(default_mk_image.kernel_path)
-
-              when "initrd"
-                slice_success(default_mk_image.initrd_path)
-
-              else
-                slice_error("MissingOption")
-            end
-          else
-            slice_error("MissingOption")
-          end
+        setup_data
+        case @option
+        when "kernel"
+          slice_success(default_mk_image.kernel_path)
+        when "initrd"
+          slice_success(default_mk_image.initrd_path)
         else
-          slice_error("NoMKLoaded")
+          raise ProjectRazor::Error::Slice::InvalidArgument, @option
         end
       end
 
       def get_path_with_uuid(uuid)
         @image_uuid = uuid
 
-        unless validate_arg(@image_uuid)
-          slice_error("InvalidImageUUID")
-          return
-        end
+        raise ProjectRazor::Error::Slice::MissingArgument, '[uuid]' unless validate_arg(@image_uuid)
 
         @image_uuid = "95a1f9b05672012f5a86000c29a78d16" if @image_uuid == "nick"
 
         setup_data
         @image = @data.fetch_object_by_uuid(:images, @image_uuid)
 
-        unless @image != nil
-          slice_error("CannotFindImage")
-          return
-        end
+        raise ProjectRazor::Error::Slice::InvalidImageUUID, uuid unless @image != nil
 
         @image.set_image_svc_path(@data.config.image_svc_path)
 
-        @command_array.each do
-        |a|
-          unless /^[^ \/\\]+$/ =~ a
-            slice_error("InvalidPathItem")
-            return
-          end
+        @command_array.each do |a|
+          raise ProjectRazor::Error::Slice::InvalidPathItem, a unless /^[^ \/\\]+$/ =~ a
         end
         file_path = @image.image_path + "/" + @command_array.join("/")
 
@@ -124,19 +114,14 @@ module ProjectRazor
         if File.exists?(file_path) || Dir.exist?(file_path)
           slice_success(file_path)
         else
-          slice_error("FilePathDoesNotExistInImage")
+          raise ProjectRazor::Error::Slice::InvalidImageFilePath, file_path
         end
-
-
       end
 
       #Lists images
       def list_images
-        if @web_command
-          slice_error("CLIOnlySlice")
-        else
-          print_images get_object("images", :images)
-        end
+        raise ProjectRazor::Error::Slice::NotImplemented, "image list cli only" if @web_command
+        print_images get_object("images", :images)
       end
 
       #Add an image
@@ -152,45 +137,31 @@ module ProjectRazor
                        :esxi => {:desc => "VMware Hypervisor ISO",
                                :classname => "ProjectRazor::ImageService::VMwareHypervisor",
                                :method => "add_esxi"}}
-        if @web_command
-          slice_error("CLIOnlySlice")
-        else
 
-          image_type = @command_array.shift
+        raise ProjectRazor::Error::Slice::NotImplemented, "image add cli only" if @web_command
 
-          unless check_against_types(image_type, image_types)
-            print_types(image_types)
-            slice_error("InvalidImageType")
-            return
-          end
+        image_type = @command_array.shift
 
-          iso_path = @command_array.shift
-          unless iso_path != nil && iso_path != ""
-            slice_error("NoISOProvided")
-            return
-          end
-
-          classname = image_types[image_type.to_sym][:classname]
-
-
-          new_image = Object::full_const_get(classname).new({})
-          # We send the new image object to the appropriate method
-          res = self.send image_types[image_type.to_sym][:method], new_image, iso_path, @data.config.image_svc_path
-
-          unless res[0]
-            slice_error(res[1])
-            return
-          end
-
-
-          unless insert_image(new_image)
-            slice_error("CouldNotSaveImage")
-            return
-          end
-
-          puts "\nNew image added successfully\n".green
-          print_images [new_image]
+        unless ([image_type.to_sym] - image_types.keys).size == 0
+          print_types(image_types)
+          raise ProjectRazor::Error::Slice::InvalidImageType, image_type
         end
+
+        iso_path = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingArgument, '[/path/to/iso]' unless iso_path != nil && iso_path != ""
+
+        classname = image_types[image_type.to_sym][:classname]
+
+        new_image = Object::full_const_get(classname).new({})
+        # We send the new image object to the appropriate method
+        res = self.send image_types[image_type.to_sym][:method], new_image, iso_path, @data.config.image_svc_path
+
+        raise ProjectRazor::Error::Slice::InternalError res[1] unless res[0]
+
+        raise ProjectRazor::Error::Slice::InternalError "Could not save image." unless insert_image(new_image)
+
+        puts "\nNew image added successfully\n".green
+        print_images [new_image]
       end
 
       def add_mk(new_image, iso_path, image_svc_path)
@@ -242,55 +213,27 @@ module ProjectRazor
         end
       end
 
-      def check_against_types(type,types)
-        types.each_key do
-        |k|
-          return true if type == k.to_s
-        end
-        false
-      end
-
-
       def remove_image
         @command = :remove
 
-        if @web_command
-          slice_error("CLIOnlySlice")
+        raise ProjectRazor::Error::Slice::NotImplemented, 'CLI only' if @web_command
+        image_uuid = @command_array.shift
+        raise ProjectRazor::Error::Slice::MissingArgument, '[uuid]' unless image_uuid
+
+        setup_data
+        image_selected = @data.fetch_object_by_uuid(:images, image_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID unless image_selected
+
+        # TODO - Add cross check against engine to be sure image is not actively part of a policy_rule or bound_policy within a model
+
+        raise ProjectRazor::Error::Slice::InternalError, 'cannot remove image path' unless image_selected.remove(@data.config.image_svc_path)
+        if @data.delete_object(image_selected)
+          slice_success("")
+          puts "\nImage: " + "#{image_uuid}".yellow + " removed successfully"
         else
-          image_uuid = @command_array.shift
-          if image_uuid == nil
-            slice_error("NoUUIDProvided")
-            return
-          else
-            setup_data
-            image_selected = @data.fetch_object_by_uuid(:images, image_uuid)
-            if image_selected == nil
-              slice_error("NoImageFoundWithUUID")
-              return
-            else
-
-              # TODO - Add cross check against engine to be sure image is not actively part of a policy_rule or bound_policy within a model
-
-              if image_selected.remove(@data.config.image_svc_path)
-                if @data.delete_object(image_selected)
-                  slice_success("")
-                  puts "\nImage: " + "#{image_uuid}".yellow + " removed successfully"
-                  return
-                else
-                  slice_error("CannotRemoveImageFromDB")
-                  return
-                end
-              else
-                slice_error("CannotRemoveImagePath")
-                return
-              end
-            end
-          end
+          raise ProjectRazor::Error::Slice::InternalError, 'cannot remove image from db'
         end
       end
-
-
-
 
     end
   end

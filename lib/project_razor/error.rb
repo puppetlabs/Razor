@@ -20,8 +20,8 @@ module ProjectRazor
       parent_module = ProjectRazor::Error.contantize(parent_module_str)
 
       c = Class.new(parent) do
-        define_method :initialize do |message|
-          custom_message = [self.class.name, msg, message].reject(&:empty?).join(' ')
+        define_method :initialize do |*message|
+          custom_message = [self.class.name, msg, message||''].reject(&:empty?).join(' ')
 
           super(custom_message)
           val.each do |k, v|
