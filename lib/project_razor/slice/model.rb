@@ -41,7 +41,7 @@ module ProjectRazor
           when "template"
             get_model_templates
           when "help"
-            slice_error("Help", false)
+            slice_error("Help")
           else
             get_models
         end

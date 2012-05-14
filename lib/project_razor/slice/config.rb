@@ -20,10 +20,12 @@ module ProjectRazor
         @new_slice_style = true
         @hidden = true
         # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:read => "read_config",
-                           :ipxe => "generate_ipxe_script",
-                           :default => :read,
-                           :else => :read}
+        @slice_commands = {
+          :read    => "read_config",
+          :ipxe    => "generate_ipxe_script",
+          :default => :read,
+          :else    => :read
+        }
         @slice_name = "Config"
         @engine = ProjectRazor::Engine.instance
       end

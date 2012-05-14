@@ -7,37 +7,7 @@ require "colored"
 # TODO - change help printing to multi-line with header and description
 # TODO - add ability to hide commands from CLI help
 
-# here, we define a Stack class that simply delegates the equivalent "push", "pop",
-# "to_s" and "clear" calls to the underlying Array object using the delegation
-# methods provided by Ruby through the Forwardable class.  We could do the same
-# thing using an Array, but that wouldn't let us restrict the methods that
-# were supported by our Stack to just those methods that a stack should have
 
-require "forwardable"
-
-class Stack
-  extend Forwardable
-  def_delegators :@array, :push, :pop, :to_s, :clear, :count
-
-  # initializes the underlying array for the stack
-  def initialize
-    @array = []
-  end
-
-  # looks at the last element pushed onto the stack
-  def look
-    @array.last
-  end
-
-  # peeks down to the n-th element in the stack (zero is the top,
-  # if the 'n' value that is passed is deeper than the stack, it's
-  # an error (and will result in an IndexError being thrown)
-  def peek(n = 0)
-    stack_idx = -(n+1)
-    @array[stack_idx]
-  end
-
-end
 
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
@@ -48,6 +18,7 @@ module ProjectRazor
     # @author Nicholas Weaver
     class Base < ProjectRazor::Object
       include(ProjectRazor::SliceUtil::Common)
+      include(ProjectRazor::Logging)
 
       # Bool for indicating whether this was driven from Node.js
       attr_accessor :command_array, :slice_name, :slice_commands, :web_command, :hidden
@@ -64,50 +35,59 @@ module ProjectRazor
         @last_arg = nil
         @prev_args = Stack.new
         @hidden = true
+        setup_data
+        @uri_root = @data.config.mk_uri + "/razor/api/"
       end
 
       # Default call method for a slice
       # Used by {./bin/project_razor}
       # Parses the #command_array and determines the action based on #slice_commands for child object
       def slice_call
-        # Switch command/arguments to lower case
-        # @command_array.map! {|x| x.downcase}
-        if @new_slice_style
-          @command_hash = @slice_commands
-          new_slice_call
-          return
-        end
-
-
-
-        # First var in array should be our root command
-        @command = @command_array.shift
-        # check command and route based on it
-        flag = false
-        @command = "default" if @command == nil
-
-        @slice_commands.each_pair do
-        |cmd_string, method|
-          if @command == cmd_string.to_s
-            logger.debug "Slice command called: #{@command}"
-            self.send(method)
-            flag = true
+        begin
+          # Switch command/arguments to lower case
+          # @command_array.map! {|x| x.downcase}
+          if @new_slice_style
+            @command_hash = @slice_commands
+            new_slice_call
+            return
           end
-        end
 
-        if @command == "help"
-          available_commands(nil)
-        else
-          # If we haven't called a command we need to either call :else or return an error
-          if !flag
-            # Check if there is an else catch for the slice
-            if @slice_commands[:else]
-              logger.debug "Slice command called: Else"
-              @command_array.unshift(@command) # Add the command back as it is a arg for :else now
-              self.send(@slice_commands[:else])
-            else
-              slice_error("InvalidCommand")
+          # First var in array should be our root command
+          @command = @command_array.shift
+          # check command and route based on it
+          flag = false
+          @command = "default" if @command == nil
+
+          @slice_commands.each_pair do
+          |cmd_string, method|
+            if @command == cmd_string.to_s
+              logger.debug "Slice command called: #{@command}"
+              self.send(method)
+              flag = true
             end
+          end
+
+          if @command == "help"
+            available_commands(nil)
+          else
+            # If we haven't called a command we need to either call :else or return an error
+            if !flag
+              # Check if there is an else catch for the slice
+              if @slice_commands[:else]
+                logger.debug "Slice command called: Else"
+                @command_array.unshift(@command) # Add the command back as it is a arg for :else now
+                self.send(@slice_commands[:else])
+              else
+                raise ProjectRazor::Error::Slice::InvalidCommand, "Invalid Command [#{@command}]"
+              end
+            end
+          end
+
+        rescue => e
+          if @debug
+            raise e
+          else
+            slice_error(e)
           end
         end
       end
@@ -131,7 +111,7 @@ module ProjectRazor
             return
           else
             #puts "No (default) action defined"
-            slice_error("System Error: no default action for slice")
+            raise ProjectRazor::Error::Slice::Generic, "No Default Action"
             return
           end
         end
@@ -144,11 +124,8 @@ module ProjectRazor
           return
         end
 
-
-
         @command_hash.each do
         |k,v|
-
           case k.class.to_s
             when "Symbol"
               #puts "Comparing #{@command_array.first.to_s} to #{k.to_s}(Symbol)"
@@ -197,10 +174,9 @@ module ProjectRazor
           return eval_action(@command_hash[:else])
         else
           #puts "No (else) action defined"
-          slice_error("System Error: no else action for slice")
+          raise ProjectRazor::Error::Slice::InvalidCommand, "System Error: no else action for slice"
           return
         end
-
       end
 
       def eval_command_array(command_array)
@@ -219,7 +195,6 @@ module ProjectRazor
         end
         false
       end
-
 
       def eval_action(command_action)
         case command_action.class.to_s
@@ -243,20 +218,24 @@ module ProjectRazor
             #puts "Unknown command, throwing error"
             #puts command_action.class.to_s
             raise "InvalidActionSlice"
-
         end
       end
-
-
 
       # Called when slice action is successful
       # Returns a json string representing a [Hash] with metadata and response
       # @param [Hash] response
-      def slice_success(response, mk_response = false)
+      def slice_success(response, options = {})
+        mk_response = options[:mk_response] ? options[:mk_response] : false
+        type = options[:success_type] ? options[:success_type] : :generic
+
+        # Slice Success types
+        # Created, Updated, Removed, Retrieved. Generic
+
         return_hash = {}
         return_hash["resource"] = self.class.to_s
         return_hash["command"] = @command
-        return_hash["result"] = "success"
+        return_hash["result"] = success_types[type][:message]
+        return_hash["http_err_code"] = success_types[type][:http_code]
         return_hash["errcode"] = 0
         return_hash["response"] = response
         setup_data
@@ -265,24 +244,58 @@ module ProjectRazor
           puts JSON.dump(return_hash)
         else
           print "\n\n#{@slice_name.capitalize}"
-          print " #{return_hash["command"]}"
-          print " #{return_hash["result"]}\n"
+          print " #{return_hash["command"]}\n"
+          print " #{return_hash["response"]}\n"
         end
         logger.debug "(#{return_hash["resource"]}  #{return_hash["command"]}  #{return_hash["result"]})"
+      end
+
+      def success_types
+        {
+            :generic => {
+                :http_code => 200,
+                :message => "Ok"
+            },
+            :created => {
+                :http_code => 201,
+                :message => "Created"
+            },
+            :updated => {
+                :http_code => 202,
+                :message => "Updated"
+            },
+            :removed => {
+                :http_code => 202,
+                :message => "Removed"
+            }
+        }
       end
 
       # Called when a slice action triggers an error
       # Returns a json string representing a [Hash] with metadata including error code and message
       # @param [Hash] error
-      def slice_error(error, mk_response = false)
-        @command = "null" if @command == nil
-
+      def slice_error(error, options = {})
+        mk_response = options[:mk_response] ? options[:mk_response] : false
+        setup_data
         return_hash = {}
+        log_level = :error
+        if error.class.ancestors.include?(ProjectRazor::Error::Slice::Generic)
+          return_hash["std_err_code"] = error.std_err
+          return_hash["err_class"] = error.class.to_s
+          return_hash["result"] = error.message
+          return_hash["http_err_code"] = error.http_err_code
+          log_level = error.log_severity
+        else
+          # We use old style if error is String
+          return_hash["std_err_code"] = 1
+          return_hash["result"] = error
+          logger.error "Slice error: #{return_hash.inspect}"
+
+        end
+
+        @command = "null" if @command == nil
         return_hash["slice"] = self.class.to_s
         return_hash["command"] = @command
-        return_hash["errcode"] = 1
-        return_hash["result"] = error
-        setup_data
         return_hash["client_config"] = @data.config.get_client_config_hash if mk_response
         if @web_command
           puts JSON.dump(return_hash)
@@ -293,7 +306,7 @@ module ProjectRazor
             available_commands(return_hash)
           end
         end
-        logger.error "Slice error: #{return_hash.inspect}"
+        logger.send log_level, "Slice Error: #{return_hash["result"]}"
       end
 
       # Prints available commands to CLI for slice
@@ -318,21 +331,36 @@ module ProjectRazor
           print "[#{@slice_name.capitalize}] "
           print "[#{return_hash["command"]}] ".red
           print "<-#{return_hash["result"]}\n".yellow
-          #puts "\nCommand syntax:" + " #{@slice_commands_help[@command]}".red + "\n" unless @slice_commands_help[@command] == nil
         end
         @command_hash[:help] = "n/a" unless @command_hash[:help]
         if @command_help_text
-          puts "\nCommand help:  " +  @command_help_text
+          puts "\nCommand help:\n" +  @command_help_text
         else
-          puts "\nCommand help:  " +  @command_hash[:help]
+          puts "\nCommand help:\n" +  @command_hash[:help]
         end
+      end
+
+      def load_slice_commands
+        begin
+          @slice_commands = YAML.load(File.read(slice_commands_file))
+        rescue => e
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{@slice_name} cannot parse command file"
+        end
+      end
+
+      def save_slice_commands
+        f = File.new(slice_commands_file,  "w+")
+        f.write(YAML.dump(@slice_commands))
+      end
+
+      def slice_commands_file
+        File.join(File.dirname(__FILE__), "#{@slice_name.downcase}/commands.yaml")
       end
 
       # Initializes [ProjectRazor::Data] in not already instantiated
       def setup_data
         @data = ProjectRazor::Data.new unless @data.class == ProjectRazor::Data
       end
-
 
     end
   end

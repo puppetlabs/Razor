@@ -24,18 +24,22 @@ module ProjectRazor
         @hidden = false
         @new_slice_style = true # switch to new slice style
         # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:add => "add_broker",
-                           :get => {["all", '{}', /^{.*}$/, nil] => "get_broker_all",
-                                    [/plugin/,"t",/template/,/type/] => "get_broker_plugins",
-                                    :default => "get_broker_all",
-                                    :else => "get_broker_with_uuid",
-                                    :help => "razor broker get all|plugin|(uuid)"},
-                           :plugin => "get_broker_plugins",
-                           [/plugin/,"t"] => "get_broker_plugins",
-                           :default => "get_broker_all",
-                           :remove => "remove_broker",
-                           :else => :get,
-                           :help => "razor broker add|remove|get [all|plugin|(uuid)]"}
+        @slice_commands = {
+          :add => "add_broker",
+          :get => {
+            ["all", '{}', /^{.*}$/, nil]     => "get_broker_all",
+            [/plugin/,"t",/template/,/type/] => "get_broker_plugins",
+            :default                         => "get_broker_all",
+            :else                            => "get_broker_with_uuid",
+            :help                            => "razor broker get all|plugin|(uuid)"
+          },
+          :plugin        => "get_broker_plugins",
+          [/plugin/,"t"] => "get_broker_plugins",
+          :default       => "get_broker_all",
+          :remove        => "remove_broker",
+          :else          => :get,
+          :help          => "razor broker add|remove|get [all|plugin|(uuid)]"
+        }
         @slice_name = "Broker"
       end
 
@@ -43,32 +47,29 @@ module ProjectRazor
       def get_broker_all
         # Get all broker instances and print/return
         @command_array.unshift(@last_arg) unless @last_arg == 'default'
-        print_object_array get_object("broker_instances", :broker), "Broker Instances"
+        print_object_array get_object("broker_instances", :broker), "Broker Targets:"
       end
 
       # Returns the broker plugins available
       def get_broker_plugins
         # We use the common method in Utility to fetch object plugins by providing Namespace prefix
-        print_object_array get_plugins_as_object_plugins(BROKER_PREFIX), "\nPossible Broker Plugins:"
+        print_object_array get_plugins_as_object_plugins(BROKER_PREFIX), "\nAvailable Broker Plugins:"
       end
 
       def get_broker_with_uuid
         @command_help_text = "razor broker get all|plugin|(uuid)"
         @arg = @command_array.shift
         broker = get_object("broker instances", :broker, @arg)
-        case broker
-          when nil
-            slice_error("Cannot Find Broker with UUID: [#@arg]")
-          else
-            print_object_array [broker]
-        end
+
+        raise ProjectRazor::Error::Slice::NotFound, "Broker Target UUID: [#@arg]" unless broker
+        print_object_array [broker]
       end
 
       def add_broker
         # Set the command we have selected
         @command =:add
         # Set out help text
-        @command_help_text = "razor broker " + "(broker plugin) (Name) (Description) [(server hostname),{server hostname}]".yellow
+        @command_help_text = "razor broker add " + "[broker_plugin] [broker_target_name] [description] [server_hostname(,server_hostname)]".yellow
         # If a REST call we need to populate the values from the provided JSON string
         if @web_command
           # Grab next arg as json string var
@@ -91,21 +92,20 @@ module ProjectRazor
           end
         end
         @plugin, @name, @user_description, @servers = *@command_array unless @plugin || @name || @user_description || @servers
+
         # Validate our args are here
-        return slice_error("Must Provide Broker Plugin [plugin]") unless validate_arg(@plugin)
-        return slice_error("Must Provide Broker Name [name]") unless validate_arg(@name)
-        return slice_error("Must Provide Broker Description [description]") unless validate_arg(@user_description)
-        return slice_error("Must Provide Broker Servers [servers]") unless validate_arg(@servers)
-        # Convert our servers var to an Array if it is not one already
+        raise ProjectRazor::Error::Slice::MissingArgument, "Broker Plugin [broker_plugin]" unless validate_arg(@plugin)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Broker Target Name [broker_target_name]" unless validate_arg(@name)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Broker Description [description]" unless validate_arg(@user_description)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Broker Servers [servers]" unless validate_arg(@servers)
+
+        # convert our servers var to an Array if it is not one already
         @servers = @servers.split(",") unless @servers.respond_to?(:each)
-        return slice_error("Must Provide At Least One Broker Server [servers]") unless @servers.count > 0
-        # We use the [is_valid_template?] method from Utility to validate our plugin vs our object namespace prefix
+        raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless @servers.count > 0
+        # we use the [is_valid_template?] method from Utility to validate our plugin vs our object namespace prefix
         unless is_valid_template?(BROKER_PREFIX, @plugin)
-          # Return error
-          slice_error("Invalid Broker Plugin")
-          # Also print possible plugins if not a REST call
           get_broker_plugins unless @web_command
-          return
+          raise ProjectRazor::Error::Slice::InvalidPlugin, @plugin
         end
         new_broker = new_object_from_template_name(BROKER_PREFIX, @plugin)
         new_broker.name = @name
@@ -117,7 +117,7 @@ module ProjectRazor
           @command_array.unshift(new_broker.uuid)
           get_broker_with_uuid
         else
-          slice_error("CouldNotSaveBroker")
+          raise ProjectRazor::Error::Slice::InternalError, "could not save broker"
         end
       end
 
@@ -131,16 +131,16 @@ module ProjectRazor
             @data.delete_all_objects(:broker) # remove all broker instances
             slice_success("All Broker deleted") # return success
           when nil
-            slice_error("Command Error") # return error for no arg
+            raise ProjectRazor::Error::Slice::MissingArgument, "all|UUID"
           else
             broker = get_object("broker instances", :broker, @arg) # attempt to find broker with uuid
             case broker
               when nil
-                slice_error("Cannot Find Broker with UUID: [#@arg]") # error when it is invalid
+                raise ProjectRazor::Error::Slice::NotFound, "Broker Target with UUID: [#@arg]"
               else
                 setup_data
                 @data.delete_object_by_uuid(:broker, @arg)
-                slice_success("Broker deleted")
+                slice_success("Broker Deleted", :type => :removed)
             end
         end
       end

@@ -1,0 +1,22 @@
+---
+:get:
+  ? - all
+    - 
+    - !ruby/regexp /^{.*}$/
+  : get_nodes_all
+  ? - !ruby/regexp /[Aa]ttrib/
+    - !ruby/regexp /^[Aa]$/
+  : get_node_attributes
+  ? - !ruby/regexp /[H]ardware/
+    - !ruby/regexp /^[Hh]$/
+  : get_node_hardware_ids
+  :default: get_nodes_all
+  :else: get_node_with_uuid
+? - register
+  - !ruby/regexp /^[Rr]$/
+: register_node
+? - checkin
+  - !ruby/regexp /^[Cc]$/
+: checkin_node
+:default: :get
+:else: :get

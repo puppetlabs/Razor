@@ -17,38 +17,35 @@ module ProjectRazor
         super(args)
         @hidden = true
         @new_slice_style = true
-        @slice_commands = {:boot => "boot_call",
-                           :default => :boot,
-                           :else => :boot}
+        @slice_commands = { :boot    => "boot_call",
+                            :default => :boot,
+                            :else    => :boot }
         @slice_name = "Boot"
         @engine = ProjectRazor::Engine.instance
       end
 
       def boot_call
         @command = :boot_call
-        if @web_command
+
+        # This is only REST API.
+        raise ProjectRazor::Error::Slice::NotImplemented, "Not implemented for CLI." unless @web_command
+
+        begin
           # Grab next arg as json string var
           json_string = @command_array.first
-          # Validate JSON
-          if is_valid_json?(json_string)
-            # Grab vars as hash using sanitize to strip the @ prefix if used
-            @vars_hash = sanitize_hash(JSON.parse(json_string))
+          @vars_hash = sanitize_hash(JSON.parse(json_string))
 
-            if @vars_hash['mac']
-              @vars_hash['hw_id'] = @vars_hash['mac']
-            end
-            @hw_id = @vars_hash['hw_id']
-          else
-            # Invalid call, somehow API has an issue - tell node to reboot
-            error_reboot_node "Bad JSON"
-            return
+          if @vars_hash['mac']
+            @vars_hash['hw_id'] = @vars_hash['mac']
           end
-        else
-          slice_error("Not implemented for CLI")
+          @hw_id = @vars_hash['hw_id']
+        rescue JSON::ParserError => e
+          error_reboot_node "Bad JSON #{e.inspect}"
           return
         end
 
-        return slice_error("Must Provide Hardware IDs[hw_id]") unless validate_arg(@hw_id)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
+
         @hw_id = @hw_id.split("_") unless @hw_id.respond_to?(:each)
         unless @hw_id.count > 0
           error_reboot_node "Must Provide At Least One Hardware ID [hw_id]"
@@ -67,5 +64,3 @@ module ProjectRazor
     end
   end
 end
-
-

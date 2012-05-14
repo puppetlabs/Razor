@@ -72,7 +72,7 @@ describe ProjectRazor::Engine do
       ### This test is rather complex - it is built off logic in slice_tag
 
       #### We create an empty tag rule with the tag: RSPEC_ENGINE
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tagrule/add"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag"
       name = "live_test_tag_rule_for_engine"
       tag = "RSPEC_ENGINE"
       json_hash = {}
@@ -86,8 +86,9 @@ describe ProjectRazor::Engine do
 
 
       # We add one tag matchers to it
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tagmatcher/add/#{live_tag_rule_uuid}"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/matcher"
       json_hash = {}
+      json_hash["@tag_rule_uuid"] = live_tag_rule_uuid
       json_hash["@key"] = "hostname"
       json_hash["@value"] = "rspec.engine.testing.local"
       json_hash["@compare"] = "equal"

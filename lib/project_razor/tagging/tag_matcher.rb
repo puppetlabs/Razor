@@ -68,19 +68,19 @@ module ProjectRazor
 
 
       def print_header
-        return "Key", "Value", "Compare", "Inverse", "UUID"
+        return "Key", "Compare", "Value",  "Inverse", "UUID"
       end
 
       def print_items
-        return @key, @value, @compare, @inverse, @uuid
+        return @key, @compare, @value, @inverse, @uuid
       end
 
       def line_color
-        :white_on_red
+        :white_on_black
       end
 
       def header_color
-        :red_on_white
+        :red_on_black
       end
 
 

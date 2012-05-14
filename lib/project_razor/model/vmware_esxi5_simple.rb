@@ -184,14 +184,13 @@ module ProjectRazor
 
 
 
-      def boot_cfg(args_array, node, policy_uuid)
+      def boot_cfg
         @image = $data.fetch_object_by_uuid(:images, @image_uuid)
-        @image.boot_cfg.gsub("/", "#{image_svc_uri}/#{@image_uuid}/").gsub("runweasel","ks=#{api_svc_uri}/policy/callback/#{policy_uuid}/kickstart/file")
+        @image.boot_cfg.gsub("/", "#{image_svc_uri}/#{@image_uuid}/").gsub("runweasel","ks=#{api_svc_uri}/policy/callback/#{@policy_uuid}/kickstart/file")
       end
 
-      def kickstart(args_array, node, policy_uuid)
-        @node_bound = node
-        @arg = args_array.shift
+      def kickstart
+        @arg = @args_array.shift
         case @arg
           when  "start"
             fsm_action(:kickstart_start, :kickstart)
@@ -201,13 +200,13 @@ module ProjectRazor
             return "ok"
           when "file"
             fsm_action(:kickstart_file, :kickstart)
-            return kickstart_file(policy_uuid)
+            return kickstart_file
           else
             return "error"
         end
       end
 
-      def postinstall(args_array, node, policy_uuid)
+      def postinstall
         @node_bound = node
         @arg = args_array.shift
         case @arg
@@ -219,7 +218,7 @@ module ProjectRazor
         end
       end
 
-      def kickstart_file(policy_uuid)
+      def kickstart_file
         ks = ""
         ks << "accepteula\n"
 
@@ -232,7 +231,7 @@ module ProjectRazor
         ks << "\n"
         ks << "%pre --interpreter=busybox\n"
         ks << "\n"
-        #ks << "wget #{api_svc_uri}/policy/callback/#{policy_uuid}/kickstart/start\n"
+        #ks << "wget #{api_svc_uri}/policy/callback/#{@policy_uuid}/kickstart/start\n"
         #ks << "# extract network info from bootup\n"
         #ks << "VMK_INT='vmk0'\n"
         #ks << "VMK_LINE=$(localcli network ip interface ipv4 get | grep '${VMK_INT}')\n"
@@ -244,10 +243,10 @@ module ProjectRazor
         ks << "\n"
         ks << "echo 'network --bootproto=static --addvmportgroup=false --device=vmnic0 --ip=192.168.99.110 --netmask=255.255.255.0 --gateway=192.168.99.10 --nameserver=192.168.99.10 --hostname=esx01.razorlab.local' > /tmp/networkconfig\n"
         ks << "\n"
-        ks << "wget #{api_svc_uri}/policy/callback/#{policy_uuid}/kickstart/end\n"
+        ks << "wget #{api_svc_uri}/policy/callback/#{@policy_uuid}/kickstart/end\n"
         ks << "%firstboot --interpreter=busybox\n"
         ks << "\n"
-        ks << "wget #{api_svc_uri}/policy/callback/#{policy_uuid}/postinstall/end\n"
+        ks << "wget #{api_svc_uri}/policy/callback/#{@policy_uuid}/postinstall/end\n"
         ks << "# enable HV (Hardware Virtualization to run nested 64bit Guests + Hyper-V VM)\n"
         ks << "grep -i 'vhv.allow' /etc/vmware/config || echo 'vhv.allow = 'TRUE'' >> /etc/vmware/config\n"
         ks << "vim-cmd hostsvc/enable_ssh\n"

@@ -12,11 +12,12 @@ $temp_path = "#{$razor_root}/tmp"
 #puts "Logging path: #{$logging_path}"
 
 
+
 require "project_razor/object"
 require "project_razor/filtering"
 require "project_razor/utility"
 require "project_razor/logging"
-
+require "project_razor/error"
 require "project_razor/data"
 require "project_razor/config"
 require "project_razor/node"

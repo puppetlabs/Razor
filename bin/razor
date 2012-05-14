@@ -44,7 +44,7 @@ def call_razor_slice
       razor_module.slice_call
     else
       if @web_command
-        p JSON.dump({"slice" => "ProjectRazor::Slice", "result" => "InvalidSlice"})
+        puts JSON.dump({"slice" => "ProjectRazor::Slice", "result" => "InvalidSlice", "http_err_code" => 404})
       else
         print_header
         print "\n [#{@namespace.capitalize}] ".red

@@ -11,6 +11,11 @@ describe ProjectRazor::Tagging::TagRule do
     @tag_rule = ProjectRazor::Tagging::TagRule.new({"@name" => "RSpec Tag Rule #1", "@tag" => "RSPEC", "@tag_matchers" => []})
   end
 
+  after(:all) do
+    @data.delete_all_objects(:tag)
+    @data.delete_all_objects(:node)
+  end
+
 
   it "should be able to create a tag rule" do
     @tag_rule.name.should == "RSpec Tag Rule #1"
@@ -21,23 +26,35 @@ describe ProjectRazor::Tagging::TagRule do
   it "should be able to create a tag matcher within tag rule" do
     @tag_rule.tag.should == "RSPEC"
 
-    @tag_rule.add_tag_matcher("hostname",'rspechost[\d]*$',"like","false").should == true
+    @tag_rule.add_tag_matcher(:key => "hostname", :value => 'rspechost[\d]*$', :compare => "like", :inverse => "false").should be_true
   end
 
   it "should be able to correctly tag with tag rule with single matcher" do
     # based on rule above
 
-    @tag_rule.check_tag_rule({"hostname" => "rspechost123"}).should == true
-    @tag_rule.check_tag_rule({"hostname" => "rspechost9"}).should == true
-    @tag_rule.check_tag_rule({"hostname" => "ANYTHING ELSE"}).should == false
-    @tag_rule.check_tag_rule({"hostname" => "rspechost123n"}).should == false
+    @tag_rule.check_tag_rule({"hostname" => "rspechost123"}).should be_true
+    @tag_rule.check_tag_rule({"hostname" => "rspechost9"}).should be_true
+    @tag_rule.check_tag_rule({"hostname" => "ANYTHING ELSE"}).should be_false
+    @tag_rule.check_tag_rule({"hostname" => "rspechost123n"}).should be_false
   end
 
   it "should be able to correctly tag with tag rule with multiple matchers" do
-    @tag_rule.add_tag_matcher("ip address",'^192.168.1[2-6].1[0-9][0-9]$',"like","false").should == true
-    @tag_rule.add_tag_matcher("building",'A',"equal","false").should == true
-    @tag_rule.add_tag_matcher("secure",'true',"equal","true").should == true
-    @tag_rule.add_tag_matcher("domainname",'secure-dev\w+',"like","true").should == true
+    @tag_rule.add_tag_matcher(:key => "ip address",
+                              :value => '^192.168.1[2-6].1[0-9][0-9]$',
+                              :compare => "like",
+                              :inverse => "false").should be_true
+    @tag_rule.add_tag_matcher(:key => "building",
+                              :value => 'A',
+                              :compare => "equal",
+                              :inverse => "false").should be_true
+    @tag_rule.add_tag_matcher(:key => "secure",
+                              :value => 'true',
+                              :compare => "equal",
+                              :inverse => "true").should be_true
+    @tag_rule.add_tag_matcher(:key => "domainname",
+                              :value => 'secure-dev\w+',
+                              :compare => "like",
+                              :inverse => "true").should be_true
 
     test_hash = {"hostname" => "rspechost123",
                  "ip address" => "192.168.13.165",
@@ -46,7 +63,7 @@ describe ProjectRazor::Tagging::TagRule do
                  "secure" => "false",
                  "junk" => "value"}
 
-    @tag_rule.check_tag_rule(test_hash).should == true
+    @tag_rule.check_tag_rule(test_hash).should be_true
 
     test_hash = {"hostname" => "rspechost12n",
                  "ip address" => "192.168.13.165",
@@ -55,7 +72,7 @@ describe ProjectRazor::Tagging::TagRule do
                  "secure" => "false",
                  "junk" => "value"}
 
-    @tag_rule.check_tag_rule(test_hash).should == false
+    @tag_rule.check_tag_rule(test_hash).should be_false
 
     test_hash = {"hostname" => "rspechost123",
                  "ip address" => "192.168.13.65",
@@ -64,7 +81,7 @@ describe ProjectRazor::Tagging::TagRule do
                  "secure" => "false",
                  "junk" => "value"}
 
-    @tag_rule.check_tag_rule(test_hash).should == false
+    @tag_rule.check_tag_rule(test_hash).should be_false
 
     test_hash = {"hostname" => "rspechost123",
                  "ip address" => "192.168.13.165",
@@ -73,7 +90,7 @@ describe ProjectRazor::Tagging::TagRule do
                  "secure" => "false",
                  "junk" => "value"}
 
-    @tag_rule.check_tag_rule(test_hash).should == false
+    @tag_rule.check_tag_rule(test_hash).should be_false
 
     test_hash = {"hostname" => "rspechost123",
                  "ip address" => "192.168.13.165",
@@ -82,7 +99,7 @@ describe ProjectRazor::Tagging::TagRule do
                  "secure" => "false",
                  "junk" => "value"}
 
-    @tag_rule.check_tag_rule(test_hash).should == false
+    @tag_rule.check_tag_rule(test_hash).should be_false
 
     test_hash = {"hostname" => "rspechost123",
                  "ip address" => "192.168.13.165",
@@ -91,7 +108,7 @@ describe ProjectRazor::Tagging::TagRule do
                  "secure" => "true",
                  "junk" => "value"}
 
-    @tag_rule.check_tag_rule(test_hash).should == false
+    @tag_rule.check_tag_rule(test_hash).should be_false
 
 
   end

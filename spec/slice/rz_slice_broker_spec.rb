@@ -45,7 +45,7 @@ describe "ProjectRazor::Slice::Broker" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/add?plugin=puppet&name=RSPECPuppetGET&description=RSPECSystemInstanceGET&servers=rspecpuppet.example.org"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      res_hash['result'].should == 'success'
+      res_hash['result'].should == 'Ok'
       broker_response_array = res_hash['response']
       $broker_uuid_get = broker_response_array.first['@uuid']
       $broker_uuid_get.should_not == nil
@@ -61,7 +61,7 @@ describe "ProjectRazor::Slice::Broker" do
       json_string = JSON.generate(json_hash)
       res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
       res_hash = JSON.parse(res.body)
-      res_hash['result'].should == 'success'
+      res_hash['result'].should == 'Ok'
       broker_response_array = res_hash['response']
       $broker_uuid_post = broker_response_array.first['@uuid']
       $broker_uuid_post.should_not == nil
@@ -101,7 +101,7 @@ describe "ProjectRazor::Slice::Broker" do
       uri_array.each do |uri|
         res = Net::HTTP.get(uri)
         res_hash = JSON.parse(res)
-        res_hash['result'].should == 'success'
+        res_hash['result'].should == 'Ok'
         broker_response_array = res_hash['response']
         broker = broker_response_array.first
         broker['@uuid'].should == $broker_uuid_get
@@ -112,7 +112,7 @@ describe "ProjectRazor::Slice::Broker" do
       uri_array.each do |uri|
         res = Net::HTTP.get(uri)
         res_hash = JSON.parse(res)
-        res_hash['result'].should == 'success'
+        res_hash['result'].should == 'Ok'
         broker_response_array = res_hash['response']
         broker = broker_response_array.first
         broker['@uuid'].should == $broker_uuid_post
@@ -123,22 +123,22 @@ describe "ProjectRazor::Slice::Broker" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/remove/#{$broker_uuid_get}"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      res_hash['result'].should == 'success'
+      res_hash['result'].should == 'Ok'
 
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/#{$broker_uuid_get}"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      res_hash['errcode'].should == 1
+      res_hash['errcode'].should_not == 0
 
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/remove/#{$broker_uuid_post}"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      res_hash['result'].should == 'success'
+      res_hash['result'].should == 'Ok'
 
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/#{$broker_uuid_post}"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      res_hash['errcode'].should == 1
+      res_hash['errcode'].should_not == 0
 
     end
 
@@ -153,7 +153,7 @@ describe "ProjectRazor::Slice::Broker" do
         json_string = JSON.generate(json_hash)
         res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
         res_hash = JSON.parse(res.body)
-        res_hash['result'].should == 'success'
+        res_hash['result'].should == 'Ok'
         broker_response_array = res_hash['response']
         $broker_uuid_post = broker_response_array.first['@uuid']
         $broker_uuid_post.should_not == nil

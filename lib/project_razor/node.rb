@@ -83,8 +83,8 @@ class ProjectRazor::Node < ProjectRazor::Object
     # Create an array to store our HashPrint objects
     attr_array = []
     # Take each element in our attributes_hash and store as a HashPrint object in our array
-    @attributes_hash.each do
-    |k,v|
+    @attributes_hash.keys.sort.each do |k|
+      v = @attributes_hash[k]
       # Skip any k/v where the v > 32 characters
       if v.to_s.length < 32
         # We use Name / Value as header and key/value as values for our object

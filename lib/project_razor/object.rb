@@ -30,7 +30,6 @@ class ProjectRazor::Object
     @_persist_ctrl = nil
   end
 
-
   # Refreshes object from Controller
   def refresh_self
     logger.debug "Refreshing object from persist controller"
