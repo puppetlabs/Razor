@@ -26,7 +26,7 @@ module ProjectRazor
         @slice_commands = {
           :add     => {
             :default => "add_image",
-            :help    => "razor image add " + "[#{get_types}]".white + " [/path/to/image]".yellow,
+            :help    => "razor image add " + "[#{get_types}]".white + " [/path/to/image] (os_name) (os_version)".yellow,
             :else    => :default,
            },
           :get     => "list_images",
@@ -176,16 +176,10 @@ module ProjectRazor
 
       def add_os(new_image, iso_path, image_svc_path)
         os_name = @command_array.shift
-        if os_name == nil
-          @slice_commands_help[:add] = "image add os #{iso_path} ".white + "(OS Name) (OS Version)".red
-          return [false, "MissingOSName"]
-        end
+        raise ProjectRazor::Error::Slice::MissingArgument, '[os_name]' if os_name == nil
 
         os_version = @command_array.shift
-        if os_version == nil
-          @slice_commands_help[:add] = "image add os #{iso_path} #{os_name} ".white + "(OS Version)".red
-          return [false, "MissingOSVersion"]
-        end
+        raise ProjectRazor::Error::Slice::MissingArgument, '[os_version]' if os_version == nil
 
         puts "Attempting to add, please wait...".green
         new_image.add(iso_path, image_svc_path, {:os_version => os_version, :os_name => os_name})

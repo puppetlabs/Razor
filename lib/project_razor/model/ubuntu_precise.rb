@@ -3,9 +3,6 @@
 
 require "erb"
 
-# TODO - timing between state changes
-# TODO - timeout values for a state
-
 # Root ProjectRazor namespace
 # @author Nicholas Weaver
 module ProjectRazor
@@ -13,7 +10,7 @@ module ProjectRazor
     # Root Model object
     # @author Nicholas Weaver
     # @abstract
-    class UbuntuOneric < Ubuntu
+    class UbuntuPrecise < Ubuntu
       include(ProjectRazor::Logging)
 
       # Assigned image
@@ -27,8 +24,8 @@ module ProjectRazor
         super(hash)
         # Static config
         @hidden = false
-        @name = "ubuntu_oneiric"
-        @description = "Ubuntu Oneiric Model"
+        @name = "ubuntu_precise"
+        @description = "Ubuntu Precise Model"
         # Metadata vars
         @hostname_prefix = nil
         # State / must have a starting state
@@ -39,7 +36,7 @@ module ProjectRazor
         @image_prefix = "os"
         # Enable agent brokers for this model
         @broker_plugin = :agent
-        @osversion = 'oneiric'
+        @osversion = 'precise'
         @final_state = :os_complete
         from_hash(hash) unless hash == nil
       end
