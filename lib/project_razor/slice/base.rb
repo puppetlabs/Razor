@@ -278,7 +278,7 @@ module ProjectRazor
       def slice_error(error, options = {})
         mk_response = options[:mk_response] ? options[:mk_response] : false
         setup_data
-        return_hash = error.data || {}
+        return_hash = {}
         log_level = :error
         if error.class.ancestors.include?(ProjectRazor::Error::Slice::Generic)
           return_hash["std_err_code"] = error.std_err
@@ -334,8 +334,8 @@ module ProjectRazor
           print "<-#{return_hash["result"]}\n".yellow
         end
         @command_hash[:help] = "n/a" unless @command_hash[:help]
-        if return_hash.has_key? :help
-          puts "\nCommand help:\n" +  return_hash[:help]
+        if @command_help_text
+          puts "\nCommand help:\n" +  @command_help_text
         else
           puts "\nCommand help:\n" +  @command_hash[:help]
         end

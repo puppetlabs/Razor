@@ -20,15 +20,14 @@ module ProjectRazor
       parent_module = ProjectRazor::Error.contantize(parent_module_str)
 
       c = Class.new(parent) do
-        attr_reader :data
-        define_method :initialize do |message, data={}|
-          custom_message = [msg, message].reject(&:empty?).join(' ')
+        define_method :initialize do |message|
+          #custom_message = [self.class.name, msg, message, "-test-"].reject(&:empty?).join(' ') # was getting duplicate classname with this style in message (nw)
+          custom_message = [msg, message].reject(&:empty?).join(' ') # removed adding the class name, on iterative definitions this is wrapping it more than once. Slice base can handle this
           super(custom_message)
           val.each do |k, v|
             instance_variable_set(k, v)
           end
           instance_variable_set('@std_err', error_code)
-          instance_variable_set('@data', data)
         end
       end
 

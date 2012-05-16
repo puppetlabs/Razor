@@ -27,22 +27,25 @@ module ProjectRazor
 
       def get_node_with_uuid
         @command = :get_node_with_uuid
+        @command_help_text = "razor node [get] (uuid)"
         node = get_object("node_with_uuid", :node, @command_array.first)
-        raise ProjectRazor::Error::Slice::InvalidUUID.new("Cannot Find Node with UUID: [#{@command_array.first}]", {:help=>'razor node get (uuid)'}) unless node
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{@command_array.first}]" unless node
         print_object_array [node]
       end
 
       def get_node_attributes
         @command = :get_node_attributes
+        @command_help_text = "razor node [get] attributes[a] (uuid)"
         node = get_object("node_with_uuid", :node, @command_array.first)
-        raise ProjectRazor::Error::Slice::InvalidUUID.new("Cannot Find Node with UUID: [#{@command_array.first}]", {:help=>'razor node [get] attributes[a] (uuid)'}) unless node
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{@command_array.first}]" unless node
         print_object_array node.print_attributes_hash, "Node Attributes:"
       end
 
       def get_node_hardware_ids
         @command = :get_node_attributes
+        @command_help_text = "razor node [get] attributes[a] (uuid)"
         node = get_object("node_with_uuid", :node, @arg)
-        raise ProjectRazor::Error::Slice::InvalidUUID.new("Cannot Find Node with UUID: [#{@command_array.first}]", {:help=>'razor node [get] attributes[a] (uuid)'}) unless node
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{@command_array.first}]" unless node
         print_object_array node.print_hardware_ids, "Node Hardware ID's:"
       end
 
