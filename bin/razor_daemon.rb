@@ -8,8 +8,6 @@
 # Finally, this daemon will be used to check the timings on tasks that are
 # running under Razor, but that functionality is, as of now, unimplemented.
 #
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
 #
 # @author Tom McSweeney
 

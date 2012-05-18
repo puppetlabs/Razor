@@ -1,16 +1,11 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "json"
 require "yaml"
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
     # ProjectRazor Slice Boot
     # Used for all boot logic by node
-    # @author Nicholas Weaver
     class Config < ProjectRazor::Slice::Base
       include(ProjectRazor::Logging)
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name

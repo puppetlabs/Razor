@@ -1,11 +1,6 @@
 # IpmiController Class; a simple wrapper around the ipmitool interface that provides
 # a mechanism for gathering information from an underlying BMC using the BMC's IPMI
 # interface
-#
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-#
-#@author Tom McSweeney
 
 require 'singleton'
 require 'timeout'
@@ -16,7 +11,6 @@ begin
 rescue
   EXT_COMMAND_TIMEOUT = 2000
 end
-
 
 module ProjectRazor
   module PowerControl

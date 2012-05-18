@@ -1,6 +1,3 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "fileutils"
 require "digest/sha2"
 
@@ -28,7 +25,6 @@ module ProjectRazor
         from_hash(hash) unless hash == nil
       end
 
-
       def set_image_svc_path(image_svc_path)
         @_image_svc_path = image_svc_path + "/" + @path_prefix
       end
@@ -47,7 +43,6 @@ module ProjectRazor
           logger.debug "fullpath: #{fullpath}"
           logger.debug "filename: #{@filename}"
           logger.debug "mount path: #{mount_path}"
-
 
           # Make sure file exists
           return cleanup([false,"File does not exist"]) unless File.exist?(fullpath)

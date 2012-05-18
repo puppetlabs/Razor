@@ -1,14 +1,9 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 MODEL_PREFIX = "ProjectRazor::ModelTemplate::"
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
     # ProjectRazor Slice Model
-    # @author Nicholas Weaver
     class Model < ProjectRazor::Slice::Base
       include(ProjectRazor::Logging)
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name

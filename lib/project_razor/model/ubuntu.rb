@@ -1,14 +1,9 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "erb"
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module ModelTemplate
     # Root Model object
-    # @author Nicholas Weaver
     # @abstract
     class Ubuntu < ProjectRazor::ModelTemplate::Base
       include(ProjectRazor::Logging)

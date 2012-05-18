@@ -1,6 +1,3 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "json"
 
 # Root namespace for broker objects
@@ -8,13 +5,11 @@ require "json"
 BROKER_PREFIX = "ProjectRazor::BrokerPlugin::"
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
 
     # ProjectRazor Slice Broker
     # Used for broker management
-    # @author Nicholas Weaver
     class Broker < ProjectRazor::Slice::Base
 
       # Initializes ProjectRazor::Slice::Broker including #slice_commands, #slice_commands_help, & #slice_name

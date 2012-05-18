@@ -1,14 +1,10 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
 
     # ProjectRazor Slice Tag
     # Used for managing the tagging system
-    # @author Nicholas Weaver
     class Tag < ProjectRazor::Slice::Base
       # Initializes ProjectRazor::Slice::Tag
       # @param [Array] args

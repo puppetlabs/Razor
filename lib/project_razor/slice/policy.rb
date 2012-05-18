@@ -1,6 +1,3 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "json"
 
 # Root namespace for policy objects
@@ -8,13 +5,11 @@ require "json"
 POLICY_PREFIX = "ProjectRazor::PolicyTemplate::"
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
 
     # ProjectRazor Slice Policy (NEW))
     # Used for policy management
-    # @author Nicholas Weaver
     class Policy < ProjectRazor::Slice::Base
 
       # Initializes ProjectRazor::Slice::Policy including #slice_commands, #slice_commands_help, & #slice_name

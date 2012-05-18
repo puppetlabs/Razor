@@ -1,8 +1,8 @@
 # Project Razor
 
 ## License
-### EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-### Copyright © 2012 EMC Corporation, All Rights Reserved
+
+See LICENSE file.
 
 ## Introduction
 
@@ -10,10 +10,12 @@ Project Razor is a power control, provisioning, and management application desig
 to deploy both bare-metal and virtual compute resources with tight integration to
 DevOps-style tool sets.
 
+This is a 0.x release the API is still in flux and may change. Make sure you read
+the release notes before upgrading.
+
 ## Authors
 
 [Nicholas Weaver](https://github.com/lynxbat)
-
 [Tom McSweeney](https://github.com/tjmcs)
 
 ## Installation

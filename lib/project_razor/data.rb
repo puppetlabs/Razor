@@ -1,12 +1,8 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "yaml"
 require "extlib"
 require "singleton"
 
 # This class is the interface to all querying and saving of objects for ProjectRazor
-# @author Nicholas Weaver
 module ProjectRazor
   class Data
     include Singleton

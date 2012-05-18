@@ -1,6 +1,3 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 $std_counter = 0
 
 require "project_razor/error/generic"

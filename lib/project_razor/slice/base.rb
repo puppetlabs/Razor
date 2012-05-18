@@ -1,21 +1,14 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "json"
 require "colored"
 
 # TODO - change help printing to multi-line with header and description
 # TODO - add ability to hide commands from CLI help
 
-
-
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
     # Abstract parent class for all ProjectRazor Modules
     # @abstract
-    # @author Nicholas Weaver
     class Base < ProjectRazor::Object
       include(ProjectRazor::SliceUtil::Common)
       include(ProjectRazor::Logging)

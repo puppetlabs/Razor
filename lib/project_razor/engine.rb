@@ -1,12 +1,7 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 # Used for all event-driven commands and policy resolution
-# @author Nicholas Weaver
 
 require "singleton"
 require "json"
-
 
 module ProjectRazor
   class Engine < ProjectRazor::Object
@@ -34,8 +29,6 @@ module ProjectRazor
       mk_images = []
       get_data.fetch_all_objects(:images).each {|i| mk_images << i if i.path_prefix == "mk" && i.verify(get_data.config.image_svc_path) == true}
 
-
-
       if mk_images.count > 0
         mk_image = nil
         mk_images.each do
@@ -49,7 +42,6 @@ module ProjectRazor
         nil
       end
     end
-
 
     #####################
     ##### MK Section ####
@@ -78,7 +70,6 @@ module ProjectRazor
         logger.debug "Forced action for Node #{node.uuid} found (#{forced_action.to_s})" if forced_action
         return mk_command(forced_action,{}) if forced_action
 
-
         # Check to see if the time span since the last node contact
         # is greater than our register_timeout
         if (node.timestamp - old_timestamp) > get_data.config.register_timeout
@@ -95,9 +86,6 @@ module ProjectRazor
         # prevents the policy eval below to run
         active_model = find_active_models(node)
 
-
-
-
         if active_model
           command_array = active_model.mk_call(node)
           active_model.update_self
@@ -106,7 +94,6 @@ module ProjectRazor
           # Evaluate node vs policy rules to see if a policy needs to be bound
           mk_eval_vs_policy_rule(node)
         end
-
 
         # If we got to this point we just need to acknowledge the checkin
         mk_command(:acknowledge,{})
@@ -117,7 +104,6 @@ module ProjectRazor
         mk_command(:register,{})
       end
     end
-
 
     def mk_eval_vs_policy_rule(node)
       logger.debug "Evaluating policy rules vs Node #{node.uuid}"
@@ -142,9 +128,7 @@ module ProjectRazor
       rescue => e
         logger.error e.message
       end
-
     end
-
 
     def mk_bind_policy(node, policy)
       if policy.bind_me(node)
@@ -154,7 +138,6 @@ module ProjectRazor
         logger.error "Cannot bind Node (#{node.uuid}) to Policy (#{policy.label})"
       end
     end
-
 
     # Used to override per-node checkin behavior for testing
     def checkin_action_override(uuid)
@@ -166,7 +149,6 @@ module ProjectRazor
       checkin_actions[uuid] # return value for key matching uuid or nil if none
     end
 
-
     def mk_command(command_name, command_param)
       command_response = {}
       command_response['command_name'] = command_name
@@ -174,16 +156,12 @@ module ProjectRazor
       command_response
     end
 
-
     #######################
     ##### Boot Section ####
     #######################
 
     def boot_checkin(hw_id)
       # Called by a node boot process
-
-
-
 
       logger.info "Request for boot - hw_id: #{hw_id}"
 
@@ -219,12 +197,6 @@ module ProjectRazor
 
     end
 
-
-    #def state_checkin
-    #
-    #end
-
-
     def find_active_models(node)
       active_models = get_data.fetch_all_objects(:active)
       active_models.each do
@@ -236,18 +208,11 @@ module ProjectRazor
       false
     end
 
-
-
-
     def default_mk_boot(uuid)
       logger.info "Responding with MK Boot - Node: #{uuid}"
       default = ProjectRazor::PolicyTemplate::BootMK.new({})
       default.get_boot_script
     end
-
-
-
-
 
     ########
     # Util #
@@ -286,7 +251,6 @@ module ProjectRazor
       end
     end
 
-
     # This creates a new node with the provided hw_ids and returns the new object
     #
     # @param [Hash] options
@@ -309,7 +273,6 @@ module ProjectRazor
       resolve_node_hw_id_collision
       new_node
     end
-
 
     # This is a failsafe should a duplicate hw_id happen. It removes the conflicted hw_id from a node object with the older timestamp
     #
@@ -362,7 +325,6 @@ module ProjectRazor
       #uuid.upcase
       uuid
     end
-
 
     def node_tags(node)
       node.attributes_hash

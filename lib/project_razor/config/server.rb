@@ -1,12 +1,8 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "socket"
 require "logger"
 
 # This class represents the ProjectRazor configuration. It is stored persistently in
 # './conf/razor_server.conf' and editing by the user
-# @author Nicholas Weaver
 module ProjectRazor
   module Config
     class Server

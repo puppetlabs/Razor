@@ -1,9 +1,4 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
-
 # Root ProjectRazor::Node namespace
-# @author Nicholas Weaver
 class ProjectRazor::Node < ProjectRazor::Object
   attr_accessor :name
   attr_accessor :hw_id

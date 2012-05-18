@@ -1,14 +1,8 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
-
 # Root namespace for ProjectRazor
-# @author Nicholas Weaver
 module ProjectRazor
   module BrokerPlugin
 
     # Root namespace for Brokers defined in ProjectRazor for node hand off
-    # @author Nicholas Weaver
     # @abstract
     class Base < ProjectRazor::Object
       attr_accessor :name

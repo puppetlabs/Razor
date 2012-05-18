@@ -1,13 +1,8 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
     # ProjectRazor Slice Node (NEW)
     # Used for policy management
-    # @author Nicholas Weaver
     class Node < ProjectRazor::Slice::Base
       # @param [Array] args
       def initialize(args)

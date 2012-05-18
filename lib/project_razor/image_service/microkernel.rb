@@ -1,6 +1,3 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "yaml"
 require "digest/sha2"
 require "digest/hmac"
@@ -16,10 +13,8 @@ module ProjectRazor
       attr_accessor :kernel_hash
       attr_accessor :initrd_hash
       attr_accessor :hash_description
-
       attr_accessor :iso_build_time
       attr_accessor :iso_version
-
 
       def initialize(hash)
         super(hash)
@@ -99,7 +94,6 @@ module ProjectRazor
             return false
           end
 
-
           digest = Object::full_const_get(@hash_description["type"]).new(@hash_description["bitlen"])
           khash = File.exist?(kernel_path) ? digest.hexdigest(File.read(kernel_path)) : ""
           ihash = File.exist?(initrd_path) ? digest.hexdigest(File.read(initrd_path)) : ""
@@ -113,7 +107,6 @@ module ProjectRazor
             logger.error "Initrd #{@initrd} is invalid"
             return false
           end
-
 
           true
         else
@@ -142,7 +135,6 @@ module ProjectRazor
           @initrd_hash = @_meta['initrd_hash']
           @hash_description = @_meta['hash_description']
         end
-
       end
 
       def print_image_info(image_svc_path)

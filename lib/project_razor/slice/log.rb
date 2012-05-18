@@ -1,6 +1,3 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "json"
 require "time"
 require "pp"
@@ -157,13 +154,11 @@ module JSON
 end
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
 
     # ProjectRazor Slice Log
     # Used for log viewing
-    # @author Tom McSweeney
     class Log < ProjectRazor::Slice::Base
 
       # this regular expression should parse out the timestamp for the

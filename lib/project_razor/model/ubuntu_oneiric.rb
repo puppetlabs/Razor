@@ -1,17 +1,12 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "erb"
 
 # TODO - timing between state changes
 # TODO - timeout values for a state
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module ModelTemplate
     # Root Model object
-    # @author Nicholas Weaver
     # @abstract
     class UbuntuOneric < Ubuntu
       include(ProjectRazor::Logging)

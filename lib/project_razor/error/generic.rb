@@ -36,7 +36,6 @@ module ProjectRazor
           :ok                              => 200,
           :created                         => 201,
           :accepted                        => 202,
-          :non_authoritative_information   => 203,
           :no_content                      => 204,
           :reset_content                   => 205,
           :partial_content                 => 206,
@@ -52,7 +51,6 @@ module ProjectRazor
           :temporary_redirect              => 307,
 
           :bad_request                     => 400,
-          :unauthorized                    => 401,
           :payment_required                => 402,
           :forbidden                       => 403,
           :not_found                       => 404,

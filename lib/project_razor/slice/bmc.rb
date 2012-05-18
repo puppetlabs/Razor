@@ -1,6 +1,3 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 require "json"
 require "yaml"
 
@@ -8,12 +5,10 @@ require "yaml"
 EXT_COMMAND_TIMEOUT = 2000
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
   module Slice
     # ProjectRazor Slice Bmc
     # Used for all BMC/IPMI logic
-    # @author Tom McSweeney
     class Bmc < ProjectRazor::Slice::Base
       include(ProjectRazor::Logging)
 
