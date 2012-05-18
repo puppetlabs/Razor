@@ -71,7 +71,18 @@ module ProjectRazor::BrokerPlugin
       ret
     end
 
-
+    def proxy_hand_off(options = {})
+      res = "
+      @@vc_host { '#{options[:ipaddress]}':
+        ensure   => 'present',
+        username => '#{options[:username]}',
+        password => '#{options[:password]}',
+        tag      => '#{options[:vcenter_name]}',
+      }
+      "
+      system("puppet apply --certname=#{options[:hostname]} --report -e \"#{res}\"")
+      :broker_success
+    end
 
     def compile_template
       logger.debug "Compiling template"

@@ -143,10 +143,11 @@ module ProjectRazor
           @current_state = :broker_fail
           broker_fsm_log
         end
-        options        = {
+        options = {
             :username                => "root",
             :password                => @root_password,
             :metadata                => node_metadata,
+            :hostname                => node_hostname,
             :uuid                    => @node.uuid,
             :ipaddress               => node_ip_address,
             :vcenter_name            => @vcenter_name,
