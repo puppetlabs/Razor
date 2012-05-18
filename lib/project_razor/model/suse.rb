@@ -252,11 +252,11 @@ module ProjectRazor
       end
 
       def kernel_path
-        "isolinux/vmlinuz"
+        "boot/x86_64/loader/linux"
       end
 
       def initrd_path
-        "isolinux/initrd.img"
+        "boot/x86_64/loader/initrd"
       end
 
       def config
