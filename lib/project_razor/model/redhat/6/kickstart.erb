@@ -1,0 +1,34 @@
+#!/bin/bash Kickstart for RHEL 6.0 FiNAL WORKER
+# minimal config.
+# see: http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/6/html/Installation_Guide/s1-kickstart2-options.html
+
+#version=RHEL6
+install
+url --url=http://<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>
+text
+lang en_US.UTF-8
+keyboard us
+rootpw <%= @root_password %>
+network --hostname <%= hostname %>
+firewall --service=ssh
+authconfig --enableshadow --passalgo=sha512 --enablefingerprint
+selinux --disabled
+timezone --utc America/Denver
+bootloader --location=mbr --driveorder=sda --append=crashkernel=auto rhgb quiet
+# The following is the partition information you requested
+# Note that any partitions you deleted are not expressed
+# here so unless you clear all partitions first, this is
+# not guaranteed to work
+clearpart --all --initlabel
+autopart
+
+# followig is MINIMAL https://partner-bugzilla.redhat.com/show_bug.cgi?id=593309
+%packages --nobase
+@core
+
+%end
+
+%post --log=/root/WORKER-post.log
+cd /root
+wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/kickstart/end
+############

@@ -7,6 +7,8 @@ require "project_razor/model/debian_wheezy"
 require "project_razor/model/ubuntu"
 require "project_razor/model/ubuntu_oneiric"
 require "project_razor/model/ubuntu_precise"
+require "project_razor/model/redhat"
+require "project_razor/model/centos_6"
 require "project_razor/model/vmware_esxi"
 require "project_razor/model/vmware_esxi_5"
 
