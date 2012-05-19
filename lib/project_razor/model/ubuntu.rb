@@ -239,19 +239,8 @@ module ProjectRazor
       end
 
       def local_boot(node)
-        #filepath = template_filepath('boot_local')
-        #ERB.new(File.read(filepath)).result(binding)
-        ip = "#!ipxe\n"
-        ip << "echo Reached #{@label} model boot_call\n"
-        ip << "echo Our image UUID is: #{@image_uuid}\n"
-        ip << "echo Our state is: #{@current_state}\n"
-        ip << "echo Our node UUID: #{node.uuid}\n"
-        ip << "\n"
-        ip << "echo Continuing local boot\n"
-        ip << "sleep 3\n"
-        ip << "\n"
-        ip << "sanboot --no-describe --drive 0x80\n"
-        ip
+        filepath = template_filepath('boot_local')
+        ERB.new(File.read(filepath)).result(binding)
       end
 
       def kernel_args(policy_uuid)

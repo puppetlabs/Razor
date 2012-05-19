@@ -22,13 +22,14 @@ clearpart --all --initlabel
 autopart
 # reboot automatically
 reboot
+
 # followig is MINIMAL https://partner-bugzilla.redhat.com/show_bug.cgi?id=593309
 %packages --nobase
 @core
 
 %end
 
-%post --log=/root/WORKER-post.log
+%post --log=/root/razor-post.log
 cd /root
-wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/kickstart/end
+curl <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/kickstart/end
 ############
