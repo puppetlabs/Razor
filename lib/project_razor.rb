@@ -1,17 +1,11 @@
-# EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-# Copyright © 2012 EMC Corporation, All Rights Reserved
-
 $razor_root = File.dirname(__FILE__).sub(/\/lib$/,"")
 $config_server_path = "#{$razor_root}/conf/razor_server.conf"
 $img_svc_path = "#{$razor_root}/image"
 $logging_path = "#{$razor_root}/log/project_razor.log"
 $temp_path = "#{$razor_root}/tmp"
 
-
 #puts "Razor root: #{$razor_root}"
 #puts "Logging path: #{$logging_path}"
-
-
 
 require "project_razor/object"
 require "project_razor/filtering"
@@ -34,7 +28,6 @@ require "project_razor/broker"
 
 
 # Root ProjectRazor namespace
-# @author Nicholas Weaver
 module ProjectRazor
 
 end

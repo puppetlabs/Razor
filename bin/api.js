@@ -1,6 +1,3 @@
-// EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-// Copyright © 2012 EMC Corporation, All Rights Reserved
-//
 // Node.js endpoint for ProjectRazor API
 
 var razor_bin = __dirname+ "/razor -w"; // Set project_razor.rb path

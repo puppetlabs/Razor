@@ -1,9 +1,4 @@
-// EMC Confidential Information, protected under EMC Bilateral Non-Disclosure Agreement.
-// Copyright © 2012 EMC Corporation, All Rights Reserved
-//
 // Node.js Endpoint for ProjectRazor Image Service
-
-
 
 var razor_bin = __dirname+ "/razor -w"; // Set project_razor.rb path
 var exec = require("child_process").exec; // create our exec object

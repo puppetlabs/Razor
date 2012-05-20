@@ -8,8 +8,6 @@
 # Finally, this daemon will be used to check the timings on tasks that are
 # running under Razor, but that functionality is, as of now, unimplemented.
 #
-#
-# @author Tom McSweeney
 
 require 'rubygems'
 require 'daemons'
