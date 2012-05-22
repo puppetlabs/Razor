@@ -12,6 +12,12 @@ for integration with third party such as Puppet.
 
 This is a 0.x release, so the CLI and API is still in flux and may change. Make sure you 
 read the release notes before upgrading.
+=======
+More info:
+
+[Nickapedia.com](http://nickapedia.com/2012/05/21/lex-parsimoniae-cloud-provisioning-with-a-razor)
+
+[Puppetlabs.com](http://puppetlabs.com/blog/introducing-razor-a-next-generation-provisioning-solution/)
 
 ## Authors
 
