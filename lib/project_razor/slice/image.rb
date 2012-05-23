@@ -17,23 +17,23 @@ module ProjectRazor
         super(args)
         @hidden = false
         @new_slice_style = true # switch to new slice style
-        # Here we create a hash of the command string to the method it corresponds to for routing.
+                                # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {
-          :add     => {
-            :default => "add_image",
-            :help    => "razor image add " + "[#{get_types}]".white + " [/path/to/image] (os_name) (os_version)".yellow,
-            :else    => :default,
-           },
-          :get     => "list_images",
-          :remove  => {
-            :default => "remove_image",
-            :help    => "razor image remove " + "(IMAGE UUID)".yellow,
-            :else    => :default,
-           },
-          :default => "list_images",
-          :path    => "get_path",
-          :else    => :help,
-          :help    => 'razor image [add|get|remove|path]',
+            :add     => {
+                :default => "add_image",
+                :help    => "razor image add " + "[#{get_types}]".white + " [/path/to/image] (os_name) (os_version)".yellow,
+                :else    => :default,
+            },
+            :get     => "list_images",
+            :remove  => {
+                :default => "remove_image",
+                :help    => "razor image remove " + "(IMAGE UUID)".yellow,
+                :else    => :default,
+            },
+            :default => "list_images",
+            :path    => "get_path",
+            :else    => :help,
+            :help    => 'razor image [add|get|remove|path]',
         }
         @slice_name = "Image"
       end
@@ -77,12 +77,12 @@ module ProjectRazor
 
         setup_data
         case @option
-        when "kernel"
-          slice_success(default_mk_image.kernel_path)
-        when "initrd"
-          slice_success(default_mk_image.initrd_path)
-        else
-          raise ProjectRazor::Error::Slice::InvalidArgument, @option
+          when "kernel"
+            slice_success(default_mk_image.kernel_path)
+          when "initrd"
+            slice_success(default_mk_image.initrd_path)
+          else
+            raise ProjectRazor::Error::Slice::InvalidArgument, @option
         end
       end
 
@@ -130,8 +130,8 @@ module ProjectRazor
                                :classname => "ProjectRazor::ImageService::OSInstall",
                                :method => "add_os"},
                        :esxi => {:desc => "VMware Hypervisor ISO",
-                               :classname => "ProjectRazor::ImageService::VMwareHypervisor",
-                               :method => "add_esxi"}}
+                                 :classname => "ProjectRazor::ImageService::VMwareHypervisor",
+                                 :method => "add_esxi"}}
 
         raise ProjectRazor::Error::Slice::NotImplemented, "image add cli only" if @web_command
 
@@ -213,14 +213,22 @@ module ProjectRazor
         image_selected = @data.fetch_object_by_uuid(:images, image_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID unless image_selected
 
-        # TODO - Add cross check against engine to be sure image is not actively part of a policy_rule or bound_policy within a model
-
-        raise ProjectRazor::Error::Slice::InternalError, 'cannot remove image path' unless image_selected.remove(@data.config.image_svc_path)
-        if @data.delete_object(image_selected)
+        # Use the Engine instance to remove the selected image from the database
+        engine = ProjectRazor::Engine.instance
+        return_status = false
+        begin
+          return_status = engine.remove_image(image_selected)
+        rescue RuntimeError => e
+          raise ProjectRazor::Error::Slice::InternalError, e.message
+        rescue Exception => e
+          # if got to here, then the Engine raised an exception
+          raise ProjectRazor::Error::Slice::CouldNotRemove, e.message
+        end
+        if return_status
           slice_success("")
           puts "\nImage: " + "#{image_uuid}".yellow + " removed successfully"
         else
-          raise ProjectRazor::Error::Slice::InternalError, 'cannot remove image from db'
+          raise ProjectRazor::Error::Slice::InternalError, "cannot remove image '#{image_uuid}' from db"
         end
       end
 

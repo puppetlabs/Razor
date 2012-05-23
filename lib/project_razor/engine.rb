@@ -392,6 +392,25 @@ module ProjectRazor
       }
     end
 
+    # removes an image, but only if it's not part of a bound policy or a policy rule
+    def remove_image(image)
+      # ensure image is not actively part of a policy_rule or bound_policy within a model;
+      # if so, then raise an exception (and return to the caller without removing the image)
+      models = get_data.fetch_all_objects(:model)
+      models.each { |model|
+        if model.image_uuid == image.uuid
+          logger.warn "Cannot remove image '#{image.uuid}' because it is used in model '#{model.uuid}'"
+          raise Exception, "Cannot remove image '#{image.uuid}' because it is used in model '#{model.uuid}'"
+        end
+      }
+      data = get_data
+      unless image.remove(data.config.image_svc_path)
+        logger.error 'attempt to remove image from image_svc_path failed'
+        raise RuntimeError, "Attempt to remove image '#{image.uuid}' from the image_svc_path failed"
+      end
+      return data.delete_object(image)
+    end
+
   end
 end
 
