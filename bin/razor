@@ -80,9 +80,9 @@ end
 
 
 def print_header
-  puts "\nProjectRazor - #{@version}".bold.green
+  puts "\nRazor - #{@version}".bold.green
   print "\n\tUsage: ".bold
-  print "\n\tproject_razor "
+  print "\n\trazor "
   print "[slice name] [command argument] [command argument]...\n".red
   print "\t Switches:\n".yellow
   print "\t\t --debug        : Enables printing proper Ruby stacktrace\n".yellow
