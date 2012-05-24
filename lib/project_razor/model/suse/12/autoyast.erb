@@ -105,7 +105,7 @@
     </services>
   </runlevel>
   <scripts>
-    <post-scripts config:type="list">
+    <chroot-scripts config:type="list">
       <script>
         <debug config:type="boolean">false</debug>
         <feedback config:type="boolean">false</feedback>
@@ -116,7 +116,7 @@
 wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/yast/end
 ]]></source>
       </script>
-    </post-scripts>
+    </chroot-scripts>
   </scripts>
   <software>
     <packages config:type="list">

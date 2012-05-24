@@ -729,7 +729,7 @@
   <default>5</default>
 </runlevel>
 <scripts>
-  <post-scripts config:type="list">
+  <chroot-scripts config:type="list">
     <script>
         <debug config:type="boolean">false</debug>
                 <feedback config:type="boolean">false</feedback>
@@ -740,17 +740,8 @@
         wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/yast/end
         ]]></source>
     </script>
-  </post-scripts>
+  </chroot-scripts>
 </scripts>
-<software>
-  <patterns config:type="list">
-    <pattern>Minimal</pattern>
-    <pattern>apparmor</pattern>
-    <pattern>base</pattern>
-    <pattern>kde</pattern>
-    <pattern>x11</pattern>
-  </patterns>
-</software>
 <timezone>
   <hwclock>UTC</hwclock>
   <timezone>America/New_York</timezone>
