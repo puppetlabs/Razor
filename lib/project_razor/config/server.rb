@@ -114,7 +114,15 @@ module ProjectRazor
       end
 
       def get_an_ip
-        ip = Socket.ip_address_list.detect{|intf| intf.ipv4_private?}
+        # look for the first private IP address on the Razor server
+        # to use in the configuration file
+        ip = Socket.ip_address_list.detect { |intf| intf.ipv4_private? }
+        # if the previous request returned nil, then the Razor server
+        # has no private IP addresses, so look for a public IP address
+        # to use instead
+        ip = Socket.ip_address_list.detect { |intf| intf.ipv4? } unless ip
+        # if the "ip" value is still nil, default to the localhost
+        ip = '127.0.0.1' unless ip
         ip.ip_address.force_encoding("UTF-8")
       end
 
