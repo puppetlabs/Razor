@@ -8,6 +8,9 @@
 lib_path = File.dirname(File.expand_path(__FILE__)).sub(/\/bin$/,"/lib")
 $LOAD_PATH.unshift(lib_path)
 
+# Some platforms need Rubygems required
+require "rubygems"
+
 # We require the root lib
 require "project_razor"
 
