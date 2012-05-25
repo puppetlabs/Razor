@@ -126,14 +126,14 @@ module ProjectRazor
         # address within that list (but not the IP address used for the localhost,
         # which could be anything on the 127.0.0.0/8 subnet)
         ip = ip_address_list.detect { |intf|
-          intf.ipv4_private? && /^(127\.\d{1,3}\.\d{1,3}\.\d{1,3})?$/.match(intf.ip_address)
+          intf.ipv4_private? && !/^(127\.\d{1,3}\.\d{1,3}\.\d{1,3})?$/.match(intf.ip_address)
         } unless ip
 
         # if the previous attempt to find a useable IP address returned nil, then
         # the Razor server has no private IP addresses, so look for a public IP address
         # to use instead (again, not the localhost IP address itself)
         ip = ip_address_list.detect { |intf|
-          intf.ipv4? && /^(127\.\d{1,3}\.\d{1,3}\.\d{1,3})?$/.match(intf.ip_address)
+          intf.ipv4? && !/^(127\.\d{1,3}\.\d{1,3}\.\d{1,3})?$/.match(intf.ip_address)
         } unless ip
 
         # if we still have a nil value, then look for an IP address in the localhost
