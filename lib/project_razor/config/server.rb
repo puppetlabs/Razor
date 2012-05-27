@@ -126,8 +126,7 @@ module ProjectRazor
       end
 
       def get_an_ip
-        address = local_ip.first
-        raise Error, "Unable to detect system IP address." unless address
+        address = local_ip.first ||= '127.0.0.1'
         address
       end
 
