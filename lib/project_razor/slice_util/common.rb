@@ -147,16 +147,18 @@ module ProjectRazor
       # Returns all child templates from prefix
       def get_child_templates(namespace_prefix)
         temp_hash = {}
-        ObjectSpace.each_object do
-        |object_class|
+        ObjectSpace.each_object do |object_class|
           if object_class.to_s.start_with?(namespace_prefix) && object_class.to_s != namespace_prefix && !(object_class.to_s =~ /#/)
-            temp_hash[object_class.to_s] = object_class.to_s.sub(namespace_prefix,"").strip
+            unless object_class.is_a? String or object_class.is_a? Hash or object_class.is_a? Array
+              temp_hash[object_class.to_s] = object_class.to_s.sub(namespace_prefix,"").strip
+            end
           end
         end
+
         object_array = {}
         temp_hash.each_value {|x| object_array[x] = x}
 
-        objects = object_array.each_value.collect { |x| x }.sort.collect {|x| Object::full_const_get(namespace_prefix + x).new({})}
+        objects = object_array.values.sort.collect {|x| ::Object::full_const_get((namespace_prefix + x)).new({}) }
         objects.each {|object| object.is_template = true}
         valid_objects = []
         objects.each {|object| valid_objects << object unless object.hidden}
@@ -195,7 +197,7 @@ module ProjectRazor
 
       # Checks to make sure an arg is a format that supports a noun (uuid, etc))
       def validate_arg(*arg)
-        if arg.respond_to?(:each)
+        if arg.is_a? Array
           arg.each do
           |a|
             unless a != nil && (a =~ /^\{.*\}$/) == nil && a != ''

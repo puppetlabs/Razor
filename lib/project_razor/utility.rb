@@ -62,7 +62,7 @@ module ProjectRazor
         if hash[key].class == Hash || hash[key].class == BSON::OrderedHash
           # If we have a classname we know we need to return to an object
           if hash[key]["@classname"]
-            self.instance_variable_set(key, Object::full_const_get(hash[key]["@classname"]).new(hash[key])) unless key.to_s.start_with?("_")
+            self.instance_variable_set(key, ::Object::full_const_get(hash[key]["@classname"]).new(hash[key])) unless key.to_s.start_with?("_")
           else
             self.instance_variable_set(key, value) unless key.to_s.start_with?("_")
           end

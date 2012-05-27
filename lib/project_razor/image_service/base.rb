@@ -50,7 +50,7 @@ module ProjectRazor
           # Make sure it has an .iso extension
           return cleanup([false,"File is not an ISO"]) if @filename[-4..-1] != ".iso"
 
-          File.open(src_image_path, "r") {|f| @size = f.size}
+          File.size(src_image_path)
 
           # Confirm a mount doesn't already exist
           unless is_mounted?(fullpath)
@@ -97,7 +97,7 @@ module ProjectRazor
       def remove(image_svc_path)
         set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
         cleanup([false ,""])
-        !Dir.exist?(image_path)
+        !File.directory?(image_path)
       end
 
       # Used to verify an image within the filesystem (local/remote/possible Glance)
@@ -120,7 +120,7 @@ module ProjectRazor
       end
 
       def mount(src_image_path)
-        FileUtils.mkpath(mount_path) unless Dir.exist?(mount_path)
+        FileUtils.mkpath(mount_path) unless File.directory?(mount_path)
 
         `#{MOUNT_COMMAND} -o loop #{src_image_path} #{mount_path} 2> /dev/null`
         if $? == 0
@@ -160,7 +160,7 @@ module ProjectRazor
       end
 
       def is_image_path?
-        Dir.exist?(image_path)
+        File.directory?(image_path)
       end
 
       def create_image_path
@@ -168,7 +168,7 @@ module ProjectRazor
       end
 
       def remove_dir_completely(path)
-        if Dir.exist?(path)
+        if File.directory?(path)
           FileUtils.rm_r(path, :force => true)
         else
           true

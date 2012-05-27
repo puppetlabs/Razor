@@ -41,13 +41,13 @@ module ProjectRazor
 
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
 
-        @hw_id = @hw_id.split("_") unless @hw_id.respond_to?(:each)
+        @hw_id = @hw_id.split("_") unless @hw_id.is_a? Array
         unless @hw_id.count > 0
           error_reboot_node "Must Provide At Least One Hardware ID [hw_id]"
           return
         end
 
-        @hw_id.map! {|hw| hw.gsub(":","").upcase}
+        @hw_id.collect! {|x| x.upcase.gsub(':', '') }
         logger.info "Boot called by Node (HW_ID: #{@hw_id})"
         logger.info "Calling Engine for boot script"
         puts @engine.boot_checkin(@hw_id)

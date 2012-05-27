@@ -113,17 +113,22 @@ module ProjectRazor
         client_config_hash
       end
 
+      def local_ip
+        # Base on answer from http://stackoverflow.com/questions/42566/getting-the-hostname-or-ip-in-ruby-on-rails
+        orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true  # turn off reverse DNS resolution temporarily
+
+        UDPSocket.open do |s|
+          s.connect '4.2.2.1', 1 # as this is UDP, no connection will actually be made
+          s.addr.select {|ip| ip =~ /[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/}.uniq
+        end
+      ensure
+        Socket.do_not_reverse_lookup = orig
+      end
+
       def get_an_ip
-        # look for the first private IP address on the Razor server
-        # to use in the configuration file
-        ip = Socket.ip_address_list.detect { |intf| intf.ipv4_private? }
-        # if the previous request returned nil, then the Razor server
-        # has no private IP addresses, so look for a public IP address
-        # to use instead
-        ip = Socket.ip_address_list.detect { |intf| intf.ipv4? } unless ip
-        # if the "ip" value is still nil, default to the localhost
-        ip = '127.0.0.1' unless ip
-        ip.ip_address.force_encoding("UTF-8")
+        address = local_ip.first
+        raise Error, "Unable to detect system IP address." unless address
+        address
       end
 
     end

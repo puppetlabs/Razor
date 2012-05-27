@@ -336,7 +336,7 @@ module ProjectRazor
 
       def load_slice_commands
         begin
-          @slice_commands = YAML.load(File.read(slice_commands_file))
+          @slice_commands = YAML.load_file(slice_commands_file)
         rescue => e
           raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{@slice_name} cannot parse command file"
         end
