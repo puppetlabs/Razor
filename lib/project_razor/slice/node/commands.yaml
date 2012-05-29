@@ -2,7 +2,7 @@
 :get:
   ? - all
     - 
-    - !ruby/regexp /^{.*}$/
+    - !ruby/regexp /^\{.*\}$/
   : get_nodes_all
   ? - !ruby/regexp /[Aa]ttrib/
     - !ruby/regexp /^[Aa]$/

@@ -66,8 +66,8 @@ module ProjectRazor
         # Validate our args are here
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Last State[last_state]" unless validate_arg(@last_state)
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Attributes Hash[attributes_hash]" unless validate_arg(@attributes_hash)
-        @hw_id = @hw_id.split("_") unless @hw_id.respond_to?(:each)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Attributes Hash[attributes_hash]" unless @attributes_hash.is_a? Hash and @attributes_hash.size > 0
+        @hw_id = @hw_id.split("_") if @hw_id.is_a? String
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide At Least One Hardware ID [hw_id]" unless @hw_id.count > 0
         @engine = ProjectRazor::Engine.instance
         @new_node = @engine.lookup_node_by_hw_id(:hw_id => @hw_id)
@@ -106,7 +106,8 @@ module ProjectRazor
         # Validate our args are here
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Last State[last_state]" unless validate_arg(@last_state)
-        @hw_id = @hw_id.split("_") unless @hw_id.respond_to?(:each)
+        @hw_id = @hw_id.split("_") unless @hw_id.is_a? Array
+
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide At Least One Hardware ID [hw_id]" unless @hw_id.count > 0
         @new_node = @engine.lookup_node_by_hw_id(:hw_id => @hw_id)
         if @new_node

@@ -26,7 +26,7 @@ module ProjectRazor
                 :else    => "update_broker"
             },
             :get            => {
-                ["all", '{}', /^{.*}$/, nil]        => "get_broker_all",
+                ["all", '{}', /^\{.*\}$/, nil]        => "get_broker_all",
                 [/plugin/, "t", /template/, /type/] => "get_broker_plugins",
                 :default                            => "get_broker_all",
                 :else                               => "get_broker_with_uuid",
@@ -78,7 +78,7 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Name [name]" unless validate_arg(name)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Description [description]" unless validate_arg(description)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Servers [servers]" unless validate_arg(servers)
-        servers = servers.split(",") unless servers.respond_to?(:each)
+        servers = servers.split(",") if servers.is_a? String
         raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless servers.count > 0
         raise ProjectRazor::Error::Slice::InvalidPlugin, "Invalid Broker Plugin [#{plugin}]" unless is_valid_template?(BROKER_PREFIX, plugin)
         broker                  = new_object_from_template_name(BROKER_PREFIX, plugin)
@@ -105,7 +105,7 @@ module ProjectRazor
         name, description, servers = *get_cli_vars(%w(name description servers)) unless name || description || servers
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update" unless name || description || servers
         if servers
-          servers = servers.split(",") unless servers.respond_to?(:each)
+          servers = servers.split(",") if servers.is_a? String
           raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless servers.count > 0
         end
         broker.name             = name if name

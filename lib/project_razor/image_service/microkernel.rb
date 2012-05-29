@@ -1,6 +1,5 @@
 require "yaml"
 require "digest/sha2"
-require "digest/hmac"
 require "extlib"
 
 module ProjectRazor
@@ -40,7 +39,7 @@ module ProjectRazor
           end
           rescue => e
             logger.error e.message
-            return [false, e.message]
+            raise ProjectRazor::Error::Slice::InternalError, e.message
         end
       end
 
@@ -94,7 +93,7 @@ module ProjectRazor
             return false
           end
 
-          digest = Object::full_const_get(@hash_description["type"]).new(@hash_description["bitlen"])
+          digest = ::Object::full_const_get(@hash_description["type"]).new(@hash_description["bitlen"])
           khash = File.exist?(kernel_path) ? digest.hexdigest(File.read(kernel_path)) : ""
           ihash = File.exist?(initrd_path) ? digest.hexdigest(File.read(initrd_path)) : ""
 

@@ -8,6 +8,8 @@
 lib_path = File.dirname(File.expand_path(__FILE__)).sub(/\/bin$/,"/lib")
 $LOAD_PATH.unshift(lib_path)
 
+
+require 'rubygems' if RUBY_VERSION < '1.9'
 # We require the root lib
 require "project_razor"
 
@@ -15,11 +17,11 @@ require "project_razor"
 require "extlib"
 require "json"
 require "colored"
+require 'optparse'
 
 # We set a constant for our Slice root Namespace. We use this to pull the slice names back out
 # from objectspace
 SLICE_PREFIX = "ProjectRazor::Slice::"
-
 
 #
 def init
@@ -48,25 +50,26 @@ def call_razor_slice
       end
     end
   rescue => e
-    raise if @debug
-    print_header
+    @logger.error "Razor slice error: #{e.message}"
     if @namespace
       print "\n [#{@namespace.capitalize}] ".red
       print "<-#{e.message} \n".yellow
     end
+    raise e if @debug
   end
 end
 
 # Load slices
 def get_slices_loaded
   temp_hash = {}
-  ObjectSpace.each_object do
-  |object_class|
 
-    if object_class.to_s.start_with?(SLICE_PREFIX) && object_class.to_s != SLICE_PREFIX
-      temp_hash[object_class.to_s] = object_class.to_s.sub(SLICE_PREFIX,"").strip
-    end
+  slice_path = File.expand_path(File.join(File.dirname(__FILE__), "..", "lib/project_razor/slice/*.rb"))
+
+  Dir.glob(slice_path) do |f|
+    name = File.basename(f,File.extname(f)).capitalize
+    temp_hash[SLICE_PREFIX+name] = name unless name == 'Slice'
   end
+
   @slice_array = {}
   temp_hash.each_value {|x| @slice_array[x] = x}
   @slice_array = @slice_array.each_value.collect {|x| x}
@@ -78,24 +81,11 @@ def is_slice?
   false
 end
 
-
-def print_header
-  puts "\nRazor - #{@version}".bold.green
-  print "\n\tUsage: ".bold
-  print "\n\trazor "
-  print "[slice name] [command argument] [command argument]...\n".red
-  print "\t Switches:\n".yellow
-  print "\t\t --debug        : Enables printing proper Ruby stacktrace\n".yellow
-  print "\t\t --verbose      : Enables verbose object printing\n".yellow
-  print "\t\t --no-color-out : Disables console color. Useful for script wrapping.\n".yellow
-  print_loaded_slices
-end
-
 def print_loaded_slices
   print "\nLoaded slices:\n\t"
   x = 1
   @slice_array.sort.each do |slice|
-    slice_obj = Object.full_const_get(SLICE_PREFIX + slice.capitalize).new([])
+    slice_obj = ::Object.full_const_get(SLICE_PREFIX + slice.capitalize).new([])
     unless slice_obj.hidden
       print "[#{slice.downcase}] ".white
       if x > 5
@@ -108,52 +98,71 @@ def print_loaded_slices
   print "\n"
 end
 
+# Initialise some values
+init
 
-# First check to see if we have executed from command line
-if $0 == __FILE__
+options = {}
 
-  # Initialize a few things
-  init
+optparse = OptionParser.new do |opts|
+   opts.banner = "\n" + "Razor - #{@version}".bold.green
+   opts.separator "Usage: "
+   opts.separator "razor [slice name] [command argument] [command argument]...".red
+   opts.separator ""
+   opts.separator "Switches".yellow
 
+   options[:verbose] = false
+   opts.on( '-v', '--verbose', 'Enables verbose object printing'.yellow ) do
+     options[:verbose] = true
+   end
 
-  @web_command = false
+   options[:debug] = false
+   opts.on( '-d', '--debug', 'Enables printing proper Ruby stacktrace'.yellow ) do
+     options[:debug] = true
+   end
 
-  if ARGV.count > 0
-    while ARGV[0] && ARGV[0].start_with?("-")
-      switch = ARGV.shift
-      case switch
-        when "--web-command", "-w"
-          @web_command = true
-        when "--debug", "-d"
-          @debug = true
-        when "--verbose", "-v"
-          @verbose = true
-        when "--no-color-out","-nc"
-          # if this flag is set, override the default behavior of the underlying "colorize" method
-          # from the "Colored" module so that it just returns the string that was passed into it
-          # (this will have the effect of turning off any color that might be included in any of
-          # the output statements involving Strings in Razor)
-          module Colored
-            extend self
-            def colorize(string, options = {})
-              string
-            end
-          end
-          String.send(:include, Colored)
-        else
-          #
-      end
-    end
+   options[:webcommand] = false
+   opts.on( '-w', '--webcommand', 'Accepts web commands.'.yellow ) do
+     options[:webcommand] = true
+   end
 
-    @namespace = ARGV.shift
-    @args = ARGV
+   options[:nocolor] = false
+   opts.on( '-n', '--no-color-out', 'Disables console color. Useful for script wrapping.'.yellow ) do
+     options[:nocolor] = true
+   end
 
-    call_razor_slice
-  else
-    unless @web_command
-      print_header
-    end
-  end
+   opts.on_tail( '-h', '--help', 'Display this screen'.yellow ) do
+     puts opts
+     print_loaded_slices
+     exit
+   end
 end
 
+optparse.parse!
 
+if ARGV.empty?
+   puts optparse
+   print_loaded_slices
+end
+
+@web_command = true if options[:webcommand]
+@debug = true if options[:debug]
+@verbose = true if options[:verbose]
+
+if options[:nocolor]
+  # if this flag is set, override the default behavior of the underlying "colorize" method
+  # from the "Colored" module so that it just returns the string that was passed into it
+  # (this will have the effect of turning off any color that might be included in any of
+  # the output statements involving Strings in Razor)
+  module Colored
+    extend self
+    def colorize(string, options = {})
+      string
+    end
+  end
+  String.send(:include, Colored)
+end
+
+@namespace = ARGV.shift
+@args = ARGV
+
+call_razor_slice

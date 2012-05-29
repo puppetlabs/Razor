@@ -106,7 +106,7 @@ module ProjectRazor
         file_path = @image.image_path + "/" + @command_array.join("/")
 
 
-        if File.exists?(file_path) || Dir.exist?(file_path)
+        if File.directory?(file_path)
           slice_success(file_path)
         else
           raise ProjectRazor::Error::Slice::InvalidImageFilePath, file_path
@@ -147,7 +147,7 @@ module ProjectRazor
 
         classname = image_types[image_type.to_sym][:classname]
 
-        new_image = Object::full_const_get(classname).new({})
+        new_image = ::Object::full_const_get(classname).new({})
         # We send the new image object to the appropriate method
         res = self.send image_types[image_type.to_sym][:method], new_image, iso_path, @data.config.image_svc_path
 
