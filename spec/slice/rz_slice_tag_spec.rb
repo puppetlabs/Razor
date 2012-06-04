@@ -116,10 +116,10 @@ describe "ProjectRazor::Slice::Tag" do
       matcher.compare.should == "equal"
       matcher.inverse.should == "false"
       uri = URI matcher_uri
-      json_hash["@key"] = "ip_address"
-      json_hash["@value"] = 'regex:^192.168.1.1[0-9][0-9]$'
-      json_hash["@compare"] = "like"
-      json_hash["@invert"] = "true"
+      json_hash["key"] = "ip_address"
+      json_hash["value"] = 'regex:^192.168.1.1[0-9][0-9]$'
+      json_hash["compare"] = "like"
+      json_hash["invert"] = "true"
       json_string = JSON.generate(json_hash)
       res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
       res.class.should == Net::HTTPCreated

@@ -74,11 +74,13 @@ module ProjectRazor
         plugin, name, description, servers = *get_web_vars(%w(plugin name description servers)) if @web_command
         plugin, name, description, servers = *get_cli_vars(%w(plugin name description servers)) unless plugin || name || description || servers
         # Validate our args are here
+        servers = servers.flatten if servers.is_a? Array
+        servers = servers.split(",") if servers.is_a? String
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Plugin [plugin]" unless validate_arg(plugin)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Name [name]" unless validate_arg(name)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Description [description]" unless validate_arg(description)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Servers [servers]" unless validate_arg(servers)
-        servers = servers.split(",") if servers.is_a? String
+
         raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless servers.count > 0
         raise ProjectRazor::Error::Slice::InvalidPlugin, "Invalid Broker Plugin [#{plugin}]" unless is_valid_template?(BROKER_PREFIX, plugin)
         broker                  = new_object_from_template_name(BROKER_PREFIX, plugin)
@@ -161,4 +163,3 @@ module ProjectRazor
     end
   end
 end
-

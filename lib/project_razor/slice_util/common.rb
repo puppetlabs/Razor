@@ -1,4 +1,3 @@
-
 require "json"
 
 module ProjectRazor
@@ -200,12 +199,12 @@ module ProjectRazor
         if arg.is_a? Array
           arg.each do
           |a|
-            unless a != nil && (a =~ /^\{.*\}$/) == nil && a != ''
+            unless a && (a.to_s =~ /^\{.*\}$/) == nil && a != ''
               return false
             end
           end
         else
-          arg != nil && (arg =~ /^\{.*\}$/) == nil && arg != ''
+          arg && (arg.to_s =~ /^\{.*\}$/) == nil && arg != ''
         end
       end
 
@@ -602,11 +601,13 @@ module ProjectRazor
         else
           if @uri_root
             object_array = object_array.collect do |object|
+
               if object.is_template
                 object.to_hash
               else
                 obj_web = object.to_hash
-                obj_web.select! { |k, v| ["@uuid", "@classname"].include?(k) } unless object_array.count == 1
+                obj_web = Hash[obj_web.reject { |k,v| !['@uuid', '@classname'].include?(k) }] unless object_array.count == 1
+
                 add_uri_to_object_hash(obj_web)
                 iterate_obj(obj_web)
                 obj_web
