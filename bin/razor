@@ -14,7 +14,6 @@ require 'rubygems' if RUBY_VERSION < '1.9'
 require "project_razor"
 
 # We need these for misc operations later
-require "extlib"
 require "json"
 require "colored"
 require "optparse"

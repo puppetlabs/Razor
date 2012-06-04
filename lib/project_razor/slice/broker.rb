@@ -53,7 +53,7 @@ module ProjectRazor
       # Returns the broker plugins available
       def get_broker_plugins
         # We use the common method in Utility to fetch object plugins by providing Namespace prefix
-        print_object_array get_child_templates(BROKER_PREFIX), "\nAvailable Broker Plugins:"
+        print_object_array get_child_templates(ProjectRazor::BrokerPlugin), "\nAvailable Broker Plugins:"
       end
 
       def get_broker_with_uuid

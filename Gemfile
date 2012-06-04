@@ -9,7 +9,6 @@ gem "rspec"
 gem "syntax"
 gem "uuid"
 gem "logger"
-gem "extlib" # used for full_const_get method
 gem "json"
 gem "colored"
 gem "autotest"

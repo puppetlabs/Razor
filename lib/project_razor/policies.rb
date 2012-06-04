@@ -108,45 +108,17 @@ module ProjectRazor
 
     # Get Array of Policy Templates available
     def get_templates
-      temp_hash = {}
-      ObjectSpace.each_object do
-      |object_class|
-        if object_class.to_s.start_with?(POLICY_PREFIX) &&
-            object_class.to_s != POLICY_PREFIX &&
-            (/#/ =~ object_class.to_s) == nil
-          temp_hash[object_class.to_s] = object_class.to_s.sub(POLICY_PREFIX,"").strip
-        end
-      end
-      policy_template_array = {}
-      temp_hash.each_value {|x| policy_template_array[x] = x}
-      policy_template_array.each_value.collect {|x| x}
-      valid_templates = []
-      policy_template_array.each do
-      |policy_template|
-        policy_template_obj = Object.full_const_get(POLICY_PREFIX + policy_template[0]).new({})
-        valid_templates << policy_template_obj if !policy_template_obj.hidden
-      end
-      valid_templates
+      ProjectRazor::PolicyTemplate.class_children.map do |policy_template|
+        policy_template_obj = ::Object.full_const_get(POLICY_PREFIX + policy_template[0]).new({})
+        !policy_template_obj.hidden ? policy_template_obj : nil
+      end.reject { |e| e.nil? }
     end
 
     def get_model_templates
-      temp_hash = {}
-      ObjectSpace.each_object do
-      |object_class|
-        if object_class.to_s.start_with?(MODEL_PREFIX) && object_class.to_s != MODEL_PREFIX
-          temp_hash[object_class.to_s] = object_class.to_s.sub(MODEL_PREFIX,"").strip
-        end
-      end
-      model_template_array = {}
-      temp_hash.each_value {|x| model_template_array[x] = x}
-      model_template_array.each_value.collect {|x| x}
-      valid_templates = []
-      model_template_array.each do
-      |model_template|
-        model_template_obj = Object.full_const_get(MODEL_PREFIX + model_template[0]).new({})
-        valid_templates << model_template_obj if !model_template_obj.hidden
-      end
-      valid_templates
+      ProjectRazor::ModelTemplate.class_children.map do |policy_template|
+        policy_template_obj = ::Object.full_const_get(MODEL_PREFIX + policy_template[0]).new({})
+        !policy_template_obj.hidden ? policy_template_obj : nil
+      end.reject { |e| e.nil? }
     end
 
     def new_policy_from_template_name(policy_template_name)
