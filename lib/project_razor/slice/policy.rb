@@ -20,6 +20,7 @@ module ProjectRazor
         @new_slice_style = true # switch to new slice style
                                 # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands  = { :add                           => "add_policy",
+                             :update                           => "update_policy",
                              :move                          => {
                                  :higher => "move_policy_higher",
                                  :lower  => "move_policy_lower",
@@ -130,7 +131,7 @@ module ProjectRazor
 
       def add_policy
         @command           =:add_policy
-        @command_help_text = "razor model add template=(policy template) label=(policy label) model_uuid=(model UUID) broker_uuid=(broker UUID)|none tags=(tag){,(tag),(tag)..} {enabled=true|false}\n"
+        @command_help_text = "razor policy add template=(policy template) label=(policy label) model_uuid=(model UUID) broker_uuid=(broker UUID)|none tags=(tag){,(tag),(tag)..} {enabled=true|false}\n"
         @command_help_text << "\t template: \t" + " The Policy Template name to use\n".yellow
         @command_help_text << "\t label: \t" + " A label to name this Policy\n".yellow
         @command_help_text << "\t model_uuid: \t" + " The Model to attach to the Policy\n".yellow
@@ -163,6 +164,48 @@ module ProjectRazor
         policy.is_template = false
         policy_rules       = ProjectRazor::Policies.instance
         policy_rules.add(policy) ? print_object_array([policy], "Policy created", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Policy")
+      end
+
+      def update_policy
+        @command           =:update_policy
+        @command_help_text = "razor policy update label=(policy label) model_uuid=(model UUID) broker_uuid=(broker UUID)|none tags=(tag){,(tag),(tag)..} {enabled=true|false}\n"
+        @command_help_text << "\t label: \t" + " A label to name this Policy\n".yellow
+        @command_help_text << "\t model_uuid: \t" + " The Model to attach to the Policy\n".yellow
+        @command_help_text << "\t broker_uuid: \t" + " The Broker to attach to the Policy or 'none'\n".yellow
+        @command_help_text << "\t tags: \t" + " At least one tag to trigger the Policy. Comma delimited\n".yellow
+        @command_help_text << "\t enabled: \t" + " Whether the Policy is enabled or not. Optional and defaults to false\n".yellow
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Policy UUID" unless validate_arg(@command_array.first)
+        policy_uuid = @command_array.shift
+        policy      = get_object("policy_with_uuid", :policy, policy_uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy
+        label, model_uuid, broker_uuid, tags, enabled = *get_web_vars(%w(label model_uuid broker_uuid tags enabled)) if @web_command
+        label, model_uuid, broker_uuid, tags, enabled = *get_cli_vars(%w(label model_uuid broker_uuid tags enabled)) unless label || model_uuid || broker_uuid || tags || enabled
+
+
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update" unless label || model_uuid || broker_uuid || tags || enabled
+        if tags
+          tags = tags.split(",") if tags.is_a? String
+          raise ProjectRazor::Error::Slice::MissingArgument, "Policy Tags [tag(,tag)]" unless tags.count > 0
+        end
+        if model_uuid
+          model = get_object("model_by_uuid", :model, model_uuid)
+          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{model_uuid}]" unless model
+          raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.label}]" unless policy.template == model.template
+        end
+        if broker_uuid
+          broker = get_object("model_by_uuid", :broker, broker_uuid)
+          raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{broker_uuid}]" unless broker || broker_uuid == "none"
+        end
+
+        policy.label  = label if label
+        policy.model  = model if model
+        policy.broker = broker if broker
+        policy.tags   = tags if tags
+        policy.enabled = true if enabled == "true"
+        policy.enabled = false if enabled == "false"
+
+        raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Broker Target [#{broker.uuid}]" unless policy.update_self
+        print_object_array [policy], "", :success_type => :updated
       end
 
 
