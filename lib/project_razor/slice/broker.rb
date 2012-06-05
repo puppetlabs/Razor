@@ -136,30 +136,6 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove broker [#{tagrule.uuid}]" unless get_data.delete_object(broker)
         slice_success("Active broker [#{broker.uuid}] removed", :success_type => :removed)
       end
-
-      def remove_broker_old
-        @command_help_text = "razor broker remove all|(uuid)"
-        # Grab the arg
-        @arg               = @command_array.shift
-        case @arg
-          when "all" # if [all] we remove all instances
-            setup_data                        # setup the data object
-            @data.delete_all_objects(:broker) # remove all broker instances
-            slice_success("All Broker deleted") # return success
-          when nil
-            raise ProjectRazor::Error::Slice::MissingArgument, "all|UUID"
-          else
-            broker = get_object("broker instances", :broker, @arg) # attempt to find broker with uuid
-            case broker
-              when nil
-                raise ProjectRazor::Error::Slice::NotFound, "Broker Target with UUID: [#@arg]"
-              else
-                setup_data
-                @data.delete_object_by_uuid(:broker, @arg)
-                slice_success("Broker Deleted", :type => :removed)
-            end
-        end
-      end
     end
   end
 end
