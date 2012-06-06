@@ -156,7 +156,7 @@ end
 @debug = true if @options[:debug]
 @verbose = true if @options[:verbose]
 
-if @options[:nocolor]
+if @options[:nocolor] or !STDOUT.tty?
   # if this flag is set, override the default behavior of the underlying "colorize" method
   # from the "Colored" module so that it just returns the string that was passed into it
   # (this will have the effect of turning off any color that might be included in any of
