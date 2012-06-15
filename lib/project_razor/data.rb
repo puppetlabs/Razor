@@ -56,11 +56,12 @@ module ProjectRazor
     # @return [Object, nil]
     def fetch_object_by_uuid(object_symbol, object_uuid)
       logger.debug "Fetching object by uuid (#{object_uuid}) in collection (#{object_symbol})"
-      fetch_all_objects(object_symbol).each do
-      |object|
-        return object if object.uuid == object_uuid
+      object_hash = persist_ctrl.object_hash_get_by_uuid({"@uuid" => object_uuid}, object_symbol)
+      if object_hash
+        object_hash_to_object(object_hash)
+      else
+        nil
       end
-      nil
     end
 
     # Fetches a document from database with a specific 'uuid'. This form uses partial matching of 'uuid' and only returns if a single entry matches otherwise it returns nil
@@ -103,15 +104,29 @@ module ProjectRazor
     # Takes an {ProjectRazor::Object} and creates/persists it within the database.
     # @note If {ProjectRazor::Object} already exists it is simply updated
     #
-    # @param [ProjectRazor::Object] object
+    # @param [ProjectRazor::Object, Array] object
     # @return [ProjectProjectRazor::Object] returned object is a copy of passed {ProjectRazor::Object} with bindings enabled for {ProjectRazor::ProjectRazor#refresh_self} and {ProjectRazor::ProjectRazor#update_self}
-    def persist_object(object)
-      logger.debug "Persisting an object (#{object.uuid})"
-      persist_ctrl.object_hash_update(object.to_hash, object._collection)
-      object._persist_ctrl = persist_ctrl
-      object.refresh_self
+    def persist_object(object, options = {})
+      if object.class == Array
+        logger.debug "Persisting a set of objects (#{object.count})"
+        unless options[:multi_collection]
+          raise ProjectRazor::Error::MissingMultiCollectionOnGroupPersist, "Missing namespace on multiple object  persist"
+        end
+        hash_array = []
+        object.each {|o| hash_array << o.to_hash}
+        persist_ctrl.object_hash_update_multi(hash_array, options[:multi_collection])
+        object.each {|o| o._persist_ctrl = persist_ctrl && (o.refresh_self if options[:refresh])}
+        object.each {|o| o.refresh_self} if options[:refresh]
+      else
+        logger.debug "Persisting an object (#{object.uuid})"
+        persist_ctrl.object_hash_update(object.to_hash, object._namespace)
+        object._persist_ctrl = persist_ctrl
+        object.refresh_self if options[:refresh]
+      end
       object
     end
+
+    alias :persist_objects :persist_object
 
     # Removes all {ProjectRazor::Object}'s that exist in the collection name given
     #
@@ -128,7 +143,7 @@ module ProjectRazor
     # @return [true, false]
     def delete_object(object)
       logger.debug "Deleting an object (#{object.uuid})"
-      persist_ctrl.object_hash_remove(object.to_hash, object._collection)
+      persist_ctrl.object_hash_remove(object.to_hash, object._namespace)
     end
 
     # Removes specific {ProjectRazor::Object} that exist in the collection name with given 'uuid'

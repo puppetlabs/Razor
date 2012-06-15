@@ -33,12 +33,12 @@ module ProjectRazor
         super(image_svc_path)
       end
 
-      def print_image_info(image_svc_path)
-        super(image_svc_path)
-        print "\tOS Name: "
-        print "#{@os_name}  \n".green
-        print "\tOS Version: "
-        print "#{@os_version}  \n".green
+      def print_item_header
+        super.push "OS Name", "OS Version"
+      end
+
+      def print_item
+        super.push @os_name.to_s, @os_version.to_s
       end
 
     end

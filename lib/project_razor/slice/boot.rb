@@ -48,7 +48,7 @@ module ProjectRazor
         end
 
         @hw_id.collect! {|x| x.upcase.gsub(':', '') }
-        logger.info "Boot called by Node (HW_ID: #{@hw_id})"
+        logger.info "Boot called by Node (HW_ID: #@hw_id)"
         logger.info "Calling Engine for boot script"
         puts @engine.boot_checkin(@hw_id)
       end

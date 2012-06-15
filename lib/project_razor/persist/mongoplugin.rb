@@ -1,4 +1,5 @@
 require "mongo"
+require "set"
 
 # MongoDB version of ProjectRazor::Controller::Plugin
 # used by ProjectRazor::Controller when ':mongo' is the 'persist_mode' in ProjectRazor configuration
@@ -22,7 +23,7 @@ module ProjectRazor
       def connect(hostname, port, timeout)
         logger.debug "Connecting to MongoDB (#{hostname}:#{port}) with timeout (#{timeout})"
         begin
-          @connection = Mongo::Connection.new(hostname, port, {:connect_timeout => timeout})
+          @connection = Mongo::Connection.new(hostname, port, { :connect_timeout => timeout })
         rescue Mongo::ConnectionTimeoutError
           logger.error "Mongo::ConnectionTimeoutError"
           return false
@@ -32,7 +33,7 @@ module ProjectRazor
         rescue Mongo::ConnectionFailure
           logger.error "Mongo::ConnectionFailure"
           return false
-        rescue  Mongo::OperationTimeout
+        rescue Mongo::OperationTimeout
           logger.error "Mongo::OperationTimeout"
           return false
         end
@@ -51,7 +52,7 @@ module ProjectRazor
       # Checks whether DB 'ProjectRazor' is selected in MongoDB
       # @return [true, false]
       def is_db_selected?
-        logger.debug "Is ProjectRazor DB selected?(#{(@razor_database != nil and @connection.active?)})"
+        #logger.debug "Is ProjectRazor DB selected?(#{(@razor_database != nil and @connection.active?)})"
         (@razor_database != nil and @connection.active?)
       end
 
@@ -61,43 +62,28 @@ module ProjectRazor
       # @param collection_name [Symbol]
       # @return [Array]
       def object_doc_get_all(collection_name)
+        collection_by_name(collection_name).create_index("@version") #ensure index on version
         logger.debug "Get all documents from collection (#{collection_name})"
-        unique_object_doc_array = []  # [Array] to hold new/unique docs
-        old_object_doc_array = []  # [Array] to hold old/duplicate docs
-
-        # Get all docs from 'collection_name' Collection and sort Desc by 'version'
-        collection_by_name(collection_name).find().sort("@version",-1).each do
-          # Iterate over each doc
-        |object_doc_in_coll|
-
-          flag = false # Set flag to false, if flag is true: doc is a duplicate
-
-          # Iterate over our unique doc [Array]
-          unique_object_doc_array.each do
-          |existing_unique_object_doc|
-
-            # If an existing unique doc matches the 'uuid' of a collection doc it is old
-            if existing_unique_object_doc["@uuid"] == object_doc_in_coll["@uuid"]
-              flag =  true # duplicate found because it is already in our unique [Array]
-            end
-          end
-
-          if flag
-            # Flag = true means this is a duplicate. We add it to our old object doc array
-            old_object_doc_array << object_doc_in_coll
+        objects_set   = Set.new # Set to hold uuid's for version checking. Using a Set for speed reasons.
+        old_objects   = [] # outdated versions of objects
+        objects_array = [] # objects to return
+        this          = collection_by_name(collection_name).find().sort("@version", -1).to_a
+        this.each do
+        |object|
+          if objects_set.add?(object['@uuid'])
+            objects_array << object
           else
-            # Flag = false means this is the first time we have seen this one. We add it to the unique object doc array
-            unique_object_doc_array << object_doc_in_coll
+            old_objects << object
           end
         end
-
-        cleanup_old_docs(old_object_doc_array, collection_name) # we send old docs to get removed
-        remove_mongo_keys(unique_object_doc_array) # we return our unique/new docs after removing mongo-related keys (_id, _timestamp)
+        cleanup_old_docs(old_objects, collection_name) if old_objects.count > 0 # only run clean if we need to
+        remove_mongo_keys(objects_array)
       end
 
       def object_doc_get_by_uuid(object_doc, collection_name)
+        collection_by_name(collection_name).create_index("@uuid") #ensure index on uuid
         logger.debug "Get document from collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
-        object_array = collection_by_name(collection_name).find("@uuid" => object_doc["@uuid"]).sort("@version",-1).to_a
+        object_array = collection_by_name(collection_name).find("@uuid" => object_doc["@uuid"]).sort("@version", -1).to_a
         if object_array.count > 0
           object_array[0]
         else
@@ -112,21 +98,32 @@ module ProjectRazor
       # @return [Hash] - returns the updated [Hash] of doc
       def object_doc_update(object_doc, collection_name)
         logger.debug "Update document in collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
-        # Add a timestamp key
         # We use this to always pull newest
         object_doc["@version"] = get_next_version(object_doc, collection_name)
         collection_by_name(collection_name).insert(object_doc)
+        # Remove all older versions
         object_doc
+      end
+
+      def object_doc_update_multi(object_docs, collection_name)
+        logger.debug "Update documents in collection (#{collection_name})"
+        # We use this to always pull newest
+        object_docs.each do
+        |object_doc|
+          object_doc["@version"] = get_next_version(object_doc, collection_name)
+        end
+        collection_by_name(collection_name).insert(object_docs)
+        object_docs
       end
 
       # Removes all documents from collection: 'collection_name' with 'uuid' in 'object_doc''
       # @param object_doc [Hash]
       # @param collection_name [Symbol]
-      # @return [true, Hash] - returns 'true' if successful, otherwise returns 'Hash' with last error
+              # @return [true, Hash] - returns 'true' if successful, otherwise returns 'Hash' with last error
       def object_doc_remove(object_doc, collection_name)
         logger.debug "Remove document in collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
-        while collection_by_name(collection_name).find({"@uuid" => object_doc["@uuid"]}).count > 0
-          unless collection_by_name(collection_name).remove({"@uuid" => object_doc["@uuid"]})
+        while collection_by_name(collection_name).find({ "@uuid" => object_doc["@uuid"] }).count > 0
+          unless collection_by_name(collection_name).remove({ "@uuid" => object_doc["@uuid"] })
             return false
           end
         end
@@ -144,9 +141,6 @@ module ProjectRazor
       end
 
 
-
-
-
       private # Mongo internal stuff we don't want exposed'
 
       # Gets the current version number and returns an incremented value, or returns '1' if none exists
@@ -154,8 +148,8 @@ module ProjectRazor
       # @param collection_name [String]
       def get_next_version(object_doc, collection_name)
         logger.debug "Get next version number for document in collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
-        object_array =collection_by_name(collection_name).find("@uuid" => object_doc["@uuid"]).sort("@version",-1).to_a
-        if (object_array.count < 1)
+        object_array =collection_by_name(collection_name).find("@uuid" => object_doc["@uuid"]).sort("@version", -1).to_a
+        if object_array.count < 1
           version = 0
         else
           version = object_array[0]["@version"]
@@ -189,7 +183,7 @@ module ProjectRazor
         old_object_doc_array.each do
         |old_object_doc|
           # Remove it from MongoDB by referencing '_id' key
-          collection_by_name(collection_name).remove({"_id" => old_object_doc["_id"]})
+          collection_by_name(collection_name).remove({ "_id" => old_object_doc["_id"] })
         end
       end
 

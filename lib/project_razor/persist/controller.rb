@@ -79,6 +79,11 @@ module ProjectRazor
         @database.object_doc_update(object_doc, collection)
       end
 
+      def object_hash_update_multi(object_doc_array, collection)
+        logger.debug "Updating object documents from collection(#{collection})"
+        @database.object_doc_update_multi(object_doc_array, collection)
+      end
+
       # Remove object document with UUID from collection: 'collection' completely
       # @param object_doc [Hash]
       # @param collection [Symbol]

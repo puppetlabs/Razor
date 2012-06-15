@@ -18,7 +18,7 @@ module ProjectRazor
         @plugin = :base
         @servers = []
         @description = "Base broker plugin - not used"
-        @_collection = :broker
+        @_namespace = :broker
         from_hash(hash) if hash
       end
 
