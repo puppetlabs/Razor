@@ -53,7 +53,7 @@ module ProjectRazor
       # Returns the broker plugins available
       def get_broker_plugins
         # We use the common method in Utility to fetch object plugins by providing Namespace prefix
-        print_object_array get_child_templates(BROKER_PREFIX), "\nAvailable Broker Plugins:"
+        print_object_array get_child_templates(ProjectRazor::BrokerPlugin), "\nAvailable Broker Plugins:"
       end
 
       def get_broker_with_uuid
@@ -74,11 +74,13 @@ module ProjectRazor
         plugin, name, description, servers = *get_web_vars(%w(plugin name description servers)) if @web_command
         plugin, name, description, servers = *get_cli_vars(%w(plugin name description servers)) unless plugin || name || description || servers
         # Validate our args are here
+        servers = servers.flatten if servers.is_a? Array
+        servers = servers.split(",") if servers.is_a? String
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Plugin [plugin]" unless validate_arg(plugin)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Name [name]" unless validate_arg(name)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Description [description]" unless validate_arg(description)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Broker Target Servers [servers]" unless validate_arg(servers)
-        servers = servers.split(",") if servers.is_a? String
+
         raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless servers.count > 0
         raise ProjectRazor::Error::Slice::InvalidPlugin, "Invalid Broker Plugin [#{plugin}]" unless is_valid_template?(BROKER_PREFIX, plugin)
         broker                  = new_object_from_template_name(BROKER_PREFIX, plugin)
@@ -134,31 +136,6 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove broker [#{tagrule.uuid}]" unless get_data.delete_object(broker)
         slice_success("Active broker [#{broker.uuid}] removed", :success_type => :removed)
       end
-
-      def remove_broker_old
-        @command_help_text = "razor broker remove all|(uuid)"
-        # Grab the arg
-        @arg               = @command_array.shift
-        case @arg
-          when "all" # if [all] we remove all instances
-            setup_data                        # setup the data object
-            @data.delete_all_objects(:broker) # remove all broker instances
-            slice_success("All Broker deleted") # return success
-          when nil
-            raise ProjectRazor::Error::Slice::MissingArgument, "all|UUID"
-          else
-            broker = get_object("broker instances", :broker, @arg) # attempt to find broker with uuid
-            case broker
-              when nil
-                raise ProjectRazor::Error::Slice::NotFound, "Broker Target with UUID: [#@arg]"
-              else
-                setup_data
-                @data.delete_object_by_uuid(:broker, @arg)
-                slice_success("Broker Deleted", :type => :removed)
-            end
-        end
-      end
     end
   end
 end
-

@@ -164,9 +164,9 @@ function startServer(json_config) {
     config = JSON.parse(json_config);
     if (config['@api_port'] != null) {
         app.listen(config['@api_port']);
-        console.log('ProjectRazor API Web Server started and listening on:%s', app.address().port);
+        console.log('ProjectRazor API Web Server started and listening on:%s', config['@api_port']);
     } else {
-        console.log("There is a problem with your ProjectRazor configuration. Cannot load config.")
+        console.log("There is a problem with your ProjectRazor configuration. Cannot load config.");
     }
 }
 

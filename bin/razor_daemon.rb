@@ -30,9 +30,72 @@ DEFAULT_NODE_EXPIRE_TIMEOUT = 60 * 15
 # monkey-patch the Daemons::Application class so that it uses a pattern of "*.log" for
 # the file that it uses to capture output from the Daemon (and the processes that it
 # manages) rather than the default pattern used by this class ("*.output")
-class Daemons::Application
-  def output_logfile
-    (options[:log_output] && logdir) ? File.join(logdir, @group.app_name + '.log') : nil
+#
+# monkey-patch Daemons status so it returns proper exit codes.
+module Daemons
+  class Application
+    def output_logfile
+      (options[:log_output] && logdir) ? File.join(logdir, @group.app_name + '.log') : nil
+    end
+
+    def show_status
+      running = self.running?
+
+      puts "#{self.group.app_name}: #{running ? '' : 'not '}running#{(running and @pid.exist?) ? ' [pid ' + @pid.pid.to_s + ']' : ''}#{(@pid.exist? and not running) ? ' (but pid-file exists: ' + @pid.pid.to_s + ')' : ''}"
+      exit(1) unless running
+    end
+  end
+
+  class Controller
+    def run
+      @options.update @optparse.parse(@controller_part).delete_if {|k,v| !v}
+
+      setup_options()
+
+      #pp @options
+
+      @group = ApplicationGroup.new(@app_name, @options)
+      @group.controller_argv = @controller_part
+      @group.app_argv = @app_part
+
+      @group.setup
+
+      case @command
+      when 'start'
+        @group.new_application.start
+      when 'run'
+        @options[:ontop] ||= true
+        @group.new_application.start
+      when 'stop'
+        @group.stop_all
+      when 'restart'
+        unless @group.applications.empty?
+          @group.stop_all
+          sleep 1
+          @group.start_all
+        else
+          puts "Warning: no instances running. Starting..."
+          @group.new_application.start
+        end
+      when 'zap'
+        @group.zap_all
+      when 'status'
+        unless @group.applications.empty?
+          @group.show_status
+        else
+          puts "#{@group.app_name}: no instances running"
+          exit(3)
+        end
+      when nil
+        raise CmdException.new('no command given')
+        #puts "ERROR: No command given"; puts
+
+        #print_usage()
+        #raise('usage function not implemented')
+      else
+        raise Error.new("command '#{@command}' not implemented")
+      end
+    end
   end
 end
 

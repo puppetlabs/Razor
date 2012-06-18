@@ -131,7 +131,7 @@ function startServer(json_config) {
         image_svc_path = config['@image_svc_path'];
         app.listen(config['@image_svc_port']);
         console.log("");
-        console.log('ProjectRazor Image Service Web Server started and listening on:%s', app.address().port);
+        console.log('ProjectRazor Image Service Web Server started and listening on:%s', config['@api_port']);
         console.log("Image root path: " + image_svc_path);
     } else {
         console.log("There is a problem with your ProjectRazor configuration. Cannot load config.");

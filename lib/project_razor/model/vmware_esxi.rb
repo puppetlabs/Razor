@@ -219,7 +219,7 @@ module ProjectRazor
         case @current_state
           when :init, :preinstall
             ret = start_install(node, policy_uuid)
-          when :postinstall, :os_complete
+          when :postinstall, :os_complete, :broker_check, :broker_fail, :broker_success, :complete_no_broker
             ret = local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance

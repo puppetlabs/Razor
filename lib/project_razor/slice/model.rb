@@ -1,5 +1,3 @@
-MODEL_PREFIX = "ProjectRazor::ModelTemplate::"
-
 # Root ProjectRazor namespace
 module ProjectRazor
   module Slice
@@ -54,7 +52,7 @@ module ProjectRazor
 
       def get_all_templates
         # We use the common method in Utility to fetch object templates by providing Namespace prefix
-        print_object_array get_child_templates(MODEL_PREFIX), "Model Templates:"
+        print_object_array get_child_templates(ProjectRazor::ModelTemplate), "Model Templates:"
       end
 
       def add_model
@@ -91,7 +89,7 @@ module ProjectRazor
       end
 
       def verify_template(template_name)
-        get_child_templates(MODEL_PREFIX).each { |template| return template if template.name == template_name }
+        get_child_templates(ProjectRazor::ModelTemplate).each { |template| return template if template.name == template_name }
         nil
       end
 

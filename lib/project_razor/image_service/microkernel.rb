@@ -1,6 +1,5 @@
 require "yaml"
 require "digest/sha2"
-require "extlib"
 
 module ProjectRazor
   module ImageService

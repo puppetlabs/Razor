@@ -100,20 +100,28 @@ module ProjectRazor
             @vars_hash['hw_id'] = @vars_hash['uuid'] if @vars_hash['uuid']
             @hw_id = @vars_hash['hw_id']
             @last_state = @vars_hash['last_state']
+            @first_checkin = @vars_hash['first_checkin']
           end
         end
-        @hw_id, @last_state = *@command_array unless @hw_id || @last_state
+        @hw_id, @last_state, @first_checkin = *@command_array unless @hw_id || @last_state || @first_checkin
         # Validate our args are here
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Hardware IDs[hw_id]" unless validate_arg(@hw_id)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Last State[last_state]" unless validate_arg(@last_state)
         @hw_id = @hw_id.split("_") unless @hw_id.is_a? Array
 
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide At Least One Hardware ID [hw_id]" unless @hw_id.count > 0
-        @new_node = @engine.lookup_node_by_hw_id(:hw_id => @hw_id)
-        if @new_node
-          command = @engine.mk_checkin(@new_node.uuid, @last_state)
-          return slice_success(command, :mk_response => true)
+        # if it's not the first node, check to see if the node exists
+        unless @first_checkin
+          @new_node = @engine.lookup_node_by_hw_id(:hw_id => @hw_id)
+          if @new_node
+            # if a node with this hardware id exists, simply acknowledge the checkin request
+            command = @engine.mk_checkin(@new_node.uuid, @last_state)
+            return slice_success(command, :mk_response => true)
+          end
         end
+        # otherwise, if we get this far, return a command telling the Microkernel to register
+        # (either because no matching node already exists or because it's the first checkin
+        # by the Microkernel)
         slice_success(@engine.mk_command(:register,{}), :mk_response => true)
       end
     end

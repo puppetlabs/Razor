@@ -1,5 +1,4 @@
 require "yaml"
-require "extlib"
 require "singleton"
 
 # This class is the interface to all querying and saving of objects for ProjectRazor

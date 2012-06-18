@@ -140,19 +140,6 @@ class File
 
 end
 
-# and monkey patch the JSON class to add an is_json? method
-# TODO - Change to default .to_json already in util
-module JSON
-  def self.is_json?(foo)
-    begin
-      return false unless foo.is_a?(String)
-      JSON.parse(foo).all?
-    rescue JSON::ParserError
-      false
-    end
-  end
-end
-
 # Root ProjectRazor namespace
 module ProjectRazor
   module Slice

@@ -28,6 +28,7 @@ class ProjectRazor::Node < ProjectRazor::Object
   def to_hash
     hash = super
     hash['@tags'] = tags
+    hash['@status'] = current_status
     hash
   end
 
