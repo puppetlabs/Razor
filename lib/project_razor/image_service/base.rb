@@ -19,7 +19,7 @@ module ProjectRazor
       def initialize(hash)
         super()
         @path_prefix = "base"
-        @_collection = :images
+        @_namespace = :images
         @description = "Image Base"
         @hidden = true
         from_hash(hash) unless hash == nil
@@ -41,7 +41,7 @@ module ProjectRazor
           @filename = File.basename(fullpath)
 
           logger.debug "fullpath: #{fullpath}"
-          logger.debug "filename: #{@filename}"
+          logger.debug "filename: #@filename"
           logger.debug "mount path: #{mount_path}"
 
           # Make sure file exists
@@ -186,19 +186,31 @@ module ProjectRazor
         Digest::SHA2.hexdigest(files_string)
       end
 
-      def print_image_info(image_svc_path)
-        set_image_svc_path(image_svc_path) unless @_image_svc_path != nil
 
-        print "\tUUID: "
-        print "#{@uuid}  \n".green
-        print "\tType: "
-        print "#{@description}  \n".green
-        print "\tISO Filename: "
-        print "#{@filename}  \n".green
-        print "\tPath: "
-        print "#{image_path}  \n".green
-        print "\tStatus: "
-        print "#{verify(image_svc_path) ? "Valid".green : "Broken/Missing".red}   \n"
+      def print_header
+        return "UUID", "Type", "ISO Filename", "Path", "Status"
+      end
+
+      def print_items
+        set_image_svc_path(get_data.config.image_svc_path) unless @_image_svc_path
+        return @uuid, @description, @filename, image_path.to_s, "#{verify(@_image_svc_path) ? "Valid".green : "Broken/Missing".red}"
+      end
+
+      def print_item_header
+        return "UUID", "Type", "ISO Filename", "Path", "Status"
+      end
+
+      def print_item
+        set_image_svc_path(get_data.config.image_svc_path) unless @_image_svc_path
+        return @uuid, @description, @filename, image_path.to_s, "#{verify(@_image_svc_path) ? "Valid".green : "Broken/Missing".red}"
+      end
+
+      def line_color
+        :white_on_black
+      end
+
+      def header_color
+        :red_on_black
       end
     end
   end

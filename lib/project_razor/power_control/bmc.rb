@@ -16,7 +16,7 @@ module ProjectRazor
       # @param hash [Hash]
       def initialize(hash = nil)
         super()
-        @_collection = :bmc
+        @_namespace = :bmc
         @current_power_state = "unknown"
         @board_serial_number = ''
         from_hash(hash) unless hash == nil

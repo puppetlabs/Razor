@@ -87,10 +87,6 @@ describe "ProjectRazor::Slice::Bmc" do
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
       bmc_nodes = response_hash['response']
-      bmc_nodes.sort do
-        |a,b|
-        a["@ip"] <=> b["@ip"]
-      end
       bmc_nodes.count.should == 2
       # TODO - there is no option to get specific nodes with the BMC slice
     end

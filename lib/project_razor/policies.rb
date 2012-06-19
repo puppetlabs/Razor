@@ -19,7 +19,7 @@ module ProjectRazor
       def initialize(hash)
         super()
         @uuid = "policy_table"
-        @_collection = :policy_table
+        @_namespace = :policy_table
         @p_table = []
         from_hash(hash)
       end

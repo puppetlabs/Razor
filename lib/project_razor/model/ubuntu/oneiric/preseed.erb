@@ -50,8 +50,10 @@ d-i finish-install/reboot_in_progress note
 d-i preseed/early_command string wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/preseed/start
 d-i preseed/late_command string  \
 wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/preseed/end; \
-wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/postinstall/inject -O /target/usr/local/bin/razor_postinstall.sh;  \
-sed -i '/exit 0/d' /target/etc/rc.local;  \
+wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/postinstall/inject -O /target/usr/local/bin/razor_postinstall.sh; \
+sed -i '/exit 0/d' /target/etc/rc.local; \
 echo bash /usr/local/bin/razor_postinstall.sh >> /target/etc/rc.local; \
-echo exit 0 >> /target/etc/rc.local;  \
-chmod +x /target/usr/local/bin/razor_postinstall.sh
+echo exit 0 >> /target/etc/rc.local; \
+chmod +x /target/usr/local/bin/razor_postinstall.sh; \
+sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT=\).*/\1\"\"/g' /target/etc/default/grub; \
+in-target bash -c 'update-grub'

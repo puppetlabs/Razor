@@ -41,7 +41,7 @@ module ProjectRazor
         @result = nil
                                # Model Log
         @log = []
-        @_collection = :model
+        @_namespace = :model
         from_hash(hash) unless hash == nil
       end
 
@@ -136,7 +136,6 @@ module ProjectRazor
           else
             return false # Brokers disabled for model
         end
-        false
       end
 
       def broker_agent_handoff

@@ -1,0 +1,55 @@
+---
+- :name: :label
+  :default: 
+  :short_form: -l
+  :long_form: --label POLICY_LABEL
+  :description: A label to name this policy.
+  :required: true
+- :name: :model_uuid
+  :default: 
+  :short_form: -m
+  :long_form: --model-uuid MODEL_UUID
+  :description: The model to attached to the policy.
+  :required: true
+- :name: :broker_uuid
+  :default:
+  :short_form: -b
+  :long_form: --broker-uuid BROKER_UUID
+  :description: ! 'The broker attached to the policy.'
+  :required: true
+- :name: :tags
+  :default: 
+  :short_form: -t
+  :long_form: --tags TAG{,TAG,TAG}
+  :description: Policy tags. Comma delimited.
+  :required: true
+- :name: :enable
+  :default:
+  :short_form: -e
+  :long_form: --enable
+  :description: Enables policy.
+  :required: true
+- :name: :disable
+  :default:
+  :short_form: -d
+  :long_form: --disable
+  :description: Disables policy.
+  :required: true
+- :name: :maximum
+  :default:
+  :short_form: -x
+  :long_form: --maximum MAXIMUM_COUNT
+  :description: ! 'Sets the policy maximum count for nodes.'
+  :required: true
+- :name: :movehigher
+  :default:
+  :short_form: -u
+  :long_form: --move-priority-higher
+  :description: ! 'Move policy up in priority.'
+  :required: true
+- :name: :movelower
+  :default:
+  :short_form: -w
+  :long_form: --move-priority-lower
+  :description: ! 'Move policy down in priority.'
+  :required: true

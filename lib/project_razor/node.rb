@@ -12,7 +12,7 @@ class ProjectRazor::Node < ProjectRazor::Object
   # @param hash [Hash]
   def initialize(hash)
     super()
-    @_collection = :node
+    @_namespace = :node
     @hw_id = []
     @attributes_hash = {}
     from_hash(hash)
@@ -58,6 +58,8 @@ class ProjectRazor::Node < ProjectRazor::Object
         status = "I"
       when "active"
         status = "A"
+      else
+        status = "U"
     end
     return @uuid, pretty_time(time_diff), status, "[#{temp_tags.join(",")}]"
   end

@@ -22,7 +22,7 @@ module ProjectRazor
       # @param [Array] args
       def initialize(args)
         @command_array = args
-        @command_help_text = nil
+        @command_help_text = ""
         @slice_commands = {}
         @web_command = false
         @last_arg = nil
@@ -106,7 +106,6 @@ module ProjectRazor
           else
             #puts "No (default) action defined"
             raise ProjectRazor::Error::Slice::Generic, "No Default Action"
-            return
           end
         end
 
@@ -169,7 +168,6 @@ module ProjectRazor
         else
           #puts "No (else) action defined"
           raise ProjectRazor::Error::Slice::InvalidCommand, "System Error: no else action for slice"
-          return
         end
       end
 
@@ -342,9 +340,21 @@ module ProjectRazor
         end
       end
 
+      def load_option_items(options = {})
+        begin
+          return YAML.load_file(slice_option_items_file(options))
+        rescue => e
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{@slice_name} cannot parse option items file"
+        end
+      end
+
       def save_slice_commands
         f = File.new(slice_commands_file,  "w+")
         f.write(YAML.dump(@slice_commands))
+      end
+
+      def slice_option_items_file(options = {})
+        File.join(File.dirname(__FILE__), "#{@slice_name.downcase}/#{options[:command].to_s}/option_items.yaml")
       end
 
       def slice_commands_file

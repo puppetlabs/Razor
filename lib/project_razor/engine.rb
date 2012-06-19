@@ -27,7 +27,7 @@ module ProjectRazor
 
     def default_mk
       mk_images = []
-      get_data.fetch_all_objects(:images).each {|i| mk_images << i if i.path_prefix == "mk" && i.verify(get_data.config.image_svc_path) == true}
+      get_data.fetch_all_objects(:images).each { |i| mk_images << i if i.path_prefix == "mk" && i.verify(get_data.config.image_svc_path) == true }
 
       if mk_images.count > 0
         mk_image = nil
@@ -50,7 +50,7 @@ module ProjectRazor
     def mk_checkin(uuid, last_state)
       old_timestamp = 0 # we set this early in case a timestamp field is nil
                         # We attempt to fetch the node object
-      node = get_data.fetch_object_by_uuid(:node, uuid)
+      node          = get_data.fetch_object_by_uuid(:node, uuid)
 
       # Check to see if node is known
       if node
@@ -58,7 +58,7 @@ module ProjectRazor
         # Node is known we need to update timestamp
         old_timestamp = node.timestamp unless node.timestamp == nil
         node.last_state = last_state    # We update last_state for the node
-        node.timestamp = Time.now.to_i  # We update timestamp for the node
+        node.timestamp  = Time.now.to_i # We update timestamp for the node
         unless node.update_self # Update node catching if it fails
           logger.error "Node #{node.uuid} checkin failed"
         end
@@ -68,7 +68,7 @@ module ProjectRazor
         forced_action = checkin_action_override(uuid)
         # Return the forced command if it exists
         logger.debug "Forced action for Node #{node.uuid} found (#{forced_action.to_s})" if forced_action
-        return mk_command(forced_action,{}) if forced_action
+        return mk_command(forced_action, { }) if forced_action
 
         # Check to see if the time span since the last node contact
         # is greater than our register_timeout
@@ -76,7 +76,7 @@ module ProjectRazor
           # Our node hasn't talked to the server within an acceptable time frame
           # we will request a re-register to refresh details about the node
           logger.debug "Asking Node #{node.uuid} to re-register as we haven't talked to him in #{(node.timestamp - old_timestamp)} seconds"
-          return mk_command(:register,{})
+          return mk_command(:register, { })
         end
 
         # Check to see if there is an active model
@@ -89,19 +89,19 @@ module ProjectRazor
         if active_model
           command_array = active_model.mk_call(node)
           active_model.update_self
-          return mk_command(command_array[0],command_array[1])
+          return mk_command(command_array[0], command_array[1])
         else
           # Evaluate node vs policy rules to see if a policy needs to be bound
           mk_eval_vs_policy_rule(node)
         end
 
         # If we got to this point we just need to acknowledge the checkin
-        mk_command(:acknowledge,{})
+        mk_command(:acknowledge, { })
 
       else
         # Never seen this node - we tell it to checkin
         logger.debug "Unknown Node #{uuid}, asking to register"
-        mk_command(:register,{})
+        mk_command(:register, { })
       end
     end
 
@@ -113,7 +113,7 @@ module ProjectRazor
         |pl|
           # Make sure there is at least one tag
           if pl.tags.count > 0
-            if check_tags(node.tags, pl.tags) && pl.enabled
+            if check_tags(node.tags, pl.tags) && pl.enabled && pl.is_under_maximum?
               logger.debug "Matching policy (#{pl.label}) for Node #{node.uuid} using tags#{pl.tags.inspect}"
               # We found a policy that matches
               # we call the policy binding and exit loop
@@ -144,14 +144,14 @@ module ProjectRazor
       checkin_file = "#{$razor_root}/conf/checkin_action.yaml"
 
       return nil unless File.exist?(checkin_file) # skip is file doesn't exist'
-      f = File.open(checkin_file,"r")
+      f               = File.open(checkin_file, "r")
       checkin_actions = YAML.load(f)
       checkin_actions[uuid] # return value for key matching uuid or nil if none
     end
 
     def mk_command(command_name, command_param)
-      command_response = {}
-      command_response['command_name'] = command_name
+      command_response                  = { }
+      command_response['command_name']  = command_name
       command_response['command_param'] = command_param
       command_response
     end
@@ -172,7 +172,7 @@ module ProjectRazor
       if node != nil
         # Node is in DB, lets check for policy
         logger.info "Node identified - uuid: #{node.uuid}"
-        active_model = find_active_models(node)  # commented out until refactor
+        active_model = find_active_models(node) # commented out until refactor
 
         #If there is a active model we pass it the node to a common
         #method call from a boot
@@ -210,7 +210,7 @@ module ProjectRazor
 
     def default_mk_boot(uuid)
       logger.info "Responding with MK Boot - Node: #{uuid}"
-      default = ProjectRazor::PolicyTemplate::BootMK.new({})
+      default = ProjectRazor::PolicyTemplate::BootMK.new({ })
       default.get_boot_script
     end
 
@@ -224,12 +224,12 @@ module ProjectRazor
 
     # @param [Hash] options
     # @return [Object,nil]
-    def lookup_node_by_hw_id(options = {:hw_id => []})
+    def lookup_node_by_hw_id(options = { :hw_id => [] })
       unless options[:hw_id].count > 0
         return nil
       end
       matching_nodes = []
-      nodes = get_data.fetch_all_objects(:node)
+      nodes          = get_data.fetch_all_objects(:node)
       nodes.each do
       |node|
         matching_hw_id = node.hw_id & options[:hw_id]
@@ -279,11 +279,11 @@ module ProjectRazor
     # @param [Array] hw_id
     def resolve_node_hw_id_collision
       # Get all nodes
-      nodes = get_data.fetch_all_objects(:node)
+      nodes     = get_data.fetch_all_objects(:node)
       # This will hold all hw_id's (not unique)'
       all_hw_id = []
       # Take each hw_id and add to our all_hw_id array
-      nodes.each {|node| all_hw_id += node.hw_id }
+      nodes.each { |node| all_hw_id += node.hw_id }
       # Loop through each hw_id
       all_hw_id.each do
       |hwid|
@@ -297,7 +297,7 @@ module ProjectRazor
         end
         # If we have more than one node we have a conflict
         # We sort by timestamp ascending
-        matching_nodes.sort! {|a,b| a.timestamp <=> b.timestamp}
+        matching_nodes.sort! { |a, b| a.timestamp <=> b.timestamp }
         # We remove the first one, any that remain will be cleaned of the hwid
         matching_nodes.shift
         # We remove the hw_id from each and persist
@@ -330,7 +330,7 @@ module ProjectRazor
       node.attributes_hash
       tag_policies = get_data.fetch_all_objects(:tag)
       tag_policies = tag_policies + get_system_tags
-      tags = []
+      tags         = []
       tag_policies.each do
       |tag_pol|
         if tag_pol.check_tag_rule(node.attributes_hash)
@@ -353,7 +353,7 @@ module ProjectRazor
     end
 
     def get_system_tags
-      system_tag_rules = []
+      system_tag_rules     = []
       system_tag_rules_dir = File.join(File.dirname(__FILE__), "tagging/system_rules/**/*.json")
       Dir.glob(system_tag_rules_dir).each do
       |json_file|
@@ -410,6 +410,15 @@ module ProjectRazor
       end
       return data.delete_object(image)
     end
+
+
+    # Returns a count of active models that match the policy uuid provided
+    # @param [String] policy_uuid
+    # @return [Integer]
+    def policy_active_model_count(policy_uuid)
+      get_active_models.count { |am| am.root_policy == policy_uuid }
+    end
+
 
   end
 end

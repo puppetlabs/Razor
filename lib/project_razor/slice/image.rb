@@ -116,7 +116,7 @@ module ProjectRazor
       #Lists images
       def list_images
         raise ProjectRazor::Error::Slice::NotImplemented, "image list cli only" if @web_command
-        print_images get_object("images", :images)
+        print_object_array(get_object("images", :images), "Images", :success_type => :generic, :style => :item)
       end
 
       #Add an image
@@ -156,7 +156,7 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::InternalError, "Could not save image." unless insert_image(new_image)
 
         puts "\nNew image added successfully\n".green
-        print_images [new_image]
+        print_object_array([new_image], "Added Image:", :success_type => :created)
       end
 
       def add_mk(new_image, iso_path, image_svc_path)

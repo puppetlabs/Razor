@@ -66,6 +66,14 @@ module ProjectRazor
         print "#{@esxi_version}  \n".green
       end
 
+      def print_item_header
+        super.push "Version"
+      end
+
+      def print_item
+        super.push @esxi_version
+      end
+
     end
   end
 end

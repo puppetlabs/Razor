@@ -40,7 +40,8 @@ module ProjectRazor
     require_rel "error/"
 
     [
-        [ 'CannotCreatePolicyTable'                , 10 , {'@http_err' => :bad_request}           , ''          , 'ProjectRazor::Error::Generic' ],
+        [ 'CannotCreatePolicyTable'                , 10 , {'@http_err' => :bad_request}            , ''          , 'ProjectRazor::Error::Generic' ],
+        [ 'MissingMultiCollectionOnGroupPersist'   , 31 , {'@http_err' => :internal_server_error}  , ''          , 'ProjectRazor::Error::Generic' ],
     ].each do |err|
       ProjectRazor::Error.create_class *err
     end

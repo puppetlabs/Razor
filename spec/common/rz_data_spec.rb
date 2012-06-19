@@ -196,7 +196,7 @@ describe ProjectRazor::Data do
       node = @data.fetch_object_by_uuid(:node, temp_node.uuid)
       node.version.should == 2
 
-      @data.delete_object_by_uuid(node._collection, node.uuid).should == true
+      @data.delete_object_by_uuid(node._namespace, node.uuid).should == true
       @data.fetch_object_by_uuid(:node, node.uuid).should == nil
     end
 
@@ -323,7 +323,7 @@ describe ProjectRazor::Data do
   #    model = @data.fetch_object_by_uuid(:model, temp_model.uuid)
   #    model.version.should == 2
   #
-  #    @data.delete_object_by_uuid(model._collection, model.uuid).should == true
+  #    @data.delete_object_by_uuid(model._namespace, model.uuid).should == true
   #    @data.fetch_object_by_uuid(:model, model.uuid).should == nil
   #  end
   #
@@ -428,7 +428,7 @@ describe ProjectRazor::Data do
   #    policy = @data.fetch_object_by_uuid(:policy, temp_policy.uuid)
   #    policy.version.should == 2
   #
-  #    @data.delete_object_by_uuid(policy._collection, policy.uuid).should == true
+  #    @data.delete_object_by_uuid(policy._namespace, policy.uuid).should == true
   #    @data.fetch_object_by_uuid(:policy, policy.uuid).should == nil
   #  end
   #

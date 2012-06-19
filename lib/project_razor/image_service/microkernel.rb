@@ -135,18 +135,18 @@ module ProjectRazor
         end
       end
 
-      def print_image_info(image_svc_path)
-        super(image_svc_path)
-        print "\tVersion: "
-        print "#{@iso_version}  \n".green
-        print "\tBuild Time: "
-        print "#{Time.at(@iso_build_time)}  \n".green
-      end
-
       def version_weight
         # Cap any subset with 999 being the maximum
         @iso_version.split(".").map! {|v| v.to_i > 999 ? 999 : v}.join(".")
         @iso_version.split(".").map {|x| "%03d" % x}.join.to_i
+      end
+
+      def print_item_header
+        super.push "Version", "Built Time"
+      end
+
+      def print_item
+        super.push @iso_version.to_s, (Time.at(@iso_build_time)).to_s
       end
 
       def kernel_path
