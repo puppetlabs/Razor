@@ -15,6 +15,8 @@ module ProjectRazor
       @policies = ProjectRazor::Policies.instance
     end
 
+
+
     def get_active_models
       get_data.fetch_all_objects(:active)
     end
@@ -108,8 +110,9 @@ module ProjectRazor
     def mk_eval_vs_policy_rule(node)
       logger.debug "Evaluating policy rules vs Node #{node.uuid}"
       begin
+
         # Loop through each policy checking node's tags to see if that match
-        policies.get.each do
+        @policies.get.each do
         |pl|
           # Make sure there is at least one tag
           if pl.tags.count > 0

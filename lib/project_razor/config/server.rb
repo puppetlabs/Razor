@@ -50,6 +50,8 @@ module ProjectRazor
 
       attr_accessor :node_expire_timeout
 
+      attr_accessor :rz_mk_boot_debug_level
+
       # init
       def initialize
         use_defaults
@@ -99,6 +101,10 @@ module ProjectRazor
         # node has not checked in for this long, it'll be removed
         @node_expire_timeout = 300
 
+        # used to set the Microkernel boot debug level; valid values are
+        # either the empty string (the default), "debug", or "quiet"
+        @rz_mk_boot_debug_level = ""
+
       end
 
       def get_client_config_hash
@@ -113,6 +119,9 @@ module ProjectRazor
         client_config_hash
       end
 
+      # uses the  UDPSocket class to determine the list of IP addresses that are
+      # valid for this server (used in the "get_an_ip" method, below, to pick an IP
+      # address to use when constructing the Razor configuration file)
       def local_ip
         # Base on answer from http://stackoverflow.com/questions/42566/getting-the-hostname-or-ip-in-ruby-on-rails
         orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true  # turn off reverse DNS resolution temporarily
@@ -125,9 +134,21 @@ module ProjectRazor
         Socket.do_not_reverse_lookup = orig
       end
 
+      # This method is used to guess at an appropriate value to use as an IP address
+      # for the Razor server when constructing the Razor configuration file.  It returns
+      # a single IP address from the set of IP addresses that are detected by the "local_ip"
+      # method (above).  If no IP addresses are returned by the "local_ip" method, then
+      # this method returns a default value of 127.0.0.1 (a localhost IP address) instead.
       def get_an_ip
-        address = local_ip.first ||= '127.0.0.1'
-        address
+        str_address = local_ip.first
+        # if no address found, return a localhost IP address as a default value
+        return '127.0.0.1' unless str_address
+        # if we're using a version of Ruby other than v1.8.x, force encoding to be UTF-8
+        # (to avoid an issue with how these values are saved in the configuration
+        # file as YAML that occurs after Ruby 1.8.x)
+        return str_address.force_encoding("UTF-8") unless /^1\.8\.\d+/.match(RUBY_VERSION)
+        # if we're using Ruby v1.8.x, just return the string
+        str_address
       end
 
     end

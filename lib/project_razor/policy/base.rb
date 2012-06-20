@@ -56,7 +56,7 @@ module ProjectRazor
       end
 
       def is_under_maximum?
-        return true if @maximum_count == 0
+        return true if @maximum_count.to_s == "0"
         current_count < @maximum_count.to_i
       end
 
