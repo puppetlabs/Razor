@@ -51,15 +51,20 @@ module ProjectRazor
         # Get all tag rules and print/return
         @command = :get_all_tagrules
         @command_array.unshift(@last_arg) unless @last_arg == 'default'
-        print_object_array get_object("tagrules", :tag), "Tag Rules", :style => :table, :success_type => :generic
+        print_object_array(get_object("tagrules", :tag),
+                           "Tag Rules",
+                           :style => :table,
+                           :success_type => :generic)
       end
 
       def get_tagrule_with_uuid
         @command = :get_tagrule_with_uuid
         @command_help_text = "razor tag [get] (uuid)"
-        tagrule = get_object("tagrule_with_uuid", :tag, @command_array.first)
+        tagrule = get_object("tagrule_with_uuid",
+                             :tag,
+                             @command_array.first)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{@command_array.first}]" unless tagrule
-        print_object_array [tagrule] ,"",:success_type => :generic
+        print_object_array [tagrule], "", :success_type => :generic
       end
 
       def add_tagrule
@@ -73,7 +78,11 @@ module ProjectRazor
         tagrule = ProjectRazor::Tagging::TagRule.new({"@name" => @name, "@tag" => @tag})
         setup_data
         @data.persist_object(tagrule)
-        tagrule ? print_object_array([tagrule], "", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Tag Rule")
+        if tagrule
+          print_object_array([tagrule], "", :success_type => :created)
+        else
+          raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Tag Rule")
+        end
       end
 
       def update_tagrule
@@ -88,14 +97,14 @@ module ProjectRazor
         tagrule.name = @name if @name
         tagrule.tag = @tag if @tag
         raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Tag Rule [#{tagrule.uuid}]" unless tagrule.update_self
-        print_object_array [tagrule] ,"",:success_type => :updated
+        print_object_array [tagrule], "", :success_type => :updated
       end
 
       def remove_all_tagrules
         @command = :remove_tagrule
         @command_help_text = "razor tag remove all"
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Tag Rules" unless @data.delete_all_objects(:tag)
-        slice_success("All Tag Rules removed",:success_type => :removed)
+        slice_success("All Tag Rules removed", :success_type => :removed)
       end
 
       def remove_tagrule
@@ -106,7 +115,7 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Tag Rule with UUID: [#{tagrule_uuid}]" unless tagrule
         setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Tag Rule [#{tagrule.uuid}]" unless @data.delete_object(tagrule)
-        slice_success("Tag Rule [#{tagrule.uuid}] removed",:success_type => :removed)
+        slice_success("Tag Rule [#{tagrule.uuid}] removed", :success_type => :removed)
       end
 
       #
@@ -125,7 +134,7 @@ module ProjectRazor
         |tr|
           tr.tag_matchers.each do
           |matcher|
-            found_matcher << [matcher,tr] if matcher.uuid.scan(matcher_uuid).count > 0
+            found_matcher << [matcher, tr] if matcher.uuid.scan(matcher_uuid).count > 0
           end
         end
         found_matcher.count == 1 ? found_matcher.first : nil
@@ -138,7 +147,7 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a Tag Matcher UUID" unless validate_arg(matcher_uuid)
         matcher, tagrule = find_matcher(matcher_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
-        print_object_array [matcher] ,"",:success_type => :generic
+        print_object_array [matcher], "", :success_type => :generic
       end
 
       def add_matcher
@@ -159,11 +168,15 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Key [key]" unless validate_arg(@key)
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Compare[equal|like] [compare]" unless @compare == "equal" || @compare == "like"
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Value Tag [value]" unless validate_arg(@value)
-        @invert = @invert == "yes" || @invert == "true" ? "true" : "false"
+        @invert = (@invert == "yes" || @invert == "true") ? "true" : "false"
         matcher = @tagrule.add_tag_matcher(:key => @key, :compare => @compare, :value => @value, :inverse => @invert)
         raise ProjectRazor::Error::Slice::CouldNotCreate, "Could not create tag matcher" unless matcher
 
-        @tagrule.update_self ? print_object_array([matcher], "Tag Matcher created:", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Tag Matcher")
+        if @tagrule.update_self
+          print_object_array([matcher], "Tag Matcher created:", :success_type => :created)
+        else
+          raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Tag Matcher")
+        end
       end
 
       def update_matcher
@@ -180,16 +193,18 @@ module ProjectRazor
         @key, @compare, @value, @invert = *get_web_vars(%w(key compare value invert)) if @web_command
         @key, @compare, @value, @invert = *get_cli_vars(%w(key compare value invert)) unless  @key || @compare || @value || @invert
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update" unless @key || @compare || @value || @invert
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Compare[equal|like] [compare]" unless @compare == "equal" || @compare == "like" if @compare
-        @invert = @invert == "yes" || @invert == "true" ? "true" : @invert
-        @invert = @invert == "no" || @invert == "false" ? "false" : @invert
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Compare[equal|like] [compare]" if @compare && !(@compare == "equal" || @compare == "like")
+        @invert = "true" if @invert == "yes"
+        @invert = "false" if @invert == "no"
         matcher.key = @key if @key
         matcher.compare = @compare if @compare
         matcher.value = @value if @value
         matcher.inverse = @invert if @invert
-        tagrule.update_self ?
-            print_object_array([matcher], "Tag Matcher updated [#{matcher.uuid}]\nTag Rule:", :success_type => :updated) :
-            raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not update Tag Matcher")
+        if tagrule.update_self
+          print_object_array([matcher], "Tag Matcher updated [#{matcher.uuid}]\nTag Rule:", :success_type => :updated)
+        else
+          raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not update Tag Matcher")
+        end
       end
 
       def remove_matcher
@@ -199,9 +214,12 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide a Tag Matcher UUID" unless validate_arg(matcher_uuid)
         matcher, tagrule = find_matcher(matcher_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
-        raise ProjectRazor::Error::Slice::CouldNotCreate, "Could not remove Tag Matcher" unless
-            tagrule.remove_tag_matcher(matcher.uuid)
-        tagrule.update_self ? print_object_array([tagrule], "Tag Matcher removed [#{matcher.uuid}]\nTag Rule:", :success_type => :removed) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not remove Tag Matcher")
+        raise ProjectRazor::Error::Slice::CouldNotCreate, "Could not remove Tag Matcher" unless tagrule.remove_tag_matcher(matcher.uuid)
+        if tagrule.update_self
+          print_object_array([tagrule], "Tag Matcher removed [#{matcher.uuid}]\nTag Rule:", :success_type => :removed)
+        else
+          raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not remove Tag Matcher")
+        end
       end
 
       #

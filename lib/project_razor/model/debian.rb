@@ -199,7 +199,7 @@ module ProjectRazor
         super(node, policy_uuid)
         case @current_state
           when :init, :preinstall
-            @result = "Starting Ubuntu model install"
+            @result = "Starting Debian model install"
             ret = start_install(node, policy_uuid)
           when :postinstall, :os_complete, :broker_check, :broker_fail, :broker_success, :complete_no_broker
             ret = local_boot(node)
@@ -261,7 +261,7 @@ module ProjectRazor
       end
 
       def config
-        $data.config
+        get_data.config
       end
 
       def image_svc_uri
