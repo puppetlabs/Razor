@@ -112,10 +112,10 @@ module ProjectRazor
         # each key in the command hash - eval in against command_array
         # If command_array is empty we call default - if it does not exist we call :else
         # If nothing matches then we call the :else - if :else does not exist we throw error
-        if @command_array.first == "help"
-          list_help
-          return
-        end
+        #if @command_array.first == "help"
+        #  list_help
+        #  return
+        #end
 
         @command_hash.each do
         |k,v|
