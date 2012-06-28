@@ -265,8 +265,11 @@ begin
   # daemon process)
   razor_daemon.check_database_connection
 rescue RuntimeError => e
-  puts "The database needed to run Razor is not accessible using the current configuration"
-  puts "  (check configuration and database status); Razor Daemon is exiting..."
+  puts "Cannot start the Razor Server; the database needed to run Razor is not"
+  puts "accessible using the current Razor configuration:"
+  puts "    persist_host:  #{razor_config.persist_host}"
+  puts "    persist_port:  #{razor_config.persist_port}"
+  puts "razor_daemon.rb is exiting now..."
   exit(-1)
 end
 
