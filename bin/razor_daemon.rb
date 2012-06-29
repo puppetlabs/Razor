@@ -245,6 +245,34 @@ options = {
     :backtrace  => true
 }
 
+# get a reference to the RazorDaemon singleton (defined above)
+razor_daemon = RazorDaemon.instance
+
+# using that singleton, obtain a copy of the Razor server configuration and,
+# from that configuration, determine how long to sleep between passes through
+# the daemon's event-handling loop (below).  Convert the "minimum cycle time"
+# from that Razor server configuration to milliseconds (for calculation of the
+# time remaining in each iteration).  This will ensure that the sleep time
+# for each iteration will be accurate to the nearest millisecond.
+razor_config = razor_daemon.get_config
+
+# run an initial check of the MongoDB instance to ensure that it is accessible
+# (if it is not, print out an error message and exit)
+begin
+  # check the connection with the underlying database (if a connection cannot be
+  # established using the current server configuration, an error message is printed
+  # out on the console and the script will exit (without starting the associated
+  # daemon process)
+  razor_daemon.check_database_connection
+rescue RuntimeError => e
+  puts "Cannot start the Razor Server; the database needed to run Razor is not"
+  puts "accessible using the current Razor configuration:"
+  puts "    persist_host:  #{razor_config.persist_host}"
+  puts "    persist_port:  #{razor_config.persist_port}"
+  puts "razor_daemon.rb is exiting now..."
+  exit(-1)
+end
+
 # and start that daemon process
 Daemons.run_proc("razor_daemon", options) {
 
