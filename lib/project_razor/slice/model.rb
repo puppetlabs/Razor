@@ -1,3 +1,5 @@
+require 'json'
+
 # Root ProjectRazor namespace
 module ProjectRazor
   module Slice
@@ -15,8 +17,9 @@ module ProjectRazor
                                :default => "get_all_models",
                                :else => "get_model_by_uuid",
                                :template => {
+                                   ['{}'] => "get_all_templates",
                                    :default => "get_all_templates",
-                                   :else => "get_template_by_name"
+                                   :else => "get_all_templates"
                                },
                            },
                            :update => {
@@ -74,8 +77,8 @@ module ProjectRazor
         image = model.image_prefix ? verify_image(model, image_uuid) : true
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Image UUID [#{image_uuid}] " unless image
         if @web_command
-          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Template [template]" unless
-              validate_arg(req_metadata_hash)
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Required Metadata [req_metadata_hash]" unless
+              req_metadata_hash
           model.web_create_metadata(req_metadata_hash)
         else
           raise ProjectRazor::Error::Slice::UserCancelled, "User cancelled Model creation" unless model.cli_create_metadata
