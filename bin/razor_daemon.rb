@@ -11,10 +11,12 @@
 
 require 'rubygems'
 require 'daemons'
+require 'yaml'
 
 # add our the Razor lib path to the load path. This is for non-gem ease of use
 bin_dir = File.dirname(File.expand_path(__FILE__))
 lib_path = bin_dir.sub(/\/bin$/,"/lib")
+conf_path = bin_dir.sub(/\/bin$/,"/conf")
 $LOAD_PATH.unshift(lib_path)
 # We require the root lib
 require 'project_razor'
@@ -115,9 +117,33 @@ class RazorDaemon < ProjectRazor::Object
   NODE_COMMAND_MAP = { 'api.js' => "#{NODE_COMMAND} #{BIN_DIR}/api.js",
                        'image_svc.js' => "#{NODE_COMMAND} #{BIN_DIR}/image_svc.js"}
 
-  # used to obtain a copy of the Razor configuration
-  def get_config
-    get_data.config
+  # used to obtain a copy of the Razor configuration (note that the configuration
+  # is loaded locally, rather than using the corresponding Razor classes, to avoid
+  # errors that were being thrown by logger messages in the calls to methods in
+  # those classes).  If no conf_path value is included, then the corresponding Razor
+  # classes will be used to load this configuration (for backwards compatibility)
+  def get_config(conf_path = nil)
+    return get_data.config unless conf_path
+    conf_file = File.join(conf_path, "razor_server.conf")
+    YAML.load(File.open(conf_file))
+  end
+
+  # used to ensure the database is accessible before starting up the daemon
+  # process (note; tried to use the get_config method followed by a call to
+  # get_data.setup_persist in the past, but this resulted in errors being
+  # thrown that showed up in the razor_daemon.log file)
+  def database_is_accessible?(conf_path)
+    config = get_config(conf_path)
+    # init correct database object
+    is_accessible = false
+    if (config.persist_mode == :mongo)
+      database = ProjectRazor::Persist::MongoPlugin.new
+      is_accessible = database.connect(config.persist_host, config.persist_port,
+                                       config.persist_timeout, true)
+    else
+      puts "Invalid Database plugin(#{config.persist_mode})"
+    end
+    return is_accessible
   end
 
   # used to fire off a task (via a slice command) to the underlying Razor server
@@ -253,23 +279,10 @@ options = {
 # get a reference to the RazorDaemon singleton (defined above)
 razor_daemon = RazorDaemon.instance
 
-# using that singleton, obtain a copy of the Razor server configuration and,
-# from that configuration, determine how long to sleep between passes through
-# the daemon's event-handling loop (below).  Convert the "minimum cycle time"
-# from that Razor server configuration to milliseconds (for calculation of the
-# time remaining in each iteration).  This will ensure that the sleep time
-# for each iteration will be accurate to the nearest millisecond.
-razor_config = razor_daemon.get_config
-
-# run an initial check of the MongoDB instance to ensure that it is accessible
-# (if it is not, print out an error message and exit)
-begin
-  # check the connection with the underlying database (if a connection cannot be
-  # established using the current server configuration, an error message is printed
-  # out on the console and the script will exit (without starting the associated
-  # daemon process)
-  razor_daemon.check_database_connection
-rescue RuntimeError => e
+# using that singleton, check to see if the persistence database
+# is accessible (if not, exit with an error condition)
+unless razor_daemon.database_is_accessible?(conf_path)
+  razor_config = razor_daemon.get_config(conf_path)
   puts "Cannot start the Razor Server; the database needed to run Razor is not"
   puts "accessible using the current Razor configuration:"
   puts "    persist_host:  #{razor_config.persist_host}"
@@ -285,9 +298,6 @@ Daemons.run_proc("razor_daemon", options) {
   at_exit do
     shutdown_instances
   end
-
-  # get a reference to the RazorDaemon singleton (defined above)
-  razor_daemon = RazorDaemon.instance
 
   # using that singleton, obtain a copy of the Razor server configuration and,
   # from that configuration, determine how long to sleep between passes through
