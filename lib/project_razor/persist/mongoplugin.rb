@@ -19,22 +19,26 @@ module ProjectRazor
       # Establishes connection to MongoDB
       # @param hostname [String]
       # @param port [String]
+      # @param suppress_logging [Boolean]  Used to suppress logging when this method
+      # is called from outside of the main Razor thread of execution (for example,
+      # in the starting section of the razor_daemon.rb script, before the main Razor
+      # process has been forked off as a separate daemon process)
       # @return [true, false] - returns connection status
-      def connect(hostname, port, timeout)
-        logger.debug "Connecting to MongoDB (#{hostname}:#{port}) with timeout (#{timeout})"
+      def connect(hostname, port, timeout, suppress_logging = false)
+        logger.debug "Connecting to MongoDB (#{hostname}:#{port}) with timeout (#{timeout})" unless suppress_logging
         begin
           @connection = Mongo::Connection.new(hostname, port, { :connect_timeout => timeout })
         rescue Mongo::ConnectionTimeoutError
-          logger.error "Mongo::ConnectionTimeoutError"
+          logger.error "Mongo::ConnectionTimeoutError" unless suppress_logging
           return false
         rescue Mongo::ConnectionError
-          logger.error "Mongo::ConnectionError"
+          logger.error "Mongo::ConnectionError" unless suppress_logging
           return false
         rescue Mongo::ConnectionFailure
-          logger.error "Mongo::ConnectionFailure"
+          logger.error "Mongo::ConnectionFailure" unless suppress_logging
           return false
         rescue Mongo::OperationTimeout
-          logger.error "Mongo::OperationTimeout"
+          logger.error "Mongo::OperationTimeout" unless suppress_logging
           return false
         end
         @razor_database = @connection.db("project_razor")

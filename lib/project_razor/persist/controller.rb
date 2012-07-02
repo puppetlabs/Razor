@@ -15,7 +15,7 @@ module ProjectRazor
         @config = config
 
         # init correct database object
-        if (config.persist_mode = :mongo)
+        if (config.persist_mode == :mongo)
           logger.debug "Using Mongo plugin"
           @database = ProjectRazor::Persist::MongoPlugin.new
           check_connection
