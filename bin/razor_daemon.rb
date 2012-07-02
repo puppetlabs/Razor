@@ -125,7 +125,18 @@ class RazorDaemon < ProjectRazor::Object
   def get_config(conf_path = nil)
     return get_data.config unless conf_path
     conf_file = File.join(conf_path, "razor_server.conf")
-    YAML.load(File.open(conf_file))
+    loaded_config = nil
+    if File.exist?(conf_file)
+      begin
+        loaded_config = YAML.load(File.open(conf_file))
+      rescue
+      end
+    end
+    # if the configuration was loaded successfully and it's an instance of the
+    # ProjectRazor::Config::Server class, return it, else return a new instance
+    # of this class
+    return loaded_config if loaded_config && loaded_config.is_a?(ProjectRazor::Config::Server)
+    ProjectRazor::Config::Server.new
   end
 
   # used to ensure the database is accessible before starting up the daemon
