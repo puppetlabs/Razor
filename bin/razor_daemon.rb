@@ -205,6 +205,9 @@ end
 # define the directory to use for logging
 log_dir = bin_dir.sub(/\/bin$/,"/log")
 
+# and define the directory that the daemon's "pid" file will be created in
+razor_dir = bin_dir.sub(/\/bin$/,"")
+
 # used to cleanly shut down the processes being managed by this daemon
 # (i.e. the Node.js instances)
 def shutdown_instances
@@ -242,7 +245,9 @@ options = {
     :multiple => false,
     :log_dir  => log_dir,
     :log_output => true,
-    :backtrace  => true
+    :backtrace  => true,
+    :dir_mode => :normal,
+    :dir => razor_dir
 }
 
 # get a reference to the RazorDaemon singleton (defined above)
