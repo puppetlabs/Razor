@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# This is a patch for lack of DNS in my lab (Not needed if you have proper DNS, .nick)
-sed -i '4 i\
-192.168.99.50   puppet learn puppet.razor-dev.local learn.razor-dev.local' /etc/hosts
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "added_puppet_hosts_ok") %> || curl <%= callback_url("postinstall", "added_puppet_hosts_fail") %>
 
 hostname <%= hostname %>
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>

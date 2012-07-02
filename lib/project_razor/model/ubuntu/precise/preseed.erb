@@ -39,8 +39,8 @@ d-i passwd/username string user
 d-i passwd/user-password password insecure
 d-i passwd/user-password-again password insecure
 d-i user-setup/allow-password-weak boolean true
-#d-i apt-setup/restricted boolean true
-#d-i pkgsel/include string ruby openssh-server build-essential curl
+d-i apt-setup/restricted boolean true
+d-i pkgsel/include string curl
 d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
 d-i finish-install/reboot_in_progress note

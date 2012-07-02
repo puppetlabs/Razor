@@ -5,6 +5,7 @@ var exec = require("child_process").exec; // create our exec object
 var express = require('express'); // include our express libs
 var mime = require('mime');
 var fs = require('fs');
+var http_range_req = require('./http_range_req.js');
 var image_svc_path;
 
 app = express.createServer(); // our express server
@@ -61,19 +62,17 @@ function respondWithFile(path, res, req) {
             var end_offset;
             var mimetype = mime.lookup(path);
             var stat = fs.statSync(path);
+
             if (req.headers['range'] != undefined) {
-                console.log("Range requested: " + req.headers['range']);
-                var range_array = req.headers['range'].replace("bytes=","").split("-");
-                start_offset = parseInt(range_array[0]);
-                end_offset = parseInt(range_array[1]);
-                stat.size = (end_offset - start_offset + 1);
-                console.log("Start offset: " + start_offset);
-                console.log("End offset: " + end_offset);
-                console.log("Size: " + stat.size);
-                var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
+                var offsets = http_range_req.getRange(req.headers['range'], stat.size);
+                start_offset = offsets[0];
+                end_offset = offsets[1];
             } else {
-                var fileStream = fs.createReadStream(path);
+                start_offset = 0;
+                end_offset = stat.size - 1;
             }
+
+            var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
             res.setHeader('Content-length', stat.size);
             res.writeHead(200, {'Content-Type': mimetype});
 
@@ -83,8 +82,10 @@ function respondWithFile(path, res, req) {
             fileStream.on('end', function() {
                 res.end();
             });
-            console.log("Sending: " + path + ", Mimetype: " + mimetype + ",  Size:" + stat.size);
-            console.log("Start offset: " + start_offset + ", " + "End offset: " + end_offset)
+            console.log("\tSending: " + path);
+            console.log("\tMimetype: " + mimetype);
+            console.log("\tSize: " + stat.size);
+            console.log("\tStart: " + start_offset + " / End: " + end_offset);
         }
         catch (err)
         {
@@ -121,6 +122,13 @@ function getArguments(args_array) {
         arg_string = arg_string + args[x] + " "
     }
     return arg_string;
+}
+
+
+function getRange() {
+    // This handles range requests per (http://tools.ietf.org/html/draft-ietf-http-range-retrieval-00)
+
+
 }
 
 // TODO Add catch for if project_razor.js is already running on port
