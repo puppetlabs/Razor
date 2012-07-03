@@ -103,7 +103,7 @@ module ProjectRazor
 
       def print_header
         if @bound
-          return "Label", "State", "Node UUID", "System", "Bind #", "UUID"
+          return "Label", "State", "Node UUID", "Broker", "Bind #", "UUID"
         else
           if @is_template
             return "Template", "Description"
