@@ -11,6 +11,7 @@
 
 require 'rubygems'
 require 'daemons'
+require 'json'
 
 # add our the Razor lib path to the load path. This is for non-gem ease of use
 bin_dir = File.dirname(File.expand_path(__FILE__))
@@ -117,7 +118,8 @@ class RazorDaemon < ProjectRazor::Object
 
   # used to obtain a copy of the Razor configuration
   def get_config
-    get_data.config
+    resp = %x[#{BIN_DIR}/razor -w config]
+    JSON.parse(resp)
   end
 
   # used to fire off a task (via a slice command) to the underlying Razor server
@@ -133,10 +135,10 @@ class RazorDaemon < ProjectRazor::Object
   # (i.e. if a connection does not exist and cannot be established), then an error
   # will be thrown by this method.
   def check_database_connection
-    persist_ctrl = get_data.setup_persist
+    resp = %x[#{BIN_DIR}/razor config dbcheck]
     raise RuntimeError.new("Database connection could not be established " +
                                "using the current server configuration; check configuration" +
-                               "and database state") unless (persist_ctrl && persist_ctrl.check_connection)
+                               "and database state") unless resp.strip == "true"
   end
 
   # used during the daemon's event-handling loop to verify that all of the nodes
@@ -220,7 +222,7 @@ end
 # (the one and only input argument to the function)
 def get_min_cycle_time(razor_config)
   # get the value that should be used from the Razor server configuration
-  min_cycle_time = razor_config.daemon_min_cycle_time
+  min_cycle_time = razor_config['daemon_min_cycle_time']
   # set to the default value if there was no value read from the configuration
   min_cycle_time = DEFAULT_MIN_CYCLE_TIME unless min_cycle_time
   # and return the result
@@ -232,7 +234,7 @@ end
 # is set in the Razor server configuration...
 def get_node_expire_timeout(razor_config)
   # get the value that should be used from the Razor server configuration
-  node_expire_timeout = razor_config.node_expire_timeout
+  node_expire_timeout = razor_config['node_expire_timeout']
   # set to the default value if there was no value read from the configuration
   node_expire_timeout = DEFAULT_NODE_EXPIRE_TIMEOUT unless node_expire_timeout
   # and return the result
@@ -272,8 +274,8 @@ begin
 rescue RuntimeError => e
   puts "Cannot start the Razor Server; the database needed to run Razor is not"
   puts "accessible using the current Razor configuration:"
-  puts "    persist_host:  #{razor_config.persist_host}"
-  puts "    persist_port:  #{razor_config.persist_port}"
+  puts "    persist_host:  #{razor_config['persist_host']}"
+  puts "    persist_port:  #{razor_config['persist_port']}"
   puts "razor_daemon.rb is exiting now..."
   exit(-1)
 end

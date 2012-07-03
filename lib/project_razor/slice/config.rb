@@ -17,12 +17,17 @@ module ProjectRazor
         # Here we create a hash of the command string to the method it corresponds to for routing.
         @slice_commands = {
           :read    => "read_config",
+          :dbcheck => "db_check",
           :ipxe    => "generate_ipxe_script",
           :default => :read,
           :else    => :read
         }
         @slice_name = "Config"
         @engine = ProjectRazor::Engine.instance
+      end
+
+      def db_check
+        puts get_data.persist_ctrl.is_connected?
       end
 
       def read_config
