@@ -78,7 +78,7 @@ module ProjectRazor
         active_model = get_object("active_model_instance", :active, @command_array.first)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{@command_array.first}]" unless active_model
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Active Model [#{active_model_uuid}]" unless get_data.delete_object(active_model)
-        slice_success("All active model #{active_model.uuid} removed", :success_type => :removed)
+        slice_success("Active model #{active_model.uuid} removed", :success_type => :removed)
       end
 
       def get_logview

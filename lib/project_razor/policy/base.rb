@@ -103,7 +103,7 @@ module ProjectRazor
 
       def print_header
         if @bound
-          return "Label", "State", "Node UUID", "System", "Bind #", "UUID"
+          return "Label", "State", "Node UUID", "Broker", "Bind #", "UUID"
         else
           if @is_template
             return "Template", "Description"
@@ -116,7 +116,7 @@ module ProjectRazor
       def print_items
         if @bound
           broker_name = @broker ? @broker.name : "none"
-          return @label, @model.current_state.to_s, @node_uuid, broker_name, current_count.to_s, @uuid
+          return @label, @model.current_state.to_s, @node_uuid, broker_name, @model.counter.to_s, @uuid
         else
           if @is_template
             return @template.to_s, @description.to_s
