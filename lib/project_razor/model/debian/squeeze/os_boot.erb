@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Wait for the network...
+sleep 5
+
+hostname <%= hostname %>
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
+
+apt-get -y update
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_update_ok") %> || curl <%= callback_url("postinstall", "apt_update_fail") %>
+
+apt-get -y upgrade
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_upgrade_ok") %> || curl <%= callback_url("postinstall", "apt_upgrade_fail") %>
+
+apt-get -y install rubygems facter
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_install_ok") %> || curl <%= callback_url("postinstall", "apt_install_fail") %>
+
+# Get current IP
+node_ip=`facter ipaddress`
+# Send IP up
+curl <%= callback_url("postinstall", "send_ips") %>/$node_ip
+# get final script
+curl <%= callback_url("postinstall", "boot") %> | sh
