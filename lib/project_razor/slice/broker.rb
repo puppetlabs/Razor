@@ -120,10 +120,10 @@ module ProjectRazor
 
 
       def remove_broker_all
-        @command           = :remove_all_policies
+        @command           = :remove_broker_all
         @command_help_text = "razor broker remove all"
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Policies" unless get_data.delete_all_objects(:broker)
-        slice_success("All policies removed", :success_type => :removed)
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Brokers" unless get_data.delete_all_objects(:broker)
+        slice_success("All brokers removed", :success_type => :removed)
       end
 
       def remove_broker
