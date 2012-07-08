@@ -11,7 +11,7 @@
   :long_form: --label MODEL_LABEL
   :description: A label to name this model.
   :required: true
-- :name: :--image-uuid
+- :name: :image_uuid
   :default:
   :short_form: -i
   :long_form: --iamge-uuid IMAGE_UUID
