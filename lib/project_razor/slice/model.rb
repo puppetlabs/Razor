@@ -73,7 +73,10 @@ module ProjectRazor
         # validate required options
         validate_options(:option_items => option_items, :options => options, :logic => :require_all)
 
-        template = get_object("template_by_uuid", :template, options[:template_uuid])
+        template   = options[:template]
+        image_uuid = options[:image_uuid]
+        label      = options[:label]
+
         model = verify_template(template)
         raise ProjectRazor::Error::Slice::InvalidModelTemplate, "Invalid Model Template [#{template}] " unless model
         image = model.image_prefix ? verify_image(model, image_uuid) : true
