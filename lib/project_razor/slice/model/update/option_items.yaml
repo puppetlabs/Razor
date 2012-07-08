@@ -4,16 +4,16 @@
   :short_form: -t
   :long_form: --template TEMPLATE_NAME
   :description: The model template name to use.
-  :required: true
+  :required: false
 - :name: :label
   :default:
   :short_form: -l
   :long_form: --label MODEL_LABEL
   :description: A label to name this model.
-  :required: true
+  :required: false
 - :name: :image_uuid
   :default:
   :short_form: -i
-  :long_form: --iamge-uuid IMAGE_UUID
+  :long_form: --image-uuid IMAGE_UUID
   :description: The image to attach to the model.
-  :required: true
+  :required: false

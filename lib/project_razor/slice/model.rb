@@ -113,7 +113,7 @@ module ProjectRazor
       def update_model
         @command = :update_model
         options = {}
-        option_items = load_option_items(:command => :add)
+        option_items = load_option_items(:command => :update)
         # Get our optparse object passing our options hash, option_items hash, and our banner
         optparse     = get_options(options, :options_items => option_items, :banner => "razor model update [options...]", :list_required => true)
         # set the command help text to the string output from optparse
@@ -126,7 +126,7 @@ module ProjectRazor
         validate_options(:option_items => option_items, :options => options, :logic => :require_all)
 
         model_uuid = options[:model_uuid]
-        model = get_object("model_with_uuid", :model, model_uuid)
+        model = get_object("model_with_uuid", :model, model_uuid).first
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
         label      = options[:label]
         image_uuid = options[:image_uuid]
@@ -147,7 +147,6 @@ module ProjectRazor
           end
         end
         model.label = label if label
-        p model.label
         image = model.image_prefix ? verify_image(model, image_uuid) : true if image_uuid
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Image UUID [#{image_uuid}] " unless image || !image_uuid
         model.image_uuid = image.uuid if image
