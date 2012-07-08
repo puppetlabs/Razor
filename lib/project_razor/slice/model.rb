@@ -60,24 +60,24 @@ module ProjectRazor
 
       def add_model
         @command =:add_model
-        @command_help_text = "razor model add template=(model template) label=(model label) {image_uuid=(Image UUID)}\n"
-        @command_help_text << "\t template: \t" + " The Model Template name to use\n".yellow
-        @command_help_text << "\t label: \t" + " A label to name this Model\n".yellow
-        @command_help_text << "\t image_uuid: \t" + " If the Model Template requires an Image, the Image UUID\n".yellow
+        @command_help_text = "razor model add --template=(model template) --label=(model label) {--image-uuid=(Image UUID)}\n"
+        @command_help_text << "\t --template: \t" + " The Model Template name to use\n".yellow
+        @command_help_text << "\t --label: \t" + " A label to name this Model\n".yellow
+        @command_help_text << "\t --image-uuid: \t" + " If the Model Template requires an Image, the Image UUID\n".yellow
         template, label, image_uuid, req_metadata_hash =
             *get_web_vars(%w(template label image_uuid req_metadata_hash)) if @web_command
         template, label, image_uuid =
-            *get_cli_vars(%w(template label image_uuid)) unless template || label || image_uuid
+            *get_cli_vars(%w(--template --label --image-uuid)) unless template || label || image_uuid
         # Validate our args are here
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Template [template]" unless validate_arg(template)
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Label [label]" unless validate_arg(label)
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Image UUID [image_uuid]" unless validate_arg(image_uuid)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Template [--template]" unless validate_arg(template)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Label [--label]" unless validate_arg(label)
+        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Image UUID [--image_uuid]" unless validate_arg(image_uuid)
         model = verify_template(template)
         raise ProjectRazor::Error::Slice::InvalidModelTemplate, "Invalid Model Template [#{template}] " unless model
         image = model.image_prefix ? verify_image(model, image_uuid) : true
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Image UUID [#{image_uuid}] " unless image
         if @web_command
-          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Required Metadata [req_metadata_hash]" unless
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Required Metadata [--req_metadata_hash]" unless
               req_metadata_hash
           model.web_create_metadata(req_metadata_hash)
         else
@@ -107,15 +107,15 @@ module ProjectRazor
 
       def update_model
         @command = :update_model
-        @command_help_text = "razor model update (model uuid) {label=(Model Label)} {image_uuid=(Image UUID)} {change_metadata=true}\n"
-        @command_help_text << "\t label: \t\t" + " A label to name this Model\n".yellow
-        @command_help_text << "\t image_uuid: \t\t" + " If the Model Template requires an Image, the Image UUID\n".yellow
-        @command_help_text << "\t change_metadata: \t" + " Triggers changing the Model metadata\n".yellow
+        @command_help_text = "razor model update (model uuid) {--label=(Model Label)} {--image-uuid=(Image UUID)} {--change-metadata=true}\n"
+        @command_help_text << "\t --label: \t\t" + " A label to name this Model\n".yellow
+        @command_help_text << "\t --image_uuid: \t\t" + " If the Model Template requires an Image, the Image UUID\n".yellow
+        @command_help_text << "\t --change-metadata: \t" + " Triggers changing the Model metadata\n".yellow
         model_uuid = @command_array.shift
         model = get_object("model_with_uuid", :model, model_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
-        label, image_uuid, req_metadata_hash = *get_web_vars(%w(label image_uuid req_metadata_hash)) if @web_command
-        label, image_uuid, change_metadata = *get_cli_vars(%w(label image_uuid change_metadata)) unless label || image_uuid || change_metadata
+        label, image_uuid, req_metadata_hash = *get_web_vars(%w(--label --image-uuid --req-metadata_hash)) if @web_command
+        label, image_uuid, change_metadata = *get_cli_vars(%w(--label --image-uuid --change-metadata)) unless label || image_uuid || change_metadata
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update" unless label || image_uuid || change_metadata
         if @web_command
           if req_metadata_hash
