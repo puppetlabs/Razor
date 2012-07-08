@@ -109,13 +109,27 @@ module ProjectRazor
 
       def update_model
         @command = :update_model
-        @command_help_text = "razor model update (model uuid) {--label=(Model Label)} {--image-uuid=(Image UUID)} {--change-metadata=true}\n"
-        @command_help_text << "\t --label: \t\t" + " A label to name this Model\n".yellow
-        @command_help_text << "\t --image_uuid: \t\t" + " If the Model Template requires an Image, the Image UUID\n".yellow
-        @command_help_text << "\t --change-metadata: \t" + " Triggers changing the Model metadata\n".yellow
-        model_uuid = @command_array.shift
+        options = {}
+        option_items = load_option_items(:command => :add)
+        # Get our optparse object passing our options hash, option_items hash, and our banner
+        optparse     = get_options(options, :options_items => option_items, :banner => "razor model update [options...]", :list_required => true)
+        # set the command help text to the string output from optparse
+        @command_help_text << optparse.to_s
+        # if it is a web command, get options from JSON
+        options = get_options_web if @web_command
+        # parse our ARGV with the optparse unless options are already set from get_options_web
+        optparse.parse! unless option_items.any? { |k| options[k] }
+        # validate required options
+        validate_options(:option_items => option_items, :options => options, :logic => :require_all)
+
+        model_uuid = options[:model_uuid]
         model = get_object("model_with_uuid", :model, model_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model
+        label      = options[:label]
+        image_uuid = options[:image_uuid]
+        req_metadata_hash = options[:req_metadata_hash]
+        change_metadata   = options[:change_metadata]
+
         label, image_uuid, req_metadata_hash = *get_web_vars(%w(--label --image-uuid --req-metadata_hash)) if @web_command
         label, image_uuid, change_metadata = *get_cli_vars(%w(--label --image-uuid --change-metadata)) unless label || image_uuid || change_metadata
         raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update" unless label || image_uuid || change_metadata
