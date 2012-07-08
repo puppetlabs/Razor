@@ -60,18 +60,20 @@ module ProjectRazor
 
       def add_model
         @command =:add_model
-        @command_help_text = "razor model add --template=(model template) --label=(model label) {--image-uuid=(Image UUID)}\n"
-        @command_help_text << "\t --template: \t" + " The Model Template name to use\n".yellow
-        @command_help_text << "\t --label: \t" + " A label to name this Model\n".yellow
-        @command_help_text << "\t --image-uuid: \t" + " If the Model Template requires an Image, the Image UUID\n".yellow
-        template, label, image_uuid, req_metadata_hash =
-            *get_web_vars(%w(template label image_uuid req_metadata_hash)) if @web_command
-        template, label, image_uuid =
-            *get_cli_vars(%w(--template --label --image-uuid)) unless template || label || image_uuid
-        # Validate our args are here
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Template [--template]" unless validate_arg(template)
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Model Label [--label]" unless validate_arg(label)
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide A Image UUID [--image_uuid]" unless validate_arg(image_uuid)
+        options = {}
+        option_items = load_option_items(:command => :add)
+        # Get our optparse object passing our options hash, option_items hash, and our banner
+        optparse     = get_options(options, :options_items => option_items, :banner => "razor model add [options...]", :list_required => true)
+        # set the command help text to the string output from optparse
+        @command_help_text << optparse.to_s
+        # if it is a web command, get options from JSON
+        options = get_options_web if @web_command
+        # parse our ARGV with the optparse unless options are already set from get_options_web
+        optparse.parse! unless option_items.any? { |k| options[k] }
+        # validate required options
+        validate_options(:option_items => option_items, :options => options, :logic => :require_all)
+
+        template = get_object("template_by_uuid", :template, options[:template_uuid])
         model = verify_template(template)
         raise ProjectRazor::Error::Slice::InvalidModelTemplate, "Invalid Model Template [#{template}] " unless model
         image = model.image_prefix ? verify_image(model, image_uuid) : true
