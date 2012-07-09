@@ -1,6 +1,7 @@
 #!/bin/bash
 
 hostname <%= hostname %>
+echo <%= hostname %> > /etc/hostname
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
 
 sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && curl <%= callback_url("postinstall", "sources_fix") %>
