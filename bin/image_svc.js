@@ -73,7 +73,7 @@ function respondWithFile(path, res, req) {
             }
 
             var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
-            res.setHeader('Content-length', stat.size);
+            res.setHeader('Content-length', (end_offset - start_offset + 1));
             res.writeHead(200, {'Content-Type': mimetype});
 
             fileStream.on('data', function(chunk) {
