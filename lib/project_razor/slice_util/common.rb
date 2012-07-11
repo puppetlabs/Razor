@@ -87,7 +87,7 @@ module ProjectRazor
         rescue JSON::ParserError => e
           # TODO: Determine if logging appropriate
           puts e.message
-          return nil
+          return {}
         rescue Exception => e
           # TODO: Determine if throwing exception appropriate
           raise e
