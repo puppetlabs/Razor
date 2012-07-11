@@ -264,7 +264,7 @@ module ProjectRazor
                 object.to_hash
               else
                 obj_web = object.to_hash
-                obj_web = Hash[obj_web.reject { |k, v| !['@uuid', '@classname'].include?(k) }] unless object_array.count == 1
+                obj_web = Hash[obj_web.reject { |k, v| !%w(@uuid @classname, @noun).include?(k) }] unless object_array.count == 1
 
                 add_uri_to_object_hash(obj_web)
                 iterate_obj(obj_web)
