@@ -113,21 +113,6 @@ module ProjectRazor
 
       end
 
-      def get_noun(classname)
-        begin
-          filepath = File.join(File.dirname(__FILE__), "api_mapping.yaml")
-          api_map  = YAML.load_file(filepath)
-
-          api_map = api_map.sort_by { |x| x[:namespace].length }.reverse
-          api_map.each do |api|
-            return api[:noun] if classname.start_with?(api[:namespace])
-          end
-        rescue => e
-          logger.error e.message
-        end
-        return nil
-      end
-
       # Returns all child templates from prefix
       def get_child_templates(namespace)
         if [Symbol, String].include? namespace.class
@@ -347,7 +332,7 @@ module ProjectRazor
       end
 
       def add_uri_to_object_hash(object_hash)
-        noun = get_noun(object_hash["@classname"])
+        noun = object_hash["@noun"]
         object_hash["@uri"] = "#@uri_root#{noun}/#{object_hash["@uuid"]}" if noun
         object_hash
       end

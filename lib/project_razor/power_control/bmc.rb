@@ -17,6 +17,7 @@ module ProjectRazor
       def initialize(hash = nil)
         super()
         @_namespace = :bmc
+        @noun = "bmc"
         @current_power_state = "unknown"
         @board_serial_number = ''
         from_hash(hash) unless hash == nil

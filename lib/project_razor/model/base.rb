@@ -29,6 +29,7 @@ module ProjectRazor
         @name = "model_base"
         @hidden = true
         @template = :base
+        @noun = "model"
         @description = "Base model template"
         @req_metadata_hash = {}
         @callback = {}

@@ -36,6 +36,7 @@ module ProjectRazor
         @node_uuid = nil
         @bind_timestamp = nil
         @bound = false
+        @noun = "policy"
 
         from_hash(hash) unless hash == nil
         # If our policy is bound it is stored in a different collection
@@ -45,6 +46,7 @@ module ProjectRazor
           @_namespace = :policy
         end
       end
+
 
       def tags=(new_tags)
         @tags = new_tags.uniq
@@ -70,6 +72,7 @@ module ProjectRazor
           @model.counter = @model.counter + 1 # increment model counter
           self.update_self # save increment
           @bound = true
+          @noun = "active_model"
           @root_policy = @uuid.to_s
           @uuid = create_uuid
           @_namespace = :active

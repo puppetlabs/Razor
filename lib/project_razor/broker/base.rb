@@ -16,6 +16,7 @@ module ProjectRazor
         super()
         @hidden = true
         @plugin = :base
+        @noun = "broker"
         @servers = []
         @description = "Base broker plugin - not used"
         @_namespace = :broker

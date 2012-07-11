@@ -52,9 +52,12 @@ module ProjectRazor
 
       attr_accessor :rz_mk_boot_debug_level
 
+      attr_reader   :noun
+
       # init
       def initialize
         use_defaults
+        @noun = "config"
       end
 
       # Set defaults
