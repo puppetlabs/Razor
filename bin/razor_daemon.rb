@@ -222,7 +222,7 @@ end
 # (the one and only input argument to the function)
 def get_min_cycle_time(razor_config)
   # get the value that should be used from the Razor server configuration
-  min_cycle_time = razor_config['daemon_min_cycle_time']
+  min_cycle_time = razor_config['@daemon_min_cycle_time']
   # set to the default value if there was no value read from the configuration
   min_cycle_time = DEFAULT_MIN_CYCLE_TIME unless min_cycle_time
   # and return the result
@@ -234,7 +234,7 @@ end
 # is set in the Razor server configuration...
 def get_node_expire_timeout(razor_config)
   # get the value that should be used from the Razor server configuration
-  node_expire_timeout = razor_config['node_expire_timeout']
+  node_expire_timeout = razor_config['@node_expire_timeout']
   # set to the default value if there was no value read from the configuration
   node_expire_timeout = DEFAULT_NODE_EXPIRE_TIMEOUT unless node_expire_timeout
   # and return the result
@@ -274,8 +274,8 @@ begin
 rescue RuntimeError => e
   puts "Cannot start the Razor Server; the database needed to run Razor is not"
   puts "accessible using the current Razor configuration:"
-  puts "    persist_host:  #{razor_config['persist_host']}"
-  puts "    persist_port:  #{razor_config['persist_port']}"
+  puts "    persist_host:  #{razor_config['@persist_host']}"
+  puts "    persist_port:  #{razor_config['@persist_port']}"
   puts "razor_daemon.rb is exiting now..."
   exit(-1)
 end
