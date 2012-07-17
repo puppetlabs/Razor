@@ -13,22 +13,6 @@ module ProjectRazor
         @osversion   = "6"
 
         from_hash(hash) unless hash == nil
-        @req_metadata_hash = {
-          "@hostname_prefix" => {
-            :default     => "node",
-            :example     => "node",
-            :validation  => '^[\w]+$',
-            :required    => true,
-            :description => "node hostname prefix (will append node number)"
-          },
-          "@root_password" => {
-            :default     => "test1234",
-            :example     => "P@ssword!",
-            :validation  => '^[\S]{8,}',
-            :required    => true,
-            :description => "root password (> 8 characters)"
-          },
-        }
       end
     end
   end

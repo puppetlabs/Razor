@@ -11,13 +11,6 @@ module ProjectRazor
     class UbuntuOneric < Ubuntu
       include(ProjectRazor::Logging)
 
-      # Assigned image
-      attr_accessor :image_uuid
-      # Metadata
-      attr_accessor :hostname
-      # Compatible Image Prefix
-      attr_accessor :image_prefix
-
       def initialize(hash)
         super(hash)
         # Static config

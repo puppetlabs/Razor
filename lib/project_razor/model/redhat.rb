@@ -12,6 +12,7 @@ module ProjectRazor
       attr_accessor :image_uuid
       # Metadata
       attr_accessor :hostname
+      attr_accessor :domainname
       # Compatible Image Prefix
       attr_accessor :image_prefix
 
@@ -41,6 +42,13 @@ module ProjectRazor
                 :validation  => '^[\w]+$',
                 :required    => true,
                 :description => "node hostname prefix (will append node number)"
+            },
+            "@domainname" => {
+              :default     => "localdomain",
+              :example     => "localdomain",
+              :validation  => '^[\w]+$',
+              :required    => true,
+              :description => "local domain name (will be used in /etc/hosts file)"
             },
             "@root_password" => {
                 :default     => "test1234",
