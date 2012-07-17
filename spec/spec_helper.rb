@@ -3,6 +3,5 @@ $LOAD_PATH.unshift File.expand_path(File.join(dir, '..', 'lib'))
 
 require 'project_razor'
 require 'rspec'
-require 'mocha'
 require 'json'
 require 'net/http'
