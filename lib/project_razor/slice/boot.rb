@@ -34,6 +34,7 @@ module ProjectRazor
             @vars_hash['hw_id'] = @vars_hash['mac']
           end
           @hw_id = @vars_hash['hw_id']
+          @dhcp_mac= @vars_hash['dhcp_mac'] || nil
         rescue JSON::ParserError => e
           error_reboot_node "Bad JSON #{e.inspect}"
           return
@@ -50,7 +51,7 @@ module ProjectRazor
         @hw_id.collect! {|x| x.upcase.gsub(':', '') }
         logger.info "Boot called by Node (HW_ID: #@hw_id)"
         logger.info "Calling Engine for boot script"
-        puts @engine.boot_checkin(@hw_id)
+        puts @engine.boot_checkin(:hw_id => @hw_id, :dhcp_mac => @dhcp_mac)
       end
 
       def error_reboot_node(msg)
