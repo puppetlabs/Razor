@@ -299,9 +299,16 @@ module ProjectRazor
 
       def boot_cfg
         @image = get_data.fetch_object_by_uuid(:images, @image_uuid)
-        @image.boot_cfg.gsub("/",
-                             "#{image_svc_uri}/#{@image_uuid}/").gsub("runweasel",
-                                                                      "ks=#{api_svc_uri}/policy/callback/#{@policy_uuid}/kickstart/file")
+        if @node.dhcp_mac
+          @image.boot_cfg.gsub("/",
+                               "#{image_svc_uri}/#{@image_uuid}/").gsub("runweasel",
+                                                                        "ks=#{api_svc_uri}/policy/callback/#{@policy_uuid}/kickstart/file BOOTIF=#{@node.dhcp_mac}")
+        else
+          @image.boot_cfg.gsub("/",
+                               "#{image_svc_uri}/#{@image_uuid}/").gsub("runweasel",
+                                                                        "ks=#{api_svc_uri}/policy/callback/#{@policy_uuid}/kickstart/file")
+        end
+
       end
 
       # ERB.result(binding) is failing in Ruby 1.9.2 and 1.9.3 so template is processed in the def block.
