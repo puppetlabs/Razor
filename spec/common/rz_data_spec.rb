@@ -152,7 +152,7 @@ describe ProjectRazor::Data do
 
       (1..NODE_COUNT).each do
       |x|
-        temp_node = ProjectRazor::Node.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+        temp_node = ProjectRazor::Node.new({:@name => "rspec_node_junk#{x}", :@last_state => :idle})
         temp_node = @data.persist_object(temp_node)
         @last_uuid = temp_node.uuid
         #(0..rand(10)).each do
@@ -180,7 +180,7 @@ describe ProjectRazor::Data do
     end
 
     it "should be able to add a new Node (does not exist) and update" do
-      temp_node = ProjectRazor::Node.new({:@name => "rspec_node_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_node = ProjectRazor::Node.new({:@name => "rspec_node_junk_new", :@last_state => :idle})
       temp_node = @data.persist_object(temp_node)
       temp_node.update_self
 
@@ -189,7 +189,7 @@ describe ProjectRazor::Data do
     end
 
     it "should be able to delete a specific Node by uuid" do
-      temp_node = ProjectRazor::Node.new({:@name => "rspec_node_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_node = ProjectRazor::Node.new({:@name => "rspec_node_junk_delete_uuid", :@last_state => :idle})
       temp_node = @data.persist_object(temp_node)
       temp_node.update_self
 
@@ -201,7 +201,7 @@ describe ProjectRazor::Data do
     end
 
     it "should be able to delete a specific Node by object" do
-      temp_node = ProjectRazor::Node.new({:@name => "rspec_node_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+      temp_node = ProjectRazor::Node.new({:@name => "rspec_node_junk_delete_object", :@last_state => :idle})
       temp_node = @data.persist_object(temp_node)
       temp_node.update_self
 
@@ -238,30 +238,6 @@ describe ProjectRazor::Data do
       node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
       node_confirm.is_a?(ProjectRazor::Node).should == true
       node_confirm.last_state = :nick
-    end
-
-    it "should be able to update the CurrentState for existing Node" do
-      node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(ProjectRazor::Node).should == true
-      node.current_state = :nick
-      node.update_self
-      node.current_state.should == :nick
-
-      node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node_confirm.is_a?(ProjectRazor::Node).should == true
-      node_confirm.current_state = :nick
-    end
-
-    it "should be able to update the NextState for existing Node" do
-      node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(ProjectRazor::Node).should == true
-      node.next_state = :nick
-      node.update_self
-      node.next_state.should == :nick
-
-      node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node_confirm.is_a?(ProjectRazor::Node).should == true
-      node_confirm.next_state = :nick
     end
 
     it "should be able to delete all Nodes" do
@@ -307,7 +283,7 @@ describe ProjectRazor::Data do
   #  end
   #
   #  it "should be able to add a new Model (does not exist) and update" do
-  #    temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_model_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+  #    temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_model_junk_new", :@last_state => :idle})
   #    temp_model = @data.persist_object(temp_model)
   #    temp_model.update_self
   #
@@ -316,7 +292,7 @@ describe ProjectRazor::Data do
   #  end
   #
   #  it "should be able to delete a specific Model by uuid" do
-  #    temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_model_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+  #    temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_model_junk_delete_uuid", :@last_state => :idle})
   #    temp_model = @data.persist_object(temp_model)
   #    temp_model.update_self
   #
@@ -328,7 +304,7 @@ describe ProjectRazor::Data do
   #  end
   #
   #  it "should be able to delete a specific Model by object" do
-  #    temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_model_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+  #    temp_model = ProjectRazor::Model::Base.new({:@name => "rspec_model_junk_delete_object", :@last_state => :idle})
   #    temp_model = @data.persist_object(temp_model)
   #    temp_model.update_self
   #
@@ -412,7 +388,7 @@ describe ProjectRazor::Data do
   #  end
   #
   #  it "should be able to add a new Policy (does not exist) and update" do
-  #    temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk_new", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+  #    temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk_new", :@last_state => :idle})
   #    temp_policy = @data.persist_object(temp_policy)
   #    temp_policy.update_self
   #
@@ -421,7 +397,7 @@ describe ProjectRazor::Data do
   #  end
   #
   #  it "should be able to delete a specific Policy by uuid" do
-  #    temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk_delete_uuid", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+  #    temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk_delete_uuid", :@last_state => :idle})
   #    temp_policy = @data.persist_object(temp_policy)
   #    temp_policy.update_self
   #
@@ -433,7 +409,7 @@ describe ProjectRazor::Data do
   #  end
   #
   #  it "should be able to delete a specific Policy by object" do
-  #    temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk_delete_object", :@last_state => :idle, :@current_state => :idle, :@next_state => :policy_applied})
+  #    temp_policy = ProjectRazor::Policy::Base.new({:@name => "rspec_policy_junk_delete_object", :@last_state => :idle})
   #    temp_policy = @data.persist_object(temp_policy)
   #    temp_policy.update_self
   #
