@@ -44,8 +44,8 @@ module ProjectRazor
             },
             "@domainname" => {
               :default     => "localdomain",
-              :example     => "localdomain",
-              :validation  => '^[\w]+$',
+              :example     => "example.com",
+              :validation  => '^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9](\.[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])*$',
               :required    => true,
               :description => "local domain name (will be used in /etc/hosts file)"
             },
