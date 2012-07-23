@@ -87,7 +87,7 @@ module ProjectRazor
         rescue JSON::ParserError => e
           # TODO: Determine if logging appropriate
           puts e.message
-          return nil
+          return {}
         rescue Exception => e
           # TODO: Determine if throwing exception appropriate
           raise e
@@ -111,21 +111,6 @@ module ProjectRazor
             end
         end
 
-      end
-
-      def get_noun(classname)
-        begin
-          filepath = File.join(File.dirname(__FILE__), "api_mapping.yaml")
-          api_map  = YAML.load_file(filepath)
-
-          api_map = api_map.sort_by { |x| x[:namespace].length }.reverse
-          api_map.each do |api|
-            return api[:noun] if classname.start_with?(api[:namespace])
-          end
-        rescue => e
-          logger.error e.message
-        end
-        return nil
       end
 
       # Returns all child templates from prefix
@@ -279,7 +264,7 @@ module ProjectRazor
                 object.to_hash
               else
                 obj_web = object.to_hash
-                obj_web = Hash[obj_web.reject { |k, v| !['@uuid', '@classname'].include?(k) }] unless object_array.count == 1
+                obj_web = Hash[obj_web.reject { |k, v| !%w(@uuid @classname, @noun).include?(k) }] unless object_array.count == 1
 
                 add_uri_to_object_hash(obj_web)
                 iterate_obj(obj_web)
@@ -347,7 +332,7 @@ module ProjectRazor
       end
 
       def add_uri_to_object_hash(object_hash)
-        noun = get_noun(object_hash["@classname"])
+        noun = object_hash["@noun"]
         object_hash["@uri"] = "#@uri_root#{noun}/#{object_hash["@uuid"]}" if noun
         object_hash
       end

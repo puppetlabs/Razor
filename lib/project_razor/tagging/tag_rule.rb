@@ -12,6 +12,7 @@ module ProjectRazor
         @tag = ""
         @tag_matchers = []
         @_namespace = :tag
+        @noun = "tag"
 
         from_hash(hash) unless hash == nil
         tag_matcher_from_hash unless hash == nil

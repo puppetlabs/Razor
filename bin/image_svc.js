@@ -77,9 +77,11 @@ function respondWithFile(path, res, req) {
             res.writeHead(200, {'Content-Type': mimetype});
 
             fileStream.on('data', function(chunk) {
+                process.stdout.write(".");
                 res.write(chunk);
             });
             fileStream.on('end', function() {
+                process.stdout.write("!\n");
                 res.end();
             });
             console.log("\tSending: " + path);

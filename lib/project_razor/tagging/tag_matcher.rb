@@ -22,7 +22,7 @@ module ProjectRazor
       def initialize(hash)
         super()
 
-
+        @noun = "tag/matcher"
         from_hash(hash) unless hash == nil
         if @compare != "equal" && @compare != "like"
           @compare = nil
