@@ -88,127 +88,70 @@ module ProjectRazor
 
 
       def new_slice_call
-        #puts "New Slice Call"
-        #puts @command_array.inspect
         @command_hash = @slice_commands
         eval_command
       end
 
       def eval_command
-        #puts "Evaluating slice command"
-
         unless @command_array.count > 0
           # No commands or arguments are left, we need to call the :default action
           if @slice_commands[:default]
-            #puts "No command specified using calling (default)"
+            # No command specified using calling (default)
             eval_action(@command_hash[:default])
             return
           else
-            #puts "No (default) action defined"
+            # No (default) action defined
             raise ProjectRazor::Error::Slice::Generic, "No Default Action"
           end
         end
 
-        # each key in the command hash - eval in against command_array
-        # If command_array is empty we call default - if it does not exist we call :else
-        # If nothing matches then we call the :else - if :else does not exist we throw error
-        #if @command_array.first == "help"
-        #  list_help
-        #  return
-        #end
 
-        @command_hash.each do
-        |k,v|
-          case k.class.to_s
-            when "Symbol"
-              #puts "Comparing #{@command_array.first.to_s} to #{k.to_s}(Symbol)"
-              if @command_array.first.to_s == k.to_s
-                #puts "**** Command matches - evaluating action"
-                #puts "removing arg"
-                @last_arg = @command_array.shift
-                @prev_args.push(@last_arg)
-                return eval_action(@command_hash[k])
-              end
-            when "String"
-              #puts "Comparing #{@command_array.first.to_s} to #{k.to_s}(String)"
-              if @command_array.first.to_s == k.to_s
-                #puts "**** Command matches - evaluating action"
-                #puts "removing arg"
-                @last_arg = @command_array.shift
-                @prev_args.push(@last_arg)
-                return eval_action(@command_hash[k])
-              end
-            when "Regexp"
-              #puts "Command is a regexp"
-              if @command_array.first =~ k
-                #puts "**** Command matches - evaluating action"
-                #puts "removing arg"
-                @last_arg = @command_array.shift
-                @prev_args.push(@last_arg)
-                return eval_action(@command_hash[k])
-              end
-            when "Array"
-              #puts "Command is a array"
-              if eval_command_array(k)
-                #puts "removing arg"
-                @last_arg =  @command_array.shift
-                @prev_args.push(@last_arg)
-                return eval_action(@command_hash[k])
-              end
-            else
-              #puts "Raise error, invalid type"
+        @command_hash.each do |k,v|
+          if (k.instance_of? Symbol and @command_array.first.to_s == k.to_s) or
+             (k.instance_of? String and @command_array.first.to_s == k.to_s) or
+             (k.instance_of? Regexp and @command_array.first =~ k) or
+             (k.instance_of? Array and eval_command_array(k))
+            @last_arg =  @command_array.shift
+            @prev_args.push(@last_arg)
+            return eval_action(@command_hash[k])
+          else
           end
         end
 
         # We did not find a match, we call :else
-        #puts "No match for #{@command_array.first}"
         if @command_hash[:else]
-          #puts "No command specified using calling (else)"
           return eval_action(@command_hash[:else])
         else
-          #puts "No (else) action defined"
+          # No (else) action defined
           raise ProjectRazor::Error::Slice::InvalidCommand, "System Error: no else action for slice"
         end
       end
 
       def eval_command_array(command_array)
-        command_array.each do
-        |command_item|
-          case command_item.class.to_s
-            when "String", nil
-              #puts "Comparing #{@command_array.first.to_s} to #{command_item.to_s}(String)"
-              return true if @command_array.first.to_s == command_item
-            when "Regexp"
-              #puts "Comparing #{@command_array.first} to #{command_item.to_s}(Regexp)"
-              return true if @command_array.first =~ command_item
-            else
-
+        command_array.each do |command_item|
+          if (command_item.instance_of? String and @command_array.first.to_s == command_item) or
+             (command_item.instance_of? Regexp and @command_array.first =~ command_item)
+              return true
+          else
           end
         end
         false
       end
 
       def eval_action(command_action)
-        case command_action.class.to_s
-          when "Symbol"
-            #puts "Action is a Symbol"
-            #puts "Calling command (#{command_action}) in command_hash"
-            #puts "inserting arg"
+        case command_action
+          # Symbol reroutes to another command
+          when Symbol
             @command_array.unshift(command_action.to_s)
-            #puts @command_array.inspect
             eval_command
-          when "String"
-            #puts "Action is a String"
-            #puts "Calling method in slice (#{command_action})"
+          # String calls a method
+          when String
             self.send(command_action)
-          when "Hash"
-            #puts "Action is a Hash"
-            #puts "Iterating on Hash"
+          # A hash is iterated
+          when Hash
             @command_hash = command_action
             eval_command
           else
-            #puts "Unknown command, throwing error"
-            #puts command_action.class.to_s
             raise "InvalidActionSlice"
         end
       end
