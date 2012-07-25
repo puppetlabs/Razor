@@ -151,7 +151,7 @@ end
 # Initialise some values
 init
 first_args = get_first_args
-(0..first_args.count-1).each {ARGV.shift} if first_args.count > 0
+first_args.size.times {ARGV.shift}
 @options = {}
 optparse = get_optparse
 begin
