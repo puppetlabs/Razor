@@ -45,6 +45,14 @@ module ProjectRazor
         print_object_array node.print_hardware_ids, "Node Hardware ID's:"
       end
 
+      def remove_node_with_uuid
+        @command = :remove_node_with_uuid
+        @command_help_text = "razor node [remove] (uuid)"
+        node = get_object("node_with_uuid", :node, @command_array.first)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Node with UUID: [#{@command_array.first}]" unless node
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Cannot remove UUID, #{node.uuid}" unless @data.delete_object_by_uuid(:node, node.uuid)
+      end
+
       def register_node
         @command = :register_node
         @command_name = "register_node"

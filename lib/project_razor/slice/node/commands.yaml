@@ -1,4 +1,9 @@
 ---
+:remove:
+  ? - !ruby/regexp /^[Rr]emove$/
+  : remove_node_with_uuid
+  :default: remove_node_with_uuid
+  :else: remove_node_with_uuid
 :get:
   ? - all
     - 
