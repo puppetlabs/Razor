@@ -163,19 +163,24 @@ module ProjectRazor
     ##### Boot Section ####
     #######################
 
-    def boot_checkin(hw_id)
+    def boot_checkin(options = {})
       # Called by a node boot process
 
-      logger.info "Request for boot - hw_id: #{hw_id}"
+      logger.info "Request for boot - hw_id: #{options[:hw_id]}"
 
       # We attempt to fetch the node object
-      node = lookup_node_by_hw_id(:hw_id => hw_id)
+      node = lookup_node_by_hw_id(options)
 
       # If the node is in the DB we can check for active model on it
       if node != nil
         # Node is in DB, lets check for policy
         logger.info "Node identified - uuid: #{node.uuid}"
         active_model = find_active_models(node) # commented out until refactor
+        # We update the dhcp_mac for the mac address that was booted
+        if options[:dhcp_mac]
+          node.dhcp_mac = options[:dhcp_mac]
+          node.update_self
+        end
 
         #If there is a active model we pass it the node to a common
         #method call from a boot
@@ -194,7 +199,7 @@ module ProjectRazor
 
         # Node isn't in DB, we boot it into the MK
         # This is a default behavior
-        logger.info "Node unknown - hw_id: #{hw_id}"
+        logger.info "Node unknown - hw_id: #{options[:hw_id]}"
         default_mk_boot("unknown")
       end
 

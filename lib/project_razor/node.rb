@@ -5,8 +5,9 @@ class ProjectRazor::Node < ProjectRazor::Object
   attr_accessor :attributes_hash
   attr_accessor :timestamp
   attr_accessor :last_state
-  attr_accessor :current_state
-  attr_accessor :next_state
+  #attr_accessor :current_state
+  #attr_accessor :next_state
+  attr_accessor :dhcp_mac
 
   # init
   # @param hash [Hash]
@@ -14,6 +15,7 @@ class ProjectRazor::Node < ProjectRazor::Object
     super()
     @_namespace = :node
     @noun = "node"
+    @dhcp_mac = nil
     @hw_id = []
     @attributes_hash = {}
     from_hash(hash)

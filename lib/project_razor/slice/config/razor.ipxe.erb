@@ -1,12 +1,18 @@
 #!ipxe
 <% (0..@ipxe_options[:nic_max]).each do |index| %>
-isset ${net<%= index %>/mac} && dhcp net<%= index %> ||
+:n<%= index %>
+<% if index == @ipxe_options[:nic_max] %>isset ${net<%= index %>/mac} && dhcp net<%= index %> || goto s1
+<% else %>isset ${net<%= index %>/mac} && dhcp net<%= index %> || goto n<%= index+1 %>
+<% end %>
+echo net<%= index %> has DHCP
+set dhcp_mac 01-${net<%= index %>/mac:hexhyp}
 <% end %>
 
+:s1
 <% if @ipxe_options[:style] == :old %>
-chain <%= @ipxe_options[:uri] %>/razor/api/boot?mac=${net0/mac} || goto error
+chain <%= @ipxe_options[:uri] %>/razor/api/boot?mac=${net0/mac}&dhcp_mac=${dhcp_mac} || goto error
 <% else %>
-chain <%= @ipxe_options[:uri] %>/razor/api/boot?hw_id=<%= "#{(1..@ipxe_options[:nic_max]).inject('${net0/mac}') {|x,y| x << "_${net#{y.to_s}/mac}"}}" %> || goto error
+chain <%= @ipxe_options[:uri] %>/razor/api/boot?hw_id=<%= "#{(1..@ipxe_options[:nic_max]).inject('${net0/mac}') {|x,y| x << "_${net#{y.to_s}/mac}"}}" %>&dhcp_mac=${dhcp_mac} || goto error
 <% end %>
 
 :error
