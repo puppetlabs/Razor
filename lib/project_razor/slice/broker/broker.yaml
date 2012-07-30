@@ -1,0 +1,15 @@
+---
+command:
+  - get:
+    - summary:
+      - "This command retrieves the available brokers" 
+    - subactions:
+      - all:  "Gets all the available brokers"
+      - uuid: "razor broker get <UUID> - Gets broker with UUID"
+  - plugin:
+    - summary: 
+      - "This command returns the plugin values"
+    - subactions: 
+      - uuid:
+        - "finds a broker with UUID value"
+
