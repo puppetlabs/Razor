@@ -74,6 +74,7 @@ module ProjectRazor
 
       def remove_active_model_by_uuid
         @command     =:remove_active_model_by_uuid
+        @command_help_text = "razor active_model remove <uuid>"
         raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide An Active Model UUID" unless validate_arg(@command_array.first)
         active_model = get_object("active_model_instance", :active, @command_array.first)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{@command_array.first}]" unless active_model
