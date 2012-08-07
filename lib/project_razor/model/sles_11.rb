@@ -39,7 +39,7 @@ module ProjectRazor
             "@hostname_prefix" => {
                 :default     => "node",
                 :example     => "node",
-                :validation  => '^[\w]+$',
+                :validation  => '^[a-zA-Z0-9][a-zA-Z0-9\-]*$',
                 :required    => true,
                 :description => "node hostname prefix (will append node number)"
             },

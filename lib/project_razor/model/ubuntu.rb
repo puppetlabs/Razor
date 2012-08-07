@@ -39,14 +39,14 @@ module ProjectRazor
             "@hostname_prefix" => {
                 :default     => "node",
                 :example     => "node",
-                :validation  => '^[\w]+$',
+                :validation  => '^[a-zA-Z0-9][a-ZA-Z0-9\-]*$',
                 :required    => true,
                 :description => "node hostname prefix (will append node number)"
             },
             "@domainname" => {
               :default     => "localdomain",
               :example     => "example.com",
-              :validation  => '^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9](\.[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])*$',
+              :validation  => '^[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9](\.[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])*$',
               :required    => true,
               :description => "local domain name (will be used in /etc/hosts file)"
             },
