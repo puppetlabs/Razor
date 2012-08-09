@@ -40,7 +40,8 @@ d-i passwd/root-password password <%= @root_password %>
 d-i passwd/root-password-again password <%= @root_password %>
 d-i user-setup/allow-password-weak boolean true
 #d-i apt-setup/restricted boolean true
-#d-i pkgsel/include string ruby openssh-server build-essential curl
+tasksel tasksel/first multiselect standard
+d-i pkgsel/include string ruby openssh-server build-essential curl
 d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
 popularity-contest popularity-contest/participate boolean false
