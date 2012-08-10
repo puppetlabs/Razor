@@ -26,6 +26,19 @@ apt-get -y upgrade
 apt-get -y install ruby rubygems facter openssh-server
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_install_ok") %> || curl <%= callback_url("postinstall", "apt_install_fail") %>
 
+# Set IP from IP Pool
+echo "auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+address <%= node_ip_address %>
+netmask <%= @ip_range_subnet %>
+gateway <%= @gateway %>
+" > /etc/network/interfaces &&  curl <%= callback_url("postinstall", "net_set_ip_ok") %> || curl <%= callback_url("postinstall", "net_set_ip_fail") %>
+
+/etc/init.d/networking restart && curl <%= callback_url("postinstall", "net_restart_ok") %> || curl <%= callback_url("postinstall", "net_restart_fail") %>
+
 # Get current IP
 node_ip=`facter ipaddress`
 # Send IP up

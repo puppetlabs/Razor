@@ -5,7 +5,7 @@ module ProjectRazor
   module ModelTemplate
     # Root Model object
     # @abstract
-    class UbuntuPrecise < Ubuntu
+    class UbuntuPreciseIPPool < Ubuntu
       include(ProjectRazor::Logging)
 
       def initialize(hash)
@@ -13,7 +13,7 @@ module ProjectRazor
         # Static config
         @hidden          = false
         @name            = "ubuntu_precise_ip_pool"
-        @description     = "Ubuntu Precise Model (IP Pool)
+        @description     = "Ubuntu Precise Model (IP Pool)"
         # Metadata vars
         @hostname_prefix = nil
         # State / must have a starting state
@@ -24,10 +24,15 @@ module ProjectRazor
         @image_prefix    = "os"
         # Enable agent brokers for this model
         @broker_plugin   = :agent
-        @osversion       = 'precise'
+        @osversion       = 'precise_ip_pool'
         @final_state     = :os_complete
-
-        req_metadata_hash = {
+        @ip_range_network        = nil
+        @ip_range_subnet         = nil
+        @ip_range_start          = nil
+        @ip_range_end            = nil
+        @gateway                 = nil
+        @hostname_prefix         = nil
+        @req_metadata_hash = {
             "@hostname_prefix" => {
                 :default     => "node",
                 :example     => "node",
@@ -74,19 +79,13 @@ module ProjectRazor
                                             :validation  => '^\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b$',
                                             :required    => true,
                                             :description => "Gateway for node" },
-            "@nameserver"              => { :default     => "",
-                                            :example     => "192.168.10.10",
-                                            :validation  => '^\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b$',
-                                            :required    => true,
-                                            :description => "Nameserver for node" },
-            "@ntpserver"               => { :default     => "",
-                                            :example     => "ntp.razor.example.local",
-                                            :validation  => '^[\w.]{3,}$',
-                                            :required    => true,
-                                            :description => "NTP server for node" },
         }
 
         from_hash(hash) unless hash == nil
+      end
+
+      def node_ip_address
+        "#{@ip_range_network}.#{(@ip_range_start..@ip_range_end).to_a[@counter - 1]}"
       end
 
     end
