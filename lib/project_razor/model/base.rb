@@ -231,16 +231,18 @@ module ProjectRazor
         rmd = req_metadata_hash
         rmd.each_key do
         |md|
+          validation_string = (rmd[md][:validation] ? rmd[md][:validation] : rmd[md]["validation"])
           if provided_metadata[md]
             raise ProjectRazor::Error::Slice::InvalidModelMetadata, "Invalid Metadata [#{md.to_s}:'#{provided_metadata[md]}']" unless
-                set_metadata_value(md, provided_metadata[md], rmd[md][:validation])
+                set_metadata_value(md, provided_metadata[md], validation_string)
           else
-            if req_metadata_hash[md][:default] != ""
+            default_val = (req_metadata_hash[md][:default] ? req_metadata_hash[md][:default] : req_metadata_hash[md]["default"])
+            if default_val != ""
               raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" unless
-                  set_metadata_value(md, rmd[md][:default], rmd[md][:validation])
+                  set_metadata_value(md, default_val, validation_string)
             else
-              raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" if
-                  rmd[md][:required]
+              is_required = (rmd[md][:required] ? rmd[md][:required] : rmd[md]["required"])
+              raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" if is_required
             end
           end
         end
