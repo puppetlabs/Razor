@@ -1,0 +1,29 @@
+---
+- :name: :plugin
+  :default: false
+  :short_form: -p
+  :long_form: --plugin BROKER_PLUGIN
+  :description: The broker plugin to use.
+  :uuid_is: not_allowed
+  :required: true
+- :name: :name
+  :default: false
+  :short_form: -n
+  :long_form: --name BROKER_NAME
+  :description: The name for the broker target.
+  :uuid_is: not_allowed
+  :required: true
+- :name: :description
+  :default: false
+  :short_form: -d
+  :long_form: --description DESCRIPTION
+  :description: A description for the broker target.
+  :uuid_is: not_allowed
+  :required: true
+- :name: :servers
+  :default: false
+  :short_form: -s
+  :long_form: --servers SERVER_LIST
+  :description: A comma-separated list of servers for this broker target
+  :uuid_is: not_allowed
+  :required: true

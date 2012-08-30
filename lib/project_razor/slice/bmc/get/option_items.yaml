@@ -1,0 +1,8 @@
+---
+- :name: :query
+  :default:
+  :short_form: -q
+  :long_form: --query IPMI_QUERY
+  :description: The IPMI query to run against a BMC
+  :uuid_is: required
+  :required: false

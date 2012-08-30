@@ -11,80 +11,95 @@ module ProjectRazor
         super(args)
         @hidden          = false
         @new_slice_style = true
-        @slice_commands  = {
-            :get                           => { ["all", '{}', /^\{.*\}$/, nil, /^[Aa]$/]                   => "get_active_model_all",
-                                                :default                                                   => "get_active_model_all",
-                                                :else                                                      => "get_active_model_by_uuid",
-            },
-            :default                       => "get_active_model_all",
-            :logview                       => "get_logview",
-            :remove                        => { :all                                     => "remove_active_model_all",
-                                                :default                                 => "remove_active_model_by_uuid",
-                                                :else                                    => "remove_active_model_by_uuid"},
-            :else                          => :get,
-            ["help","--help","-h"]                          => "active_model_help" }
         @slice_name      = "Active_model"
         @policies        = ProjectRazor::Policies.instance
+
+        # get the slice commands map for this slice (based on the set
+        # of commands that are typical for most slices)
+        @slice_commands = get_command_map("active_model_help",
+                                          "get_all_active_models",
+                                          "get_active_model_by_uuid",
+                                          nil,
+                                          nil,
+                                          "remove_all_active_models",
+                                          "remove_active_model_by_uuid")
+        # and add any additional commands specific to this slice
+        @slice_commands[:logview] = "get_logview"
+        @slice_commands[:get][/^[\S]+$/][:logs] = "get_active_model_logs"
       end
 
       def active_model_help
-        puts "Active Model Slice:".red
-        puts "Used to view active models, active model logs, and remove active models.".red
-        puts "Policy commands:".yellow
-        puts "\trazor active_model                                     " + "View all active models".yellow
-        puts "\trazor active_model (active model uuid) [options...]    " + "View specific active model".yellow
-        puts "\trazor active_model logview                             " + "Prints an aggregate active model log view".yellow
-        puts "\trazor active_model remove (active model uuid)|all      " + "Remove an existing active model(s)".yellow
-        puts "\trazor active_model help                                " + "Display this screen".yellow
+        if @prev_args.length > 1
+          command = @prev_args.peek(1)
+          begin
+            # load the option items for this command (if they exist) and print them
+            option_items = load_option_items(:command => command.to_sym)
+            print_command_help(@slice_name.downcase, command, option_items)
+            return
+          rescue
+          end
+        end
+        # if here, then either there are no specific options for the current command or we've
+        # been asked for generic help, so provide generic help
+        puts "Active Model Slice: used to view active models or active model logs, and to remove active models.".red
+        puts "Active Model Commands:".yellow
+        puts "\trazor active_model [get] [all]          " + "View all active models".yellow
+        puts "\trazor active_model [get] (UUID) [logs]  " + "View specific active model (log)".yellow
+        puts "\trazor active_model logview              " + "Prints an aggregate active model log view".yellow
+        puts "\trazor active_model remove (UUID)|all    " + "Remove existing (or all) active model(s)".yellow
+        puts "\trazor active_model --help|-h            " + "Display this screen".yellow
       end
 
-      def get_active_model_all
+      def get_all_active_models
+        @command = :get_all_active_models
+        # if it's a web command and the last argument wasn't the string "default" or "get", then a
+        # filter expression was included as part of the web command
+        @command_array.unshift(@prev_args.pop) if @web_command && @prev_args.peek(0) != "default" && @prev_args.peek(0) != "get"
         # Get all active model instances and print/return
-        @command_array.unshift(@last_arg) unless @last_arg == 'default'
         print_object_array get_object("active_models", :active), "Active Models:", :success_type => :generic, :style => :table
       end
 
       def get_active_model_by_uuid
-        @command     =:get_active_model_all
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide An Active Model UUID" unless validate_arg(@command_array.first)
-        active_model = get_object("active_model_instance", :active, @command_array.first)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{@command_array.first}]" unless active_model
-        options      = {}
-        option_items = load_option_items(:command => :get_active_model)
-        optparse     = get_options(options, :options_items => option_items, :banner => "razor active_model [options...]", :list_required => true)
-        @command_help_text << optparse.to_s
-        options = get_options_web if @web_command
-        optparse.parse! unless option_items.any? { |k| options[k] }
-        # validate required options
-        validate_options(:option_items => option_items, :options => options, :logic => :require_all)
-        unless options[:logs]
-          print_object_array [active_model], "", :success_type => :generic
-        else
-          print_object_array [active_model], "", :success_type => :generic, :style => :table
-          print_object_array(active_model.print_log, "", :style => :table)
-        end
+        @command = :get_active_model_by_uuid
+        # the UUID is the first element of the @command_array
+        uuid = get_uuid_from_prev_args
+        active_model = get_object("active_model_instance", :active, uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model && (active_model.class != Array || active_model.length > 0)
+        print_object_array [active_model], "", :success_type => :generic
       end
 
-      def remove_active_model_all
-        @command           = :remove_active_model_all
-        @command_help_text = "razor active_model remove all"
+      def get_active_model_logs
+        @command = :get_active_model_logs
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot view Active Model logs via REST" if @web_command
+        # the UUID is the first element of the @command_array
+        uuid = @prev_args.peek(1)
+        active_model = get_object("active_model_instance", :active, uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model && (active_model.class != Array || active_model.length > 0)
+        #print_object_array [active_model], "", :success_type => :generic, :style => :table
+        print_object_array active_model.print_log, "", :style => :table
+      end
+
+      def remove_all_active_models
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot remove all Active Models via REST" if @web_command
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove all Active Models" unless get_data.delete_all_objects(:active)
         slice_success("All active models removed", :success_type => :removed)
       end
 
       def remove_active_model_by_uuid
-        @command     =:remove_active_model_by_uuid
-        raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide An Active Model UUID" unless validate_arg(@command_array.first)
-        active_model = get_object("active_model_instance", :active, @command_array.first)
-        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{@command_array.first}]" unless active_model
-        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Active Model [#{active_model_uuid}]" unless get_data.delete_object(active_model)
+        @command = :remove_active_model_by_uuid
+        # the UUID is the first element of the @command_array
+        uuid = get_uuid_from_prev_args
+        active_model = get_object("active_model_instance", :active, uuid)
+        raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Active Model with UUID: [#{uuid}]" unless active_model && (active_model.class != Array || active_model.length > 0)
+        raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Active Model [#{active_model.uuid}]" unless get_data.delete_object(active_model)
         slice_success("Active model #{active_model.uuid} removed", :success_type => :removed)
       end
 
       def get_logview
-        @command      = :get_active_log_all
+        @command = :get_logview
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "Cannot view Active Model logs via REST" if @web_command
         active_models = get_object("active_models", :active)
-        log_items     = []
+        log_items = []
         active_models.each { |bp| log_items = log_items | bp.print_log_all }
         log_items.sort! { |a, b| a.print_items[3] <=> b.print_items[3] }
         log_items.each { |li| li.print_items[3] = Time.at(li.print_items[3]).strftime("%H:%M:%S") }

@@ -15,7 +15,6 @@ describe "ProjectRazor::Slice::Bmc" do
       @data.check_init
       @config = @data.config
       @data.delete_all_objects(:bmc)
-      @uuid = ["001517FAE036", "001517FADE66"]
       @mac = ["00:15:17:FA:E0:36", "00:15:17:FA:DE:66"]
       @ip = ["192.168.2.51", "192.168.2.52"]
     end
@@ -24,13 +23,12 @@ describe "ProjectRazor::Slice::Bmc" do
       @data.delete_all_objects(:bmc)
     end
 
-    it "should be able to register a bmc object by uuid from REST" do
+    it "should be able to register a bmc object from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc/register"
 
       json_hash = {}
-      json_hash["@uuid"] = @uuid[0]
-      json_hash["@mac"] = @mac[0]
-      json_hash["@ip"] = @ip[0]
+      json_hash["mac_address"] = @mac[0]
+      json_hash["ip_address"] = @ip[0]
 
       json_string = JSON.generate(json_hash)
       res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
@@ -43,25 +41,25 @@ describe "ProjectRazor::Slice::Bmc" do
     end
 
     it "should be able to get one bmc 'node' from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?@uuid=#{@uuid[0]}"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc?@mac=#{@mac[0]}"
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
       bmc_nodes = response_hash['response']
-      bmc_nodes[0]['@uuid'].should == @uuid[0]
+      bmc_nodes[0]['@mac'].should == @mac[0]
+      bmc_nodes[0]['@ip'].should == @ip[0]
     end
 
     it "should be able to get all bmc 'nodes' from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc/register"
 
-      len = @uuid.length
+      len = @mac.length
       # for all indexes from 0 to the len-1, loop and register each BMC
       (0...len).each do
       |x|
 
         json_hash = {}
-        json_hash["@uuid"] = @uuid[x]
-        json_hash["@mac"] = @mac[x]
-        json_hash["@ip"] = @ip[x]
+        json_hash["mac_address"] = @mac[x]
+        json_hash["ip_address"] = @ip[x]
 
         json_string = JSON.generate(json_hash)
         res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
@@ -74,7 +72,7 @@ describe "ProjectRazor::Slice::Bmc" do
       end
 
       # now get all of them, and test the response length (should be the same as the
-      # @uuid array length, determined above)
+      # @mac array length, determined above)
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/bmc"
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)

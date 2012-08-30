@@ -52,7 +52,7 @@ module ProjectRazor::BrokerPlugin
     def init_agent(options={})
       @run_script_str = ""
       begin
-        Net::SSH.start(options[:ipaddress], options[:username], :password => options[:password]) do |session|
+        Net::SSH.start(options[:ipaddress], options[:username], { :password => options[:password], :user_known_hosts_file => '/dev/null'} ) do |session|
           logger.debug "Copy: #{session.exec! "echo \"#{@puppet_script}\" > /tmp/puppet_init.sh" }"
           logger.debug "Chmod: #{session.exec! "chmod +x /tmp/puppet_init.sh"}"
           @run_script_str << session.exec!("bash /tmp/puppet_init.sh")

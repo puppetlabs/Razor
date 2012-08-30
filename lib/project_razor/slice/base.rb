@@ -108,9 +108,9 @@ module ProjectRazor
 
         @command_hash.each do |k,v|
           if (k.instance_of? Symbol and @command_array.first.to_s == k.to_s) or
-             (k.instance_of? String and @command_array.first.to_s == k.to_s) or
-             (k.instance_of? Regexp and @command_array.first =~ k) or
-             (k.instance_of? Array and eval_command_array(k))
+              (k.instance_of? String and @command_array.first.to_s == k.to_s) or
+              (k.instance_of? Regexp and @command_array.first =~ k) or
+              (k.instance_of? Array and eval_command_array(k))
             @last_arg =  @command_array.shift
             @prev_args.push(@last_arg)
             return eval_action(@command_hash[k])
@@ -130,8 +130,8 @@ module ProjectRazor
       def eval_command_array(command_array)
         command_array.each do |command_item|
           if (command_item.instance_of? String and @command_array.first.to_s == command_item) or
-             (command_item.instance_of? Regexp and @command_array.first =~ command_item)
-              return true
+              (command_item.instance_of? Regexp and @command_array.first =~ command_item)
+            return true
           else
           end
         end
@@ -275,14 +275,6 @@ module ProjectRazor
         end
       end
 
-      def load_slice_commands
-        begin
-          @slice_commands = YAML.load_file(slice_commands_file)
-        rescue => e
-          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{@slice_name} cannot parse command file"
-        end
-      end
-
       def load_option_items(options = {})
         begin
           return YAML.load_file(slice_option_items_file(options))
@@ -291,17 +283,8 @@ module ProjectRazor
         end
       end
 
-      def save_slice_commands
-        f = File.new(slice_commands_file,  "w+")
-        f.write(YAML.dump(@slice_commands))
-      end
-
       def slice_option_items_file(options = {})
         File.join(File.dirname(__FILE__), "#{@slice_name.downcase}/#{options[:command].to_s}/option_items.yaml")
-      end
-
-      def slice_commands_file
-        File.join(File.dirname(__FILE__), "#{@slice_name.downcase}/commands.yaml")
       end
 
       # Initializes [ProjectRazor::Data] in not already instantiated

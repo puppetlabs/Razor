@@ -19,7 +19,7 @@ app.get('/razor/image/mk*',
         if (args.length < 2) {
             args_string = args_string + "default "
         }
-        console.log("LOG" + razor_bin + " image path " + args_string);
+        console.log(razor_bin + " image path " + args_string);
         exec(razor_bin + " image path " + args_string, function (err, stdout, stderr) {
             console.log(stdout);
             path = getPath(stdout);

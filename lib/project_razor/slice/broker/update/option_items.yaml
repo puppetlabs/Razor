@@ -1,0 +1,22 @@
+---
+- :name: :name
+  :default: false
+  :short_form: -n
+  :long_form: --name BROKER_NAME
+  :description: New name for the broker target.
+  :uuid_is: required
+  :required: true
+- :name: :description
+  :default: false
+  :short_form: -d
+  :long_form: --description DESCRIPTION
+  :description: New description for the broker target.
+  :uuid_is: required
+  :required: true
+- :name: :servers
+  :default: false
+  :short_form: -s
+  :long_form: --servers SERVER_LIST
+  :description: New list of servers for the broker target
+  :uuid_is: required
+  :required: true

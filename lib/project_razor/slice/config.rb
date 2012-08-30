@@ -27,6 +27,7 @@ module ProjectRazor
       end
 
       def db_check
+        raise ProjectRazor::Error::Slice::MethodNotAllowed, "This method cannot be invoked via REST" if @web_command
         puts get_data.persist_ctrl.is_connected?
       end
 

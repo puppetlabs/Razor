@@ -1,0 +1,8 @@
+---
+- :name: :power_state
+  :default:
+  :short_form: -p
+  :long_form: --power-state NEW_STATE
+  :description: Used to transition the power-state of a node
+  :uuid_is: required
+  :required: true

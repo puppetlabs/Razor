@@ -1,0 +1,57 @@
+---
+- :name: :tail
+  :default:
+  :short_form: -t
+  :long_form: --tail NLINES
+  :description: The number of lines to tail.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :log_level
+  :default:
+  :short_form: -l
+  :long_form: --log-level LOG_LEVEL
+  :description: The log level pattern/value.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :class_name
+  :default:
+  :short_form: -c
+  :long_form: --class-name CLASS_NAME
+  :description: The class name pattern/value.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :method_name
+  :default:
+  :short_form: -m
+  :long_form: --method-name METHOD_NAME
+  :description: The method name pattern/value.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :log_message
+  :default:
+  :short_form: -g
+  :long_form: --log-message LOG_LEVEL
+  :description: The log message pattern/value.
+  :uuid_is: not_allowed
+  :required: false
+- :name: :elapsed_time
+  :default:
+  :short_form: -e
+  :long_form: --elapsed-time ELAPSED_TIME
+  :description: The elapsed time limit (for messages).
+  :uuid_is: not_allowed
+  :required: false
+- :name: :filter_before_tail
+  :default: false
+  :short_form: -n
+  :long_form: --filter-before-tail
+  :description: Apply filter before tailing (default).
+  :uuid_is: not_allowed
+  :required: false
+- :name: :tail_before_filter
+  :default: false
+  :short_form: -r
+  :long_form: --tail-before-filter
+  :description: Apply tail before filtering.
+  :uuid_is: not_allowed
+  :required: false

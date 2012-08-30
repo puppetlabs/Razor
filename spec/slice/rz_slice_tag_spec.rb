@@ -86,7 +86,6 @@ describe "ProjectRazor::Slice::Tag" do
     end
 
     it "should be able to create a tag matchers for a tag rule from REST" do
-      matcher_uri = "http://127.0.0.1:#{@config.api_port}/razor/api/tag/matcher/add"
 
       uri = URI $tag_rule_uri01
       res = Net::HTTP.get(uri)
@@ -95,10 +94,10 @@ describe "ProjectRazor::Slice::Tag" do
       tag_rule = ProjectRazor::Tagging::TagRule.new(res_hash['response'].first)
       tag_rule.uuid.should == $uuid01
       tag_rule.tag_matchers.count.should == 0
+      matcher_uri = "http://127.0.0.1:#{@config.api_port}/razor/api/tag/#{tag_rule.uuid}/matcher"
 
       uri = URI matcher_uri
       json_hash = {}
-      json_hash["tag_rule_uuid"] = $uuid01
       json_hash["key"] = "hostname"
       json_hash["value"] = "nick01"
       json_hash["compare"] = "equal"
@@ -110,7 +109,7 @@ describe "ProjectRazor::Slice::Tag" do
       uri = URI response_hash['response'].first['@uri']
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
-      matcher = ProjectRazor::Tagging::TagMatcher.new(response_hash['response'].first)
+      matcher = ProjectRazor::Tagging::TagMatcher.new(response_hash['response'].first, tag_rule.uuid)
       matcher.key.should == "hostname"
       matcher.value.should == "nick01"
       matcher.compare.should == "equal"
@@ -267,7 +266,7 @@ describe "ProjectRazor::Slice::Tag" do
 
 
       # We add two tag matchers to it
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/matcher"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/#{live_tag_rule_uuid1}/matcher"
       json_hash = {}
       json_hash["tag_rule_uuid"] = live_tag_rule_uuid1
       json_hash["@key"] = "hostname"
@@ -301,7 +300,7 @@ describe "ProjectRazor::Slice::Tag" do
 
 
       # We add one tag matchers to it
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/matcher/"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/#{live_tag_rule_uuid2}/matcher/"
       json_hash = {}
       json_hash["tag_rule_uuid"] = live_tag_rule_uuid2
       json_hash["@key"] = "secure"
@@ -367,17 +366,17 @@ describe "ProjectRazor::Slice::Tag" do
       node.tags.should == %W(RSPEC_TWO) # Only should be tagged with the third tag
     end
 
-    it "should be able to delete all tag rules from REST" do
+    it "should not be able to delete all tag rules from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/all"
       http = Net::HTTP.start(uri.host, uri.port)
       res = http.send_request('DELETE', uri.request_uri)
-      res.class.should == Net::HTTPAccepted
+      res.class.should == Net::HTTPMethodNotAllowed
       response_hash = JSON.parse(res.body)
 
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
-      res_hash['response'].count.should == 0
+      res_hash['response'].count.should == 12
     end
 
   end

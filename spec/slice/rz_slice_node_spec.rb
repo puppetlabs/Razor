@@ -58,7 +58,7 @@ describe "ProjectRazor::Slice::Node" do
     end
 
     it "Should be able to query a single node by uuid from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node?@uuid=#{$node_uuid1}"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/node/#{$node_uuid1}"
 
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)

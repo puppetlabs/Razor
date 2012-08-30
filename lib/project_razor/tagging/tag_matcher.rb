@@ -19,10 +19,10 @@ module ProjectRazor
       # Key Equal to String | Not
       # Key Like String(Regex) | not
 
-      def initialize(hash)
+      def initialize(hash, tag_matcher_uuid)
         super()
 
-        @noun = "tag/matcher"
+        @noun = "tag/#{tag_matcher_uuid}/matcher"
         from_hash(hash) unless hash == nil
         if @compare != "equal" && @compare != "like"
           @compare = nil

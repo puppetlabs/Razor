@@ -125,7 +125,8 @@ module ProjectRazor
               tag_matcher = ProjectRazor::Tagging::TagMatcher.new({"@key" => key,
                                                                    "@value" => value,
                                                                    "@compare" => compare,
-                                                                   "@inverse" => inverse})
+                                                                   "@inverse" => inverse},
+                                                                  @uuid)
               if tag_matcher.class == ProjectRazor::Tagging::TagMatcher
                 logger.debug "New tag matcher added successfully"
                 @tag_matchers << tag_matcher
@@ -147,7 +148,7 @@ module ProjectRazor
         @tag_matchers.each do
         |tag_matcher_hash|
           if tag_matcher_hash.class == Hash || tag_matcher_hash.class == BSON::OrderedHash # change this to check descendant of Hash
-            new_array << ProjectRazor::Tagging::TagMatcher.new(tag_matcher_hash)
+            new_array << ProjectRazor::Tagging::TagMatcher.new(tag_matcher_hash, @uuid)
           else
             new_array << tag_matcher_hash
           end
@@ -164,7 +165,7 @@ module ProjectRazor
         @tag_matchers.each do
         |tag_matcher|
           if tag_matcher.class != ProjectRazor::Tagging::TagMatcher
-            new_tag_matchers_array << ProjectRazor::Tagging::TagMatcher.new(tag_matcher)
+            new_tag_matchers_array << ProjectRazor::Tagging::TagMatcher.new(tag_matcher, @uuid)
           else
             new_tag_matchers_array << tag_matcher
           end
@@ -207,7 +208,7 @@ module ProjectRazor
           print_string = "\n"
           @tag_matchers.each do
           |tm|
-            tm = ProjectRazor::Tagging::TagMatcher.new(tm) unless tm.class == ProjectRazor::Tagging::TagMatcher
+            tm = ProjectRazor::Tagging::TagMatcher.new(tm, @uuid) unless tm.class == ProjectRazor::Tagging::TagMatcher
             print_string << "\t#{tm.uuid} - '#{tm.key}' (#{tm.inverse == "true" ? "NOT " : ""}#{tm.compare}) '#{tm.value}'\n"
           end
           print_string
