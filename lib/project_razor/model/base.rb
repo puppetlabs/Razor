@@ -101,10 +101,6 @@ module ProjectRazor
                 :method => method,
                 :node_uuid => @node.uuid,
                 :timestamp => Time.now.to_i)
-        # If in final state we check broker assignment
-        if @current_state.to_s == @final_state.to_s # Enable to help with broker debug || @current_state.to_s == "broker_fail"
-          broker_check
-        end
       end
 
       def fsm_log(options)
@@ -116,6 +112,10 @@ module ProjectRazor
       end
 
       def broker_check
+        # If in final state we check broker assignment
+        if @current_state.to_s != @final_state.to_s # Enable to help with broker debug || @current_state.to_s == "broker_fail"
+          return
+        end
         # We need to check if a broker is attached
         unless @broker
           logger.error "No broker defined"

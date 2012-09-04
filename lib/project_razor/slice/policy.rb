@@ -264,6 +264,8 @@ module ProjectRazor
         raise ProjectRazor::Error::Slice::ActiveModelInvalid, "Active Model Invalid" unless active_model
         logger.debug "Active bound policy found for callback: #{callback_namespace}"
         make_callback(active_model, callback_namespace)
+        active_model.model.broker_check
+        active_model.update_self
       end
 
       def make_callback(active_model, callback_namespace)
