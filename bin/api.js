@@ -40,6 +40,9 @@ app.get('/razor/api/*',
         }
         query_param = "'" + JSON.stringify(req.query) + "'";
         console.log(razor_bin + args_string + query_param);
+
+        res.connection.setTimeout(3600 * 1000); // the broker could take a while, wait 1 hour
+
         exec(razor_bin + args_string + query_param, function (err, stdout, stderr) {
             returnResult(res, stdout);
         });

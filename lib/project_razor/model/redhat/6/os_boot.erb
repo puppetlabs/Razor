@@ -31,4 +31,4 @@ node_ip=`facter ipaddress`
 # Send IP up
 curl <%= callback_url("postinstall", "send_ips") %>/$node_ip
 # get final script
-curl <%= callback_url("postinstall", "boot") %> | sh
+curl --max-time 3600 <%= callback_url("postinstall", "boot") %> | sh
