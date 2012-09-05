@@ -1,9 +1,15 @@
 #!/bin/bash
 
-# This is a patch for lack of DNS in my lab (Not needed if you have proper DNS, .nick)
-sed -i '4 i\
-192.168.99.50   puppet learn puppet.razor-dev.local learn.razor-dev.local' /etc/hosts
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "added_puppet_hosts_ok") %> || curl <%= callback_url("postinstall", "added_puppet_hosts_fail") %>
+check_status(){
+	status=$?
+	step="$1"
+	if [ "$status" -eq 0 ]; then
+		curl -silent "<%= callback_url("postinstall", "") %>"$step"_ok"
+	else
+		curl -silent "<%= callback_url("postinstall", "") %>"$step"_failed"
+		exit 1
+	fi
+}
 
 hostname <%= hostname %>
 echo <%= hostname %> > /etc/hostname
@@ -14,22 +20,17 @@ echo <%= hostname %> > /etc/hostname
 # be resolved properly).  A backup of the original file will be left in place
 # in the /etc/hosts- file
 cp -p /etc/hosts /etc/hosts-
-grep '^127\.0\.0\.1.*' /etc/hosts- > /etc/hosts
-grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | head -1 | sed 's/^\(127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)\([[:blank:]]\{1,\}\)\(.*\)$/\1\2'<%= hostname %>.<%= domainname %>'\2'<%= hostname %>'/' >> /etc/hosts
-grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' | tail -n +2 >> /etc/hosts
-grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/hosts
+sed -i -e '/^127\.0\.1\.1/s/.*/127.0.1.1	<%= hostname %>.<%= domainname %>	<%= hostname %>/' /etc/hosts
+check_status "set_hostname"
 
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
-
-sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && <%= callback_url("postinstall", "sources_fix") %>
 apt-get -y update
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_update_ok") %> || curl <%= callback_url("postinstall", "apt_update_fail") %>
+check_status "apt_update"
 
 apt-get -y upgrade
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_upgrade_ok") %> || curl <%= callback_url("postinstall", "apt_upgrade_fail") %>
+check_status "apt_upgrade"
 
-apt-get -y install rubygems facter
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_install_ok") %> || curl <%= callback_url("postinstall", "apt_install_fail") %>
+apt-get -y install rubygems facter 
+check_status "apt_install"
 
 # Get current IP
 node_ip=`facter ipaddress`
@@ -37,3 +38,4 @@ node_ip=`facter ipaddress`
 curl <%= callback_url("postinstall", "send_ips") %>/$node_ip
 # get final script
 curl <%= callback_url("postinstall", "boot") %> | sh
+

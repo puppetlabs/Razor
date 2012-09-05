@@ -86,6 +86,7 @@ module ProjectRazor
               @current_state = fsm[@current_state][action]
             else
               @current_state = fsm[@current_state][:else]
+              logger.warn "State #{@current_state} is not in the fsm tree for action #{action},:else is used instead"
             end
           rescue => e
             logger.error "FSM ERROR: #{e.message}"

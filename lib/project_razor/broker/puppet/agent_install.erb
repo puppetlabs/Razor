@@ -62,4 +62,4 @@ function provision_puppet() {
     exit 0
 }
 
-provision_puppet
+provision_puppet 2>&1 | tee /tmp/puppet.log
