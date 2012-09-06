@@ -37,3 +37,5 @@ node_ip=`facter ipaddress`
 curl <%= callback_url("postinstall", "send_ips") %>/$node_ip
 # get final script
 curl <%= callback_url("postinstall", "boot") %> | sh
+# Send final state
+curl <%= callback_url("postinstall", "final") %> &

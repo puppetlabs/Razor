@@ -112,6 +112,9 @@ module ProjectRazor
           when "boot"
             fsm_action(:os_boot, :postinstall)
             return os_complete_script(@node)
+          when "final"
+            fsm_action(:os_final, :postinstall)
+            return ""
           when "source_fix"
             fsm_action(:source_fix, :postinstall)
             return
@@ -161,7 +164,8 @@ module ProjectRazor
             :apt_get_upgrade    => :postinstall,
             :apt_get_ruby       => :postinstall,
             :postinstall_inject => :postinstall,
-            :os_boot            => :os_complete,
+            :os_boot            => :postinstall,
+            :os_final           => :os_complete,
             :post_error         => :error_catch,
             :post_timeout       => :timeout_error,
             :error              => :error_catch,
