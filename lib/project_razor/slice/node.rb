@@ -20,7 +20,7 @@ module ProjectRazor
         # and add a few more commands specific to this slice
         @slice_commands[["register", /^[Rr]$/]] = "register_node"
         @slice_commands[["checkin", /^[Cc]$/]] = "checkin_node"
-        @slice_commands[:get][/^[\S]+$/][:else] = "get_node_by_uuid"
+        @slice_commands[:get][/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/][:else] = "get_node_by_uuid"
       end
 
       def node_help

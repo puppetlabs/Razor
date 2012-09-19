@@ -25,7 +25,7 @@ module ProjectRazor
                                           "remove_active_model_by_uuid")
         # and add any additional commands specific to this slice
         @slice_commands[:logview] = "get_logview"
-        @slice_commands[:get][/^[\S]+$/][:logs] = "get_active_model_logs"
+        @slice_commands[:get][/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/][:logs] = "get_active_model_logs"
       end
 
       def active_model_help

@@ -23,7 +23,7 @@ module ProjectRazor
                                           "remove_all_models",
                                           "remove_model_by_uuid")
         # and add any additional commands specific to this slice
-        @slice_commands[:get].delete(/^[\S]+$/)
+        @slice_commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
         @slice_commands[:get][:else] = "get_model_by_uuid"
         @slice_commands[:get][[/^(temp|template|templates|types)$/]] = "get_all_templates"
       end

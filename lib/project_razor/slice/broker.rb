@@ -30,7 +30,7 @@ module ProjectRazor
                                           "remove_all_brokers",
                                           "remove_broker_by_uuid")
         # and add any additional commands specific to this slice
-        @slice_commands[:get].delete(/^[\S]+$/)
+        @slice_commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
         @slice_commands[:get][:else] = "get_broker_by_uuid"
         @slice_commands[:get][[/^(plugin|plugins|t)$/]] = "get_broker_plugins"
       end

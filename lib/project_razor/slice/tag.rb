@@ -23,7 +23,7 @@ module ProjectRazor
                                           "remove_all_tagrules",
                                           "remove_tagrule_by_uuid")
         # and add the corresponding 'matcher' commands to the set of slice_commands
-        tag_uuid_match = /^((?!matcher).)\S+$/
+        tag_uuid_match = /^((?!(matcher|add|get|remove|update)))\S+/
         @slice_commands[tag_uuid_match] = {}
         @slice_commands[tag_uuid_match][:default] = "get_tagrule_by_uuid"
         @slice_commands[tag_uuid_match][:else] = "get_tagrule_by_uuid"
@@ -46,7 +46,7 @@ module ProjectRazor
         # updating a tag matcher
         @slice_commands[tag_uuid_match][:matcher][:update] = {}
         @slice_commands[tag_uuid_match][:matcher][:update][/^(--help|-h)$/] = "tag_help"
-        @slice_commands[tag_uuid_match][:matcher][:update][/^[\S]+$/] = "update_matcher"
+        @slice_commands[tag_uuid_match][:matcher][:update][/^(?!^(all|\-\-help|\-h)$)\S+$/] = "update_matcher"
         # add support for the "tag matcher update help" commands
         @slice_commands[:matcher][:update] = {}
         @slice_commands[:matcher][:update][/^(--help|-h)$/] = "tag_help"
@@ -55,7 +55,7 @@ module ProjectRazor
         # removing a tag matcher
         @slice_commands[tag_uuid_match][:matcher][:remove] = {}
         @slice_commands[tag_uuid_match][:matcher][:remove][/^(--help|-h)$/] = "tag_help"
-        @slice_commands[tag_uuid_match][:matcher][:remove][/^[\S]+$/] = "remove_matcher"
+        @slice_commands[tag_uuid_match][:matcher][:remove][/^(?!^(all|\-\-help|\-h)$)\S+$/] = "remove_matcher"
         # add support for the "tag matcher remove help" commands
         @slice_commands[:matcher][:remove] = {}
         @slice_commands[:matcher][:remove][/^(--help|-h)$/] = "tag_help"

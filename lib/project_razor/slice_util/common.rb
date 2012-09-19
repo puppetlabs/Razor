@@ -182,8 +182,8 @@ module ProjectRazor
         banner = ""
         if contained_resource
           banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
-              "razor #{slice_name} (#{slice_name[0].upcase}_UUID) #{contained_resource} #{command} (UUID) (options...)" :
-              "razor #{slice_name} (#{slice_name[0].upcase}_UUID) #{contained_resource} #{command} (options...)")
+              "razor #{slice_name} (#{slice_name.upcase}_UUID) #{contained_resource} #{command} (UUID) (options...)" :
+              "razor #{slice_name} (#{slice_name.upcase}_UUID) #{contained_resource} #{command} (options...)")
         else
           banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
               "razor #{slice_name} #{command} (UUID) (options...)" :
@@ -203,7 +203,7 @@ module ProjectRazor
       # subcommand is consistent with the usage declared in the option_items
       # Hash map for that subcommand
       def check_option_usage(option_items, options, uuid_included, exclusive_choice)
-        selected_option_names = options.select { |key, val| val }.keys
+        selected_option_names = options.keys
         selected_options = option_items.select{ |item| selected_option_names.include?(item[:name]) }
         if exclusive_choice && selected_options.length > 1
           # if it's an exclusive choice and more than one option was chosen, it's an error
@@ -276,13 +276,13 @@ module ProjectRazor
         # add a get action if non-nil values for the get-related command names
         # were included in the input arguments
         cmd_map[:get] = {
-            return_all       => get_all_cmd_name,
-            :default         => get_all_cmd_name,
-            ["--help", "-h"] => help_cmd_name,
-            /^[\S]+$/        => {
-                [/^\{.*\}$/]     => get_by_uuid_cmd_name,
-                :default         => get_by_uuid_cmd_name,
-                :else            => "throw_syntax_error"
+            return_all                      => get_all_cmd_name,
+            :default                        => get_all_cmd_name,
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/ => {
+                [/^\{.*\}$/]                    => get_by_uuid_cmd_name,
+                :default                        => get_by_uuid_cmd_name,
+                :else                           => "throw_syntax_error"
             }
         } if (get_all_cmd_name && get_by_uuid_cmd_name)
         # add an add action if a non-nil value for the add_cmd_name parameter
@@ -295,23 +295,23 @@ module ProjectRazor
         # add an update action if a non-nil value for the update_cmd_name
         # parameter names was included in the input arguments
         cmd_map[:update] = {
-            :default         => "throw_missing_uuid_error",
-            ["--help", "-h"] => help_cmd_name,
-            /^[\S]+$/        => {
-                :else            => update_cmd_name,
-                :default         => update_cmd_name
+            :default                        => "throw_missing_uuid_error",
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h)$)\S+$/ => {
+                :else                           => update_cmd_name,
+                :default                        => update_cmd_name
             }
         } if update_cmd_name
         # add an update action if a non-nil value for the remove_cmd_name
         # parameter names was included in the input arguments
         cmd_map[:remove] = {
-            ["all"]          => remove_all_cmd_name,
-            :default         => "throw_missing_uuid_error",
-            ["--help", "-h"] => help_cmd_name,
-            /^[\S]+$/        => {
-                [/^\{.*\}$/]     => remove_by_uuid_cmd_name,
-                :else            => "throw_syntax_error",
-                :default         => remove_by_uuid_cmd_name
+            ["all"]                         => remove_all_cmd_name,
+            :default                        => "throw_missing_uuid_error",
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h)$)\S+$/ => {
+                [/^\{.*\}$/]                    => remove_by_uuid_cmd_name,
+                :else                           => "throw_syntax_error",
+                :default                        => remove_by_uuid_cmd_name
             }
         } if (remove_all_cmd_name && remove_by_uuid_cmd_name)
         # add a few more elements that are common between slices

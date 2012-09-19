@@ -39,8 +39,8 @@ module ProjectRazor
                                           nil)
         # and add any additional commands specific to this slice
         @slice_commands[:register] = "register_bmc"
-        @slice_commands[:get][/^[\S]+$/][:update] = "update_bmc_power_state"
-        @slice_commands[:get][/^[\S]+$/][:else] = "get_bmc_by_uuid"
+        @slice_commands[:get][/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/][:update] = "update_bmc_power_state"
+        @slice_commands[:get][/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/][:else] = "get_bmc_by_uuid"
       end
 
       def bmc_help

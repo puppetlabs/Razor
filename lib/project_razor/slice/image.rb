@@ -32,7 +32,7 @@ module ProjectRazor
         @slice_commands[:get][:path] = "get_path"
         # set up the "get by uuid" manually (to avoid capturing the "get path"
         # command as if the string "path" where a UUID value)
-        @slice_commands[:get].delete(/^[\S]+$/)
+        @slice_commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
         image_uuid_match = /^((?!path).)\S+$/
         @slice_commands[:get][image_uuid_match] = {}
         @slice_commands[:get][image_uuid_match][/^\{.*\}$/] = "get_image_by_uuid"
