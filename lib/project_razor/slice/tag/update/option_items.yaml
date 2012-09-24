@@ -1,0 +1,15 @@
+---
+- :name: :name
+  :default: 
+  :short_form: -n
+  :long_form: --name NAME
+  :description: New name for the tagrule being updated.
+  :uuid_is: required
+  :required: true
+- :name: :tag
+  :default: 
+  :short_form: -t
+  :long_form: --tag TAG
+  :description: New tag for the tagrule being updated.
+  :uuid_is: required
+  :required: true

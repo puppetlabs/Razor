@@ -164,26 +164,12 @@ module ProjectRazor
         @hidden = false
         @new_slice_style = true # switch to new slice style
 
-        # define a few "help strings" (for the tail and filter commands)
-        tail_help_str = "razor logviewer tail [NLINES] [filter EXPR]"
-        filter_help_str = "razor logviewer filter EXPR [tail [NLINES]]"
-        general_help_str = "razor logviewer [tail [NLINES]] [filter EXPR]"
-        # Here we create a hash of the command string to the method it corresponds to for routing.
-        @slice_commands = {:tail => { /^[0-9]+$/ => {:default => "tail_razor_log",
-                                                     :filter => "tail_then_filter_razor_log",
-                                                     :else => :help,
-                                                     :help => tail_help_str},
-                                      :filter => "tail_then_filter_razor_log",
-                                      :default => "tail_razor_log",
-                                      :else => :help,
-                                      :help => tail_help_str},
-                           :filter => "filter_razor_log",
-                           :default => "view_razor_log",
-                           :else => :help,
-                           :help => general_help_str
-        }
         @slice_name = "Log"
         @logfile = File.join(get_logfile_path, "project_razor.log")
+        @slice_commands = { :get => "get_razor_log",
+                            :default => :get,
+                            :else => :get
+        }
       end
 
       # uses the location of the Razor configuration file to determine the path to the
@@ -200,15 +186,87 @@ module ProjectRazor
         File.join(logfile_path_parts)
       end
 
-      # Prints the contents from the current razor logfile to the command line
-      def view_razor_log
+      def get_razor_log
+        @command = :get_razor_log
 
-        # if it's a web command, return an error indicating that this method is not
-        # yet implemented as a web command.  We'll probably have to work out a
-        # separate mechanism for feeding this information back to the Node.js
-        # instances as an ATOM feed of some sort
+        # Currently, if it's a web command, then we'll return an error indicating
+        # that this slice is not yet implemented as a web command...
+        # We'll probably have to work out a separate mechanism for feeding this
+        # information back to the Node.js instances (as an ATOM feed of some sort?)
         raise ProjectRazor::Error::Slice::NotImplemented,
               "no web interface exists for the Log slice commands" if @web_command
+
+        # make sure the first argument is actually a flag (if not, it's an error
+        # because another resource was slipped into the CLI/RESTful call)
+        unless /^[-]{1,2}.*$/.match(@command_array.first)
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                "Unexpected argument found while parsing log slice command (#{@command_array.first})"
+        end
+
+        # load the appropriate option items for the subcommand we are handling
+        option_items = load_option_items(:command => :get_razor_log)
+        # parse and validate the options that were passed in as part of this
+        # subcommand (this method will return a UUID value, if present, and the
+        # options map constructed from the @commmand_array)
+        tmp, options = parse_and_validate_options(option_items, "razor log (options...)", :require_all)
+        includes_uuid = true if tmp && tmp != "get"
+        # check for usage errors (the boolean value at the end of this method
+        # call is used to indicate whether the choice of options from the
+        # option_items hash must be an exclusive choice)
+        check_option_usage(option_items, options, includes_uuid, false)
+
+        # extract the filter_options (if any) from the options that were just parsed
+        filter_options = {}
+        filter_options[:log_level] = options[:log_level] if options[:log_level]
+        filter_options[:class_name] = options[:class_name] if options[:class_name]
+        filter_options[:method_name] = options[:method_name] if options[:method_name]
+        filter_options[:log_message] = options[:log_message] if options[:log_message]
+        filter_options[:elapsed_time] = options[:elapsed_time] if options[:elapsed_time]
+        # get the first_operation value (and check it)
+        tail_before_filter = options[:tail_before_filter]
+        filter_before_tail = options[:filter_before_tail]
+        if tail_before_filter && filter_before_tail
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                "only one of the '--tail-before-filter' and '--filter-before-tail' options can be specified"
+        elsif !tail_before_filter && !filter_before_tail
+          # default is to filter before tailing
+          filter_before_tail = true
+        end
+        # get the number of lines to tail (if included) from the input options
+        num_lines_tail = nil
+        begin
+          num_lines_tail = options[:tail].to_i if options[:tail]
+        rescue => e
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                "Error while converting --tail value to integer: #{e.message}"
+        end
+
+        if filter_options.length > 0
+          # filter operations were included in the list of options that were passed in
+          if num_lines_tail && filter_before_tail
+            # number of lines to tail was included, and user wants to filter first
+            # (then tail the result of the filtered log)
+            filter_then_tail_razor_log(filter_options, num_lines_tail)
+          elsif num_lines_tail
+            # number of lines to tail was included, and user wants to tail first
+            # (then filter the result of the tailed log)
+            tail_then_filter_razor_log(filter_options, num_lines_tail)
+          else
+            # number of lines to tail was not included, so just filter
+            filter_razor_log(filter_options)
+          end
+        elsif num_lines_tail
+          # user passed in the number of lines to tail, but no filter options
+          tail_razor_log(num_lines_tail)
+        else
+          # no options were specified, so just view the log
+          view_razor_log
+        end
+      end
+
+      private
+      # Prints the contents from the current razor logfile to the command line
+      def view_razor_log
 
         # otherwise, just read the logfile and print the contents to the command line
         begin
@@ -223,24 +281,11 @@ module ProjectRazor
       end
 
       # Prints the tail of the current razor logfile to the command line
-      def tail_razor_log
-
-        # if it's a web command, return an error indicating that this method is not
-        # yet implemented as a web command.  We'll probably have to work out a
-        # separate mechanism for feeding this information back to the Node.js
-        # instances as an ATOM feed of some sort
-        raise ProjectRazor::Error::Slice::NotImplemented,
-              "no web interface exists for the Log slice commands" if @web_command
+      def tail_razor_log(num_lines_tail)
 
         # otherwise, just read and print the tail of the logfile to the command line
         tail_of_file = []
         begin
-          last_arg = @prev_args.look
-          num_lines_tail = nil
-          # if the last argument is an integer, us it as the number of lines
-          if /[0-9]+/.match(last_arg)
-            num_lines_tail = last_arg.to_i
-          end
           tail_of_file = tail_of_file_as_array(num_lines_tail)
         rescue => e
           raise ProjectRazor::Error::Slice::InternalError, "error while reading log file #{@logfile}; #{e.message}"
@@ -252,25 +297,24 @@ module ProjectRazor
       end
 
       # filters the current razor logfile, printing all matching lines
-      def filter_razor_log
+      def filter_razor_log(filter_options)
 
-        # if it's a web command, return an error indicating that this method is not
-        # yet implemented as a web command.  We'll probably have to work out a
-        # separate mechanism for feeding this information back to the Node.js
-        # instances as an ATOM feed of some sort
-        raise ProjectRazor::Error::Slice::NotImplemented,
-              "no web interface exists for the Log slice commands" if @web_command
+        # get the input values for the filter expression from the filter_options
+        log_level_str = filter_options[:log_level]
+        class_name_str = filter_options[:class_name]
+        method_name_str = filter_options[:method_name]
+        log_message_str = filter_options[:log_message]
+        elapsed_time_str = filter_options[:elapsed_time]
 
+        # construct regular expressions to use for filtering from the non-nil return values
+        log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
+        class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
+        method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
+        log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
+
+        # then start the process of filtering the log file
         begin
-          return filter_then_tail_razor_log if @command_array.include?("tail")
-          # get the input name=value pairs for the filter expression (if any) from the command line
-          log_level_str, elapsed_time_str, class_name_str,
-              method_name_str, log_message_str = get_filter_criteria
-          # construct regular expressions to use for filtering from the non-nil return values
-          log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
-          class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
-          method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
-          log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
+
           # initialize a few variables
           incomplete_last_line = false
           prev_line = ""
@@ -355,38 +399,27 @@ module ProjectRazor
       end
 
       # tails the current razor logfile, then filters the result
-      def tail_then_filter_razor_log
+      def tail_then_filter_razor_log(filter_options, num_lines_tail)
 
-        # if it's a web command, return an error indicating that this method is not
-        # yet implemented as a web command.  We'll probably have to work out a
-        # separate mechanism for feeding this information back to the Node.js
-        # instances as an ATOM feed of some sort
-        raise ProjectRazor::Error::Slice::NotImplemented,
-              "no web interface exists for the Log slice commands" if @web_command
+        # get the input values for the filter expression from the filter_options
+        log_level_str = filter_options[:log_level]
+        class_name_str = filter_options[:class_name]
+        method_name_str = filter_options[:method_name]
+        log_message_str = filter_options[:log_message]
+        elapsed_time_str = filter_options[:elapsed_time]
+
+        # construct regular expressions to use for filtering from the non-nil return values
+        log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
+        class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
+        method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
+        log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
 
         begin
-          # then, peek one element down in the stack of previous arguments (which should be
-          # which should be the number of lines to tail before filtering).  Note:  if no
-          # NLINES argument was specified in the command, then the second element down in
-          # the stack will actually be the string "tail" ()rather than the number of lines
-          # to tail off of the file before filtering).  In that case, we ensure that the
-          # num_lines_tail value is set to nil rather than attempting to convert the string
-          # "tail" into an integer (all other error conditions should be handled in the
-          # logic of the @slice_commands hash defined above)
-          num_lines_tail_str = @prev_args.peek(1)
-          num_lines_tail = (num_lines_tail_str == "tail" ? nil : num_lines_tail_str.to_i)
-          # get the input name=value pairs for the filter expression (if any) from the command line
-          log_level_str, elapsed_time_str, class_name_str,
-              method_name_str, log_message_str = get_filter_criteria
-          # construct regular expressions to use for filtering from the non-nil return values
-          log_level_match = (log_level_str ? Regexp.new(log_level_str) : nil)
-          class_name_match = (class_name_str ? Regexp.new(class_name_str) : nil)
-          method_name_match = (method_name_str ? Regexp.new(method_name_str) : nil)
-          log_message_match = (log_message_str ? Regexp.new(log_message_str) : nil)
+
           # and parse the file (first tailing, then filtering the result)
           tail_of_file = tail_of_file_as_array(num_lines_tail)
           # determine the cutoff time to use for printing log file entries
-          cutoff_time = get_cutoff_time(elapsed_time_str)
+          cutoff_time = (elapsed_time_str ? get_cutoff_time(elapsed_time_str) : nil)
           past_time = false
           # loop through the tailed lines, extracting the lines that match
           tail_of_file.each { |line|
@@ -402,24 +435,15 @@ module ProjectRazor
       end
 
       # filters the current razor logfile, then tails the result
-      def filter_then_tail_razor_log
+      def filter_then_tail_razor_log(filter_options, num_lines_tail)
 
-        # if it's a web command, return an error indicating that this method is not
-        # yet implemented as a web command.  We'll probably have to work out a
-        # separate mechanism for feeding this information back to the Node.js
-        # instances as an ATOM feed of some sort
-        raise ProjectRazor::Error::Slice::NotImplemented,
-              "no web interface exists for the Log slice commands" if @web_command
+        # get the input values for the filter expression from the filter_options
+        log_level_str = filter_options[:log_level]
+        class_name_str = filter_options[:class_name]
+        method_name_str = filter_options[:method_name]
+        log_message_str = filter_options[:log_message]
+        elapsed_time_str = filter_options[:elapsed_time]
 
-        # get the input name=value pairs for the filter expression (if any) from the command line
-        log_level_str, elapsed_time_str, class_name_str,
-            method_name_str, log_message_str = get_filter_criteria
-        # grab the next argument from the @command_array (which should be the command "tail")
-        # and then grab the number of lines to tail.  If there is no "last argument", then
-        # no number of lines were include, so just set the num_lines_tail to nil and move on
-        next_cmd = get_next_arg
-        num_lines_tail_str = get_next_arg
-        num_lines_tail = (num_lines_tail_str ? num_lines_tail_str.to_i : nil)
         filter_expression = get_regexp_match(log_level_str, class_name_str, method_name_str, log_message_str)
         tail_of_file = []
         begin
@@ -434,7 +458,6 @@ module ProjectRazor
 
       end
 
-      private
       # gets the tail of the current logfile as an array of strings
       def tail_of_file_as_array(num_lines_tail, filter_expression = nil, cutoff_time = nil)
         tail_of_file = []
@@ -442,22 +465,6 @@ module ProjectRazor
           tail_of_file = file.tail(num_lines_tail, filter_expression, cutoff_time)
         }
         tail_of_file
-      end
-
-      # parses the input filter_expr_string from the underlying @command_array and returns
-      # an array of the various types of filter criteria that could be included
-      def get_filter_criteria
-        # get the name=value pairs from the command line (recognized names are one or more
-        # of the expected_names argument passed into the get_name_value_args, below)
-        return_vals = get_name_value_args(%W[log_level elapsed_time class_name method_name log_message])
-        # now, parse the return_vals to get the parts (should be a set of key-value pairs where the
-        # values are regular expressions and the keys are one or more of the following: log_level,
-        # elapsed_time, class_name, or pattern)
-        log_level_str, elapsed_time_str = return_vals["log_level"], return_vals["elapsed_time"]
-        class_name_str, method_name_str = return_vals["class_name"], return_vals["method_name"]
-        log_message_str = return_vals["log_message"]
-        # and return the results to the caller
-        [log_level_str, elapsed_time_str, class_name_str, method_name_str, log_message_str]
       end
 
       def get_cutoff_time(elapsed_time_str)

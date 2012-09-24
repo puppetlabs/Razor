@@ -85,7 +85,7 @@ describe ProjectRazor::Engine do
 
 
       # We add one tag matchers to it
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/matcher"
+      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/#{live_tag_rule_uuid}/matcher"
       json_hash = {}
       json_hash["@tag_rule_uuid"] = live_tag_rule_uuid
       json_hash["@key"] = "hostname"

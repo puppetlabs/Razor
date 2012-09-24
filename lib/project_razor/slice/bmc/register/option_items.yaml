@@ -1,0 +1,15 @@
+---
+- :name: :ip_address
+  :default: false
+  :short_form: -i
+  :long_form: --ip_address IP_ADDR
+  :description: IP address for BMC being registered
+  :uuid_is: not_allowed
+  :required: true
+- :name: :mac_address
+  :default: false
+  :short_form: -m
+  :long_form: --mac_address MAC_ADDR
+  :description: MAC address for BMC being registered
+  :uuid_is: not_allowed
+  :required: true

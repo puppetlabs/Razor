@@ -1,0 +1,8 @@
+---
+- :name: :field
+  :default:
+  :short_form: -f
+  :long_form: --field FIELD_NAME
+  :description: The fieldname (attributes or hardware_id) to get
+  :uuid_is: required
+  :required: false

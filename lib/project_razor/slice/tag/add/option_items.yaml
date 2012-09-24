@@ -1,0 +1,15 @@
+---
+- :name: :name
+  :default: false
+  :short_form: -n
+  :long_form: --name NAME
+  :description: Name for the tagrule being created
+  :uuid_is: not_allowed
+  :required: true
+- :name: :tag
+  :default: false
+  :short_form: -t
+  :long_form: --tag TAG
+  :description: Tag for the tagrule being created
+  :uuid_is: not_allowed
+  :required: true

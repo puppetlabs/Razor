@@ -34,6 +34,22 @@ module ProjectRazor
           @array[stack_idx]
         end
 
+        def size
+          @array.size
+        end
+
+        def length
+          @array.length
+        end
+
+        def include?(val)
+          @array.include?(val)
+        end
+
+        def join(sep)
+          @array.join(sep)
+        end
+
       end
 
       # This allows stubbing
@@ -75,6 +91,7 @@ module ProjectRazor
             end
           end
           opts.on('-h', '--help', 'Display this screen.') do
+            print "Usage: "
             puts opts
             exit
           end
@@ -95,7 +112,9 @@ module ProjectRazor
       end
 
       def validate_options(validate_options = { })
-        validate_options[:logic] ||= :require_all
+        #validate_options[:logic] ||= :require_all
+        validate_options[:logic] ||= :require_none
+        option_names = validate_options[:options].map { |key, value| key }
         case validate_options[:logic]
           when :require_one
             count = 0
@@ -103,8 +122,8 @@ module ProjectRazor
             |opt_item|
               count += 1 if opt_item[:required] && validate_arg(validate_options[:options][opt_item[:name]])
             end
-            raise ProjectRazor::Error::Slice::MissingArgument, "Must provide at least one value to update." if count < 1
-          else
+            raise ProjectRazor::Error::Slice::MissingArgument, "Must provide one option from #{option_names.inspect}." if count < 1
+          when :require_all
             validate_options[:option_items].each do
             |opt_item|
               raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide: [#{opt_item[:description]}]" if opt_item[:required] && !validate_arg(validate_options[:options][opt_item[:name]])
@@ -138,6 +157,171 @@ module ProjectRazor
         end
       end
 
+      # used by slices to parse and validate the options for a particular subcommand
+      def parse_and_validate_options(option_items, banner, logic = nil)
+        options = {}
+        #uuid = @web_command ? @prev_args.peek(1) : @prev_args.peek(0)
+        uuid = @prev_args.peek(0)
+        # Get our optparse object passing our options hash, option_items hash, and our banner
+        optparse = get_options(options, :options_items => option_items, :banner => banner)
+        # set the command help text to the string output from optparse
+        @command_help_text << optparse.to_s
+        # if it's a web command, get the web options that were passed
+        if @web_command
+          options = get_options_web
+        end
+        # parse our ARGV with the optparse unless options are already set from get_options_web
+        optparse.parse! unless option_items.any? { |k| options[k] }
+        # validate required options, we use the :require_one logic to check if at least one :required value is present
+        validate_options(:option_items => option_items, :options => options, :logic => logic)
+        return uuid, options
+      end
+
+      # used by the slices to print out detailed usage for individual commands
+      def print_command_help(slice_name, command, option_items, contained_resource = nil)
+        banner = ""
+        if contained_resource
+          banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
+              "razor #{slice_name} (#{slice_name.upcase}_UUID) #{contained_resource} #{command} (UUID) (options...)" :
+              "razor #{slice_name} (#{slice_name.upcase}_UUID) #{contained_resource} #{command} (options...)")
+        else
+          banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
+              "razor #{slice_name} #{command} (UUID) (options...)" :
+              "razor #{slice_name} #{command} (options...)")
+        end
+        usage_lines = get_options({}, :options_items => option_items,
+                                  :banner => banner).to_s.split("\n")
+        if usage_lines
+          puts "Usage: #{usage_lines[0]}"
+          usage_lines[1..usage_lines.size].each { |line|
+            puts line
+          } if usage_lines.length > 1
+        end
+      end
+
+      # used by slices to ensure that the usage of options for any given
+      # subcommand is consistent with the usage declared in the option_items
+      # Hash map for that subcommand
+      def check_option_usage(option_items, options, uuid_included, exclusive_choice)
+        selected_option_names = options.keys
+        selected_options = option_items.select{ |item| selected_option_names.include?(item[:name]) }
+        if exclusive_choice && selected_options.length > 1
+          # if it's an exclusive choice and more than one option was chosen, it's an error
+          raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                "Only one of the #{options.map { |key, val| key }.inspect} flags may be used"
+        end
+        # check all of the flags that were passed to see if the UUID was included
+        # if it's required for that flag (and if it was not if it is not allowed
+        # for that flag)
+        selected_options.each { |selected_option|
+          if (!uuid_included && selected_option[:uuid_is] == "required")
+            raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                  "Must specify a UUID value when using the '#{selected_option[:name]}' option"
+          elsif (uuid_included &&  selected_option[:uuid_is] == "not_allowed")
+            raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+                  "Cannot specify a UUID value when using the '#{selected_option[:name]}' option"
+          end
+        }
+      end
+
+      # used by the slices to retrieve the UUID value from a set of previous arguments
+      # (assumes that the UUID and, potentially one more argument if it's a web command
+      # appear as the first two arguments in the @prev_args stack)
+      def get_uuid_from_prev_args
+        @web_command && @prev_args.peek(0) == '{}' ? @prev_args.peek(1) : @prev_args.peek(0)
+      end
+
+      # used by the slices to throw an error when an error occurred while attempting to parse
+      # a slice command line
+      def throw_syntax_error
+        command_str = "razor #{@slice_name.downcase} #{@prev_args.join(" ")}"
+        command_str << " " + @command_array.join(" ") if @command_array && @command_array.length > 0
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "failed to parse slice command: '#{command_str}'; check usage"
+      end
+
+      # used by the slices to throw an error when an unexpected UUID was found
+      # while parsing the command line
+      def throw_uuid_not_allowed_error
+        raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
+              "Unexpected UUID argument found; a UUID value is not allowed in this command"
+      end
+
+      # used by the slices to throw an error when a UUID was expected in a slice command
+      # but no UUID value was found
+      def throw_missing_uuid_error
+        raise ProjectRazor::Error::Slice::MissingArgument,
+              "Expected UUID argument missing; a UUID is required for this command"
+      end
+
+      # used by slices to support an error indicating that an operation is not
+      # supported by that slice
+      def throw_get_by_uuid_not_supported
+        raise ProjectRazor::Error::Slice::NotImplemented,
+        "there is no 'get_by_uuid' operation defined for the #{@slice_name} slice"
+      end
+
+      # used by slices to construct a typical @slice_command hash map based on
+      # an input set of function names
+      def get_command_map(help_cmd_name, get_all_cmd_name, get_by_uuid_cmd_name,
+          add_cmd_name, update_cmd_name, remove_all_cmd_name, remove_by_uuid_cmd_name)
+        return_all = ["all", '{}', /^\{.*\}$/, nil]
+        cmd_map = {}
+        get_all_cmd_name = "throw_missing_uuid_error" unless get_all_cmd_name
+        remove_all_cmd_name = "throw_missing_uuid_error" unless remove_all_cmd_name
+        get_by_uuid_cmd_name = "throw_get_by_uuid_not_supported" unless get_by_uuid_cmd_name
+        raise ProjectRazor::Error::Slice::MissingArgument,
+              "A 'help_cmd_name' parameter must be included" unless help_cmd_name
+
+        # add a get action if non-nil values for the get-related command names
+        # were included in the input arguments
+        cmd_map[:get] = {
+            return_all                      => get_all_cmd_name,
+            :default                        => get_all_cmd_name,
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/ => {
+                [/^\{.*\}$/]                    => get_by_uuid_cmd_name,
+                :default                        => get_by_uuid_cmd_name,
+                :else                           => "throw_syntax_error"
+            }
+        } if (get_all_cmd_name && get_by_uuid_cmd_name)
+        # add an add action if a non-nil value for the add_cmd_name parameter
+        # was included in the input arguments
+        cmd_map[:add] = {
+            :default         => add_cmd_name,
+            :else            => add_cmd_name,
+            ["--help", "-h"] => help_cmd_name
+        } if add_cmd_name
+        # add an update action if a non-nil value for the update_cmd_name
+        # parameter names was included in the input arguments
+        cmd_map[:update] = {
+            :default                        => "throw_missing_uuid_error",
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h)$)\S+$/ => {
+                :else                           => update_cmd_name,
+                :default                        => update_cmd_name
+            }
+        } if update_cmd_name
+        # add an update action if a non-nil value for the remove_cmd_name
+        # parameter names was included in the input arguments
+        cmd_map[:remove] = {
+            ["all"]                         => remove_all_cmd_name,
+            :default                        => "throw_missing_uuid_error",
+            ["--help", "-h"]                => help_cmd_name,
+            /^(?!^(all|\-\-help|\-h)$)\S+$/ => {
+                [/^\{.*\}$/]                    => remove_by_uuid_cmd_name,
+                :else                           => "throw_syntax_error",
+                :default                        => remove_by_uuid_cmd_name
+            }
+        } if (remove_all_cmd_name && remove_by_uuid_cmd_name)
+        # add a few more elements that are common between slices
+        cmd_map[:default] = :get
+        cmd_map[:else] = :get
+        cmd_map[["--help", "-h"]] = help_cmd_name
+        # and return the result
+        cmd_map
+      end
+
       # Gets a selection of objects for slice
       # @param noun [String] name of the object for logging
       # @param collection [Symbol] collection for object
@@ -160,7 +344,14 @@ module ProjectRazor
             @command = "query_with_filter"
             begin
               # Render our JSON to a Hash
-              return return_objects_using_filter(JSON.parse(@filter_json_string), collection)
+              filter_hash = JSON.parse(@filter_json_string)
+              # if any of the Hash values are "true" or "false", convert to equivalent
+              # Boolean values (true and false, respectively)
+              filter_hash.each { |key, val|
+                (filter_hash[key] = true; next) if val == "true"
+                filter_hash[key] = false if val == "false"
+              }
+              return return_objects_using_filter(filter_hash, collection)
             rescue StandardError => e
               # We caught an error / likely JSON. We return the error text as a Slice error.
               slice_error(e.message, false)
@@ -260,7 +451,7 @@ module ProjectRazor
           if @uri_root
             object_array = object_array.collect do |object|
 
-              if object.is_template
+              if object.respond_to?("is_template") && object.is_template
                 object.to_hash
               else
                 obj_web = object.to_hash

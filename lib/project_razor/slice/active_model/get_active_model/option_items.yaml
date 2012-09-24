@@ -1,7 +1,0 @@
----
-- :name: :logs
-  :default: false
-  :short_form: -l
-  :long_form: --logs
-  :description: Print the Active Model log.
-  :required: false

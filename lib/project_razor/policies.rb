@@ -41,7 +41,7 @@ module ProjectRazor
       def remove_missing
         policy_uuid_array = get_data.fetch_all_objects(:policy).map {|p| p.uuid}
         @p_table.map! do
-          |p_item_uuid|
+        |p_item_uuid|
           p_item_uuid if policy_uuid_array.select {|uuid| uuid == p_item_uuid}.count > 0
         end
         @p_table.compact!
@@ -64,18 +64,47 @@ module ProjectRazor
         unless policy_index == 0
           @p_table[policy_index], @p_table[policy_index - 1] = @p_table[policy_index - 1], @p_table[policy_index]
           update_table
-          true
+          return true
         end
         false
       end
 
       def move_lower(policy_uuid)
         policy_index = find_policy_index(policy_uuid)
-        puts "#{policy_index} == #{(@p_table.count - 1)}"
+        #puts "#{policy_index} == #{(@p_table.count - 1)}"
         unless policy_index == (@p_table.count - 1)
           @p_table[policy_index], @p_table[policy_index + 1] = @p_table[policy_index + 1], @p_table[policy_index]
           update_table
-          true
+          return true
+        end
+        false
+      end
+
+      def move_to_idx(policy_uuid, new_index)
+        policy_index = find_policy_index(policy_uuid)
+        #puts "#{policy_index} == #{(@p_table.count - 1)}"
+        # throw an error if the new_index is not within the bounds of the policy table
+        if new_index > (@p_table.count - 1) || new_index < 0
+          raise ProjectRazor::Error::Slice::InputError, "New line number '#{new_index}' is not valid; should be an between 0 and #{@p_table.count - 1}"
+        end
+        # skip operation if new_index is the same as the existing index or out of the bounds
+        # of the policy table
+        unless new_index == policy_index
+          if policy_index > new_index
+            # moving policy higher
+            while policy_index > new_index
+              @p_table[policy_index], @p_table[policy_index - 1] = @p_table[policy_index - 1], @p_table[policy_index]
+              policy_index -= 1
+            end
+          else
+            # moving policy lower
+            while policy_index < new_index
+              @p_table[policy_index], @p_table[policy_index + 1] = @p_table[policy_index + 1], @p_table[policy_index]
+              policy_index += 1
+            end
+          end
+          update_table
+          return true
         end
         false
       end
@@ -186,6 +215,12 @@ module ProjectRazor
       pt = policy_table
       pt.add_p_item(policy_uuid)
       pt.move_lower(policy_uuid)
+    end
+
+    def move_policy_to_idx(policy_uuid, new_idx)
+      pt = policy_table
+      pt.add_p_item(policy_uuid)
+      pt.move_to_idx(policy_uuid, new_idx)
     end
 
     def policy_exists?(new_policy)

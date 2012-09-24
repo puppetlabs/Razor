@@ -1,0 +1,29 @@
+---
+- :name: :key
+  :default: 
+  :short_form: -k
+  :long_form: --key KEY_FIELD
+  :description: The node attribute key to match against.
+  :uuid_is: not_allowed
+  :required: true
+- :name: :compare
+  :default: 
+  :short_form: -c
+  :long_form: --compare METHOD
+  :description: The comparison method to use ('equal'|'like').
+  :uuid_is: not_allowed
+  :required: true
+- :name: :value
+  :default:
+  :short_form: -v
+  :long_form: --value VALUE
+  :description: The value to match against
+  :uuid_is: not_allowed
+  :required: true
+- :name: :invert
+  :default:
+  :short_form: -i
+  :long_form: --invert VALUE
+  :description: Invert the match (true if key does not match value).
+  :uuid_is: not_allowed
+  :required: false

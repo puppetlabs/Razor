@@ -240,29 +240,31 @@ describe ProjectRazor::Data do
       node_confirm.last_state = :nick
     end
 
-    it "should be able to update the CurrentState for existing Node" do
-      node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(ProjectRazor::Node).should == true
-      node.current_state = :nick
-      node.update_self
-      node.current_state.should == :nick
-
-      node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node_confirm.is_a?(ProjectRazor::Node).should == true
-      node_confirm.current_state = :nick
-    end
-
-    it "should be able to update the NextState for existing Node" do
-      node = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node.is_a?(ProjectRazor::Node).should == true
-      node.next_state = :nick
-      node.update_self
-      node.next_state.should == :nick
-
-      node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
-      node_confirm.is_a?(ProjectRazor::Node).should == true
-      node_confirm.next_state = :nick
-    end
+    # the "current_state=" and "next_state=" methods no longer exist in
+    # the ProjectRazor::Node object; so these tests are no longer valid
+    #it "should be able to update the CurrentState for existing Node" do
+    #  node = @data.fetch_object_by_uuid(:node, @last_uuid)
+    #  node.is_a?(ProjectRazor::Node).should == true
+    #  node.current_state = :nick
+    #  node.update_self
+    #  node.current_state.should == :nick
+    #
+    #  node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
+    #  node_confirm.is_a?(ProjectRazor::Node).should == true
+    #  node_confirm.current_state = :nick
+    #end
+    #
+    #it "should be able to update the NextState for existing Node" do
+    #  node = @data.fetch_object_by_uuid(:node, @last_uuid)
+    #  node.is_a?(ProjectRazor::Node).should == true
+    #  node.next_state = :nick
+    #  node.update_self
+    #  node.next_state.should == :nick
+    #
+    #  node_confirm = @data.fetch_object_by_uuid(:node, @last_uuid)
+    #  node_confirm.is_a?(ProjectRazor::Node).should == true
+    #  node_confirm.next_state = :nick
+    #end
 
     it "should be able to delete all Nodes" do
       @data.delete_all_objects(:node)

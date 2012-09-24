@@ -4,52 +4,47 @@
   :short_form: -l
   :long_form: --label POLICY_LABEL
   :description: A label to name this policy.
+  :uuid_is: required
   :required: true
 - :name: :model_uuid
   :default: 
   :short_form: -m
   :long_form: --model-uuid MODEL_UUID
   :description: The model to attached to the policy.
+  :uuid_is: required
   :required: true
 - :name: :broker_uuid
   :default:
   :short_form: -b
   :long_form: --broker-uuid BROKER_UUID
-  :description: ! 'The broker attached to the policy.'
+  :description: ! 'The broker attached to the policy [default: none].'
+  :uuid_is: required
   :required: true
 - :name: :tags
   :default: 
   :short_form: -t
   :long_form: --tags TAG{,TAG,TAG}
   :description: Policy tags. Comma delimited.
+  :uuid_is: required
   :required: true
-- :name: :enable
+- :name: :enabled
   :default:
   :short_form: -e
-  :long_form: --enable
-  :description: Enables policy.
-  :required: true
-- :name: :disable
-  :default:
-  :short_form: -d
-  :long_form: --disable
-  :description: Disables policy.
+  :long_form: --enabled ENABLED_FLAG
+  :description: ! 'Should policy be enabled (true|false) [default: false]?'
+  :uuid_is: required
   :required: true
 - :name: :maximum
   :default:
   :short_form: -x
   :long_form: --maximum MAXIMUM_COUNT
-  :description: ! 'Sets the policy maximum count for nodes.'
+  :description: ! 'Sets the policy maximum count for nodes [default: 0].'
+  :uuid_is: required
   :required: true
-- :name: :movehigher
+- :name: :new_line_number
   :default:
-  :short_form: -u
-  :long_form: --move-priority-higher
-  :description: ! 'Move policy up in priority.'
-  :required: true
-- :name: :movelower
-  :default:
-  :short_form: -w
-  :long_form: --move-priority-lower
-  :description: ! 'Move policy down in priority.'
+  :short_form: -n
+  :long_form: --new-line-number NEW_NUM
+  :description: ! 'Change policy rule number.'
+  :uuid_is: required
   :required: true

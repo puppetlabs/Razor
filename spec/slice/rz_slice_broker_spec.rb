@@ -23,12 +23,12 @@ describe "ProjectRazor::Slice::Broker" do
     it "should be able to get broker plugins from REST" do
       # We create an array to test the different possible ways to get broker plugins
       uri_array = []
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/plugin")
+      #uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/plugin")
       uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/plugins")
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/t")
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/plugin")
+      #uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/t")
+      #uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/plugin")
       uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/plugins")
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/t")
+      #uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/t")
       uri_array.each do |uri|
         res = Net::HTTP.get(uri)
         res_hash = JSON.parse(res)
@@ -141,7 +141,7 @@ describe "ProjectRazor::Slice::Broker" do
 
     end
 
-    it "should be able to delete all broker targets from REST" do
+    it "should not be able to delete all broker targets from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/add"
       json_hash = {}
       json_hash["plugin"] = "puppet"
@@ -165,15 +165,16 @@ describe "ProjectRazor::Slice::Broker" do
       brokers_get.count.should == 10
 
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/remove/all"
-      res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      res_hash['errcode'].should == 0
+      http = Net::HTTP.start(uri.host, uri.port)
+      res = http.send_request('DELETE', uri.request_uri)
+      res.class.should == Net::HTTPMethodNotAllowed
+      res_hash = JSON.parse(res.body)
 
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker"
       res = Net::HTTP.get(uri)
       res_hash = JSON.parse(res)
       brokers_get = res_hash['response']
-      brokers_get.count.should == 0
+      brokers_get.count.should == 10
     end
   end
 end

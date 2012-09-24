@@ -1,0 +1,22 @@
+---
+- :name: :template
+  :default: false
+  :short_form: -t
+  :long_form: --template MODEL_TEMPLATE
+  :description: The model template to use for the new model.
+  :uuid_is: not_allowed
+  :required: true
+- :name: :label
+  :default: false
+  :short_form: -l
+  :long_form: --label MODEL_LABEL
+  :description: The label to use for the new model.
+  :uuid_is: not_allowed
+  :required: true
+- :name: :image_uuid
+  :default: false
+  :short_form: -i
+  :long_form: --image-uuid IMAGE_UUID
+  :description: The image UUID to use for the new model.
+  :uuid_is: not_allowed
+  :required: true
