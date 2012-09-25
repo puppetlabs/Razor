@@ -20,6 +20,7 @@ d-i partman-auto-lvm/guided_size string max
 d-i partman-auto/choose_recipe select atomic
 d-i partman-auto/purge_lvm_from_device boolean true
 d-i partman/default_filesystem string ext4
+d-i partman-auto/init_automatically_partition select biggest_free
 d-i partman-lvm/confirm boolean true
 d-i partman-lvm/confirm_nooverwrite boolean true
 d-i partman-partitioning/confirm_write_new_label boolean true
@@ -27,10 +28,6 @@ d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
 d-i partman-md/confirm boolean true
-d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/choose_partition select finish
-d-i partman/confirm boolean true
-d-i partman/confirm_nooverwrite boolean true
 d-i passwd/root-login boolean true
 d-i passwd/make-user boolean true
 d-i passwd/root-password password <%= @root_password %>
