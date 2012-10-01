@@ -8,6 +8,7 @@ module ProjectRazor
       attr_accessor :name
       attr_accessor :plugin
       attr_accessor :servers
+      attr_accessor :broker_version
       attr_accessor :description
       attr_accessor :user_description
       attr_accessor :hidden
@@ -18,6 +19,7 @@ module ProjectRazor
         @plugin = :base
         @noun = "broker"
         @servers = []
+        @broker_version = nil
         @description = "Base broker plugin - not used"
         @_namespace = :broker
         from_hash(hash) if hash
@@ -47,7 +49,7 @@ module ProjectRazor
         if @is_template
           return "Plugin", "Description"
         else
-          return "Name", "Description", "Plugin", "Servers", "UUID"
+          return "Name", "Description", "Plugin", "Servers", "UUID", "Version"
         end
       end
 
@@ -55,7 +57,9 @@ module ProjectRazor
         if @is_template
           return @plugin.to_s, @description.to_s
         else
-          return @name, @user_description, @plugin.to_s, "[#{@servers.join(",")}]", @uuid
+          # Default string is printed for the broker if the version is false or nil (supports old brokers)
+          broker_version = (@broker_version.nil? || !@broker_version) ? "Default" : @broker_version
+          return @name, @user_description, @plugin.to_s, "[#{@servers.join(",")}]", @uuid, broker_version
         end
       end
 
