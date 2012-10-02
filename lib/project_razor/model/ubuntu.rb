@@ -61,7 +61,7 @@ module ProjectRazor
             "@partition_method" => {
                 :default     => "lvm",
                 :example     => "lvm or regular",
-                :validation  => '(^lvm$|^regular$)',
+                :validation  => '(^lvm$|^regular$|^crypto$)',
                 :required    => true,
                 :description => "partition method"
             },
