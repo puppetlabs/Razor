@@ -25,6 +25,7 @@ module ProjectRazor
         @description = "Ubuntu Generic Model"
         # Metadata vars
         @hostname_prefix = nil
+        @partition_method = nil
         # State / must have a starting state
         @current_state = :init
         # Image UUID
@@ -56,6 +57,13 @@ module ProjectRazor
                 :validation  => '^[\S]{8,}',
                 :required    => true,
                 :description => "root password (> 8 characters)"
+            },
+            "@partition_method" => {
+                :default     => "lvm",
+                :example     => "lvm or regular",
+                :validation  => '(^lvm$|^regular$)',
+                :required    => true,
+                :description => "partition method"
             },
         }
       end
