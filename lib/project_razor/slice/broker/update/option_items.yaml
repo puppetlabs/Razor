@@ -25,5 +25,5 @@
   :short_form: -v
   :long_form: --version VERSION
   :description: A target broker version (used in gem install)
-  :uuid_is: not_allowed
-  :required: false
+  :uuid_is: required
+  :required: true
