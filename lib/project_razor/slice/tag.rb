@@ -11,7 +11,6 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden = false
-        @new_slice_style = true
         @slice_name = "Tag"
         # get the slice commands map for this slice (based on the set
         # of commands that are typical for most slices)
@@ -23,7 +22,7 @@ module ProjectRazor
                                           "remove_all_tagrules",
                                           "remove_tagrule_by_uuid")
         # and add the corresponding 'matcher' commands to the set of slice_commands
-        tag_uuid_match = /^((?!(matcher|add|get|remove|update)))\S+/
+        tag_uuid_match = /^((?!(matcher|add|get|remove|update|default)))\S+/
         @slice_commands[tag_uuid_match] = {}
         @slice_commands[tag_uuid_match][:default] = "get_tagrule_by_uuid"
         @slice_commands[tag_uuid_match][:else] = "get_tagrule_by_uuid"

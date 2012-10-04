@@ -162,7 +162,6 @@ module ProjectRazor
 
         super(args)
         @hidden = false
-        @new_slice_style = true # switch to new slice style
 
         @slice_name = "Log"
         @logfile = File.join(get_logfile_path, "project_razor.log")

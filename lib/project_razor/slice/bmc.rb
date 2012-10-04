@@ -22,7 +22,6 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden = false
-        @new_slice_style = true # switch to new slice style
         @slice_name = "Bmc"
         config = get_data.config
         @ipmi_username = config.default_ipmi_username

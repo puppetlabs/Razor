@@ -18,3 +18,9 @@ log/*.log
 .yardoc
 _yardoc
 doc/
+
+/.rvmrc
+/conf/razor_server.conf
+/image
+/node_modules
+/razor_daemon.pid

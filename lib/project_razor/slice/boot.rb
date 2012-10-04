@@ -11,7 +11,6 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden = true
-        @new_slice_style = true
         @slice_commands = { :boot    => "boot_call",
                             :default => :boot,
                             :else    => :boot }

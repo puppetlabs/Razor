@@ -11,7 +11,6 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden = false
-        @new_slice_style = true
         @slice_name = "Model"
         # get the slice commands map for this slice (based on the set
         # of commands that are typical for most slices)

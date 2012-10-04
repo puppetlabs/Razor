@@ -10,7 +10,6 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden          = false
-        @new_slice_style = true
         @slice_name      = "Active_model"
         @policies        = ProjectRazor::Policies.instance
 

@@ -17,7 +17,6 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden          = false
-        @new_slice_style = true # switch to new slice style
         @slice_name      = "Broker"
 
         # get the slice commands map for this slice (based on the set

@@ -38,45 +38,8 @@ module ProjectRazor
       # Parses the #command_array and determines the action based on #slice_commands for child object
       def slice_call
         begin
-          # Switch command/arguments to lower case
-          # @command_array.map! {|x| x.downcase}
-          if @new_slice_style
-            @command_hash = @slice_commands
-            new_slice_call
-            return
-          end
-
-          # First var in array should be our root command
-          @command = @command_array.shift
-          # check command and route based on it
-          flag = false
-          @command = "default" if @command == nil
-
-          @slice_commands.each_pair do
-          |cmd_string, method|
-            if @command == cmd_string.to_s
-              logger.debug "Slice command called: #{@command}"
-              self.send(method)
-              flag = true
-            end
-          end
-
-          if @command == "help"
-            available_commands(nil)
-          else
-            # If we haven't called a command we need to either call :else or return an error
-            if !flag
-              # Check if there is an else catch for the slice
-              if @slice_commands[:else]
-                logger.debug "Slice command called: Else"
-                @command_array.unshift(@command) # Add the command back as it is a arg for :else now
-                self.send(@slice_commands[:else])
-              else
-                raise ProjectRazor::Error::Slice::InvalidCommand, "Invalid Command [#{@command}]"
-              end
-            end
-          end
-
+          @command_hash = @slice_commands
+          eval_command
         rescue => e
           if @debug
             raise e
@@ -86,11 +49,6 @@ module ProjectRazor
         end
       end
 
-
-      def new_slice_call
-        @command_hash = @slice_commands
-        eval_command
-      end
 
       def eval_command
         unless @command_array.count > 0
@@ -235,11 +193,7 @@ module ProjectRazor
         if @web_command
           puts JSON.dump(return_hash)
         else
-          if @new_slice_style
-            list_help(return_hash)
-          else
-            available_commands(return_hash)
-          end
+          list_help(return_hash)
         end
         logger.send log_level, "Slice Error: #{return_hash["result"]}"
       end
