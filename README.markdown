@@ -1,5 +1,7 @@
 # Project Razor
 
+[![Build Status](https://jenkins.puppetlabs.com/job/Razor%20Acceptance/badge/icon)](https://jenkins.puppetlabs.com/job/Razor%20Acceptance/)
+
 ## Introduction
 
 Project Razor is a power control, provisioning, and management application
