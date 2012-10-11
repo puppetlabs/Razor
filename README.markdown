@@ -8,9 +8,7 @@ Project Razor is a power control, provisioning, and management application
 designed to deploy both bare-metal and virtual computer resources. Razor
 provides broker plugins for integration with third party such as Puppet.
 
-This is a 0.x release, so the CLI and API is still in flux and may change. Make sure you
-
-__read the release notes before upgrading__
+This is a 0.x release, so the CLI and API is still in flux and may change. Make sure you __read the release notes before upgrading__
 
 ## Authors
 
@@ -20,6 +18,7 @@ __read the release notes before upgrading__
 ## Installation
 
 * Razor Overview: [Nickapedia.com](http://nickapedia.com/2012/05/21/lex-parsimoniae-cloud-provisioning-with-a-razor)
+* Razor Session from PuppetConf 2012: [Youtube](http://www.youtube.com/watch?v=cR1bOg0IU5U)
 
 Follow wiki documentation for installation process:
 
