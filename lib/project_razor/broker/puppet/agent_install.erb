@@ -37,9 +37,8 @@ EOFPUPPETDEFAULT
     fi
 }
 
-function start_puppet() {
+function run_agent() {
     puppet agent -t
-    /usr/bin/nohup puppet agent &
 }
 
 #This fuction is not called if no custom facts are given
@@ -58,7 +57,7 @@ function provision_puppet() {
     install_puppet
     configure_puppet
     <%= 'facts_dot_d' if @options[:metadata] %>
-    start_puppet
+    run_agent
     echo Puppet installation finished!
     exit 0
 }
