@@ -36,6 +36,7 @@ module ProjectRazor
         # adding a tag matcher
         @slice_commands[tag_uuid_match][:matcher][:add] = {}
         @slice_commands[tag_uuid_match][:matcher][:add][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[tag_uuid_match][:matcher][:add][:default] = "tag_help"
         @slice_commands[tag_uuid_match][:matcher][:add][:else] = "add_matcher"
         # add support for the "tag matcher update help" commands
         @slice_commands[:matcher][:add] = {}
@@ -45,6 +46,7 @@ module ProjectRazor
         # updating a tag matcher
         @slice_commands[tag_uuid_match][:matcher][:update] = {}
         @slice_commands[tag_uuid_match][:matcher][:update][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[tag_uuid_match][:matcher][:update][:default] = "tag_help"
         @slice_commands[tag_uuid_match][:matcher][:update][/^(?!^(all|\-\-help|\-h)$)\S+$/] = "update_matcher"
         # add support for the "tag matcher update help" commands
         @slice_commands[:matcher][:update] = {}
@@ -54,6 +56,7 @@ module ProjectRazor
         # removing a tag matcher
         @slice_commands[tag_uuid_match][:matcher][:remove] = {}
         @slice_commands[tag_uuid_match][:matcher][:remove][/^(--help|-h)$/] = "tag_help"
+        @slice_commands[tag_uuid_match][:matcher][:remove][:default] = "tag_help"
         @slice_commands[tag_uuid_match][:matcher][:remove][/^(?!^(all|\-\-help|\-h)$)\S+$/] = "remove_matcher"
         # add support for the "tag matcher remove help" commands
         @slice_commands[:matcher][:remove] = {}

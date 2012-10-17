@@ -53,7 +53,7 @@ module ProjectRazor
       def eval_command
         unless @command_array.count > 0
           # No commands or arguments are left, we need to call the :default action
-          if @slice_commands[:default]
+          if @command_hash[:default]
             # No command specified using calling (default)
             eval_action(@command_hash[:default])
             return
