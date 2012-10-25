@@ -20,3 +20,10 @@
   :description: New list of servers for the broker target
   :uuid_is: required
   :required: true
+- :name: :version
+  :default: false
+  :short_form: -v
+  :long_form: --version VERSION
+  :description: A target broker version (used in gem install)
+  :uuid_is: required
+  :required: true

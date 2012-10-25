@@ -105,6 +105,7 @@ module ProjectRazor
         name = options[:name]
         description = options[:description]
         servers = options[:servers]
+        broker_version = options[:version]
         # check the values that were passed in
         servers = servers.flatten if servers.is_a? Array
         servers = servers.split(",") if servers.is_a? String
@@ -115,6 +116,7 @@ module ProjectRazor
         broker.name             = name
         broker.user_description = description
         broker.servers          = servers
+        broker.broker_version   = broker_version
         broker.is_template      = false
         # persist that broker, and print the result (or raise an error if cannot persist it)
         setup_data
@@ -140,6 +142,7 @@ module ProjectRazor
         name = options[:name]
         description = options[:description]
         servers = options[:servers]
+        broker_version = options[:version]
         # check the values that were passed in
         if servers
           servers = servers.split(",") if servers.is_a? String
@@ -150,6 +153,7 @@ module ProjectRazor
         broker.name             = name if name
         broker.user_description = description if description
         broker.servers          = servers if servers
+        broker.broker_version   = broker_version if broker_version
         broker.is_template      = false
         raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Broker Target [#{broker.uuid}]" unless broker.update_self
         print_object_array [broker], "", :success_type => :updated
