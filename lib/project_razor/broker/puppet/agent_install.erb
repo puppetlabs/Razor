@@ -4,8 +4,7 @@ set -u
 set -e
 
 function install_puppet() {
-    # TODO add support for versions
-    gem install puppet --no-ri --no-rdoc
+    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] %>
     puppet master --mkusers
 }
 
