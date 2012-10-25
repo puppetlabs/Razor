@@ -24,6 +24,7 @@ module ProjectRazor::BrokerPlugin
       @options = options
       @options[:server] = @servers.first
       @options[:ca_server] = @options[:server]
+      @options[:version] = @broker_version
       @options[:puppetagent_certname] ||= @options[:uuid].base62_decode.to_s(16)
       return false unless validate_options(@options, [:username, :password, :server, :ca_server, :puppetagent_certname, :ipaddress])
       @puppet_script = compile_template
