@@ -20,23 +20,14 @@ module ProjectRazor
 
         # get the slice commands map for this slice (based on the set
         # of commands that are typical for most slices)
-        @slice_commands = get_command_map("image_help",
-                                          "get_images",
-                                          nil,
-                                          "add_image",
-                                          nil,
-                                          nil,
-                                          "remove_image")
-        # and add any additional commands specific to this slice
-        @slice_commands[:get][:path] = "get_path"
-        # set up the "get by uuid" manually (to avoid capturing the "get path"
-        # command as if the string "path" where a UUID value)
-        @slice_commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
-        image_uuid_match = /^((?!path).)\S+$/
-        @slice_commands[:get][image_uuid_match] = {}
-        @slice_commands[:get][image_uuid_match][/^\{.*\}$/] = "get_image_by_uuid"
-        @slice_commands[:get][image_uuid_match][:default] = "get_image_by_uuid"
-        @slice_commands[:get][image_uuid_match][:else] = "throw_syntax_error"
+        @slice_commands = get_command_map(
+          "image_help",
+          "get_images",
+          "get_image_by_uuid",
+          "add_image",
+          nil,
+          nil,
+          "remove_image")
       end
 
       def image_help
@@ -62,81 +53,6 @@ module ProjectRazor
       def get_types
         @image_types = get_child_types("ProjectRazor::ImageService::")
         @image_types.map {|x| x.path_prefix unless x.hidden}.compact.join("|")
-      end
-
-      # get_path: Gets the path to an image or image element; intended to be used via iPXE
-      # when network booting a node (during the Microkernel boot process) or when provisioning
-      # a new OS to a node.  As such, this method should only be invoked via the RESTful API
-      # (also, since it is a system-level method, it uses the older-style API and is not
-      # documented as part of the other RESTful API resources/calls).
-      #
-      # Examples of use:
-      #
-      # /mk/kernel - gets default mk kernel
-      # /mk/initrd - gets default mk initrd
-      # /%uuid&/%path to file% - gets the file from relative path for image with %uuid%
-      def get_path
-        if @web_command
-          @arg = @command_array.shift
-          if @arg != nil
-            case @arg
-              when "mk"
-                get_mk_paths
-              else
-                get_path_with_uuid(@arg)
-            end
-          else
-            raise ProjectRazor::Error::Slice::MissingArgument, 'image type'
-          end
-        else
-          raise ProjectRazor::Error::Slice::NotImplemented, 'REST only'
-        end
-      end
-
-      def get_mk_paths
-        engine = ProjectRazor::Engine.instance
-        default_mk_image = engine.default_mk
-        raise ProjectRazor::Error::Slice::MissingMK unless default_mk_image != nil
-
-        @option = @command_array.shift
-        raise ProjectRazor::Error::Slice::MissingOption unless @option
-
-        setup_data
-        case @option
-          when "kernel"
-            slice_success(default_mk_image.kernel_path)
-          when "initrd"
-            slice_success(default_mk_image.initrd_path)
-          else
-            raise ProjectRazor::Error::Slice::InvalidArgument, @option
-        end
-      end
-
-      def get_path_with_uuid(uuid)
-        @image_uuid = uuid
-
-        raise ProjectRazor::Error::Slice::MissingArgument, '[uuid]' unless validate_arg(@image_uuid)
-
-        @image_uuid = "95a1f9b05672012f5a86000c29a78d16" if @image_uuid == "nick"
-
-        setup_data
-        @image = @data.fetch_object_by_uuid(:images, @image_uuid)
-
-        raise ProjectRazor::Error::Slice::InvalidImageUUID, uuid unless @image != nil
-
-        @image.set_image_svc_path(@data.config.image_svc_path)
-
-        @command_array.each do |a|
-          raise ProjectRazor::Error::Slice::InvalidPathItem, a unless /^[^ \/\\]+$/ =~ a
-        end
-        file_path = @image.image_path + "/" + @command_array.join("/")
-
-
-        if File.directory?(file_path)
-          slice_success(file_path)
-        else
-          raise ProjectRazor::Error::Slice::InvalidImageFilePath, file_path
-        end
       end
 
       #Lists details for all images

@@ -7,6 +7,7 @@
 static char*  target                   = NULL;
 static char*  esxi_uuid                = NULL;
 static char*  ubuntu_uuid              = NULL;
+static char*  mk_uuid                  = NULL;
 static guint  load                     = 30;
 static guint  population               = 20000;
 static guint  max_cycles               = 600;
@@ -21,6 +22,8 @@ static GOptionEntry options[] = {
     "The Razor ESXi OS image UUID", "UUID" },
   { "ubuntu-uuid", 0, 0, G_OPTION_ARG_STRING, &ubuntu_uuid,
     "The Razor Ubuntu OS image UUID", "UUID" },
+  { "mk-uuid", 0, 0, G_OPTION_ARG_STRING, &mk_uuid,
+    "The Razor MK image UUID", "UUID" },
   { "max",  'm', 0, G_OPTION_ARG_INT, &max_cycles,
     "Maximum seconds runtime", "SECONDS" },
   { "load", 'l', 0, G_OPTION_ARG_INT, &load,
@@ -52,9 +55,10 @@ static struct {
   gchar*  name;
   gchar** value;
 } replace_find_var_table[] = {
-  { "target",      &target },
-  { "esxi_uuid",   &esxi_uuid },
+  { "target",      &target      },
+  { "esxi_uuid",   &esxi_uuid   },
   { "ubuntu_uuid", &ubuntu_uuid },
+  { "mk_uuid",     &mk_uuid     },
   { NULL }
 };
 
@@ -194,22 +198,6 @@ TestSuite* test_suite_setup(int* argc, char*** argv) {
   g_option_context_add_main_entries(context, options, "perftest alpha");
   if (!g_option_context_parse(context, argc, argv, &error)) {
     g_print("error: %s\n", error->message);
-    exit(1);
-  }
-
-  /* check for mandatory arguments... */
-  if (!target) {
-    g_print("error: no target set\n");
-    exit(1);
-  }
-
-  if (!esxi_uuid) {
-    g_print("error: no esxi-uuid set\n");
-    exit(1);
-  }
-
-  if (!ubuntu_uuid) {
-    g_print("error: no ubuntu-uuid set\n");
     exit(1);
   }
 

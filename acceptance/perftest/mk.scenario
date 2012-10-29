@@ -1,5 +1,5 @@
-http://${target}:8027/razor/image/mk/kernel
-http://${target}:8027/razor/image/mk/initrd
+http://${target}:8027/razor/image/mk/${mk_uuid}/boot/vmlinuz
+http://${target}:8027/razor/image/mk/${mk_uuid}/boot/core.gz
 http://${target}:8026/razor/api/node/checkin?hw_id=000C2933836&last_state=idle&first_checkin=true
 http://${target}:8026/razor/api/node/checkin?hw_id=000C2933836&last_state=idle
 http://${target}:8026/razor/api/node/checkin?hw_id=000C2933836&last_state=idle

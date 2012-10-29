@@ -10,24 +10,6 @@ var image_svc_path;
 
 app = express.createServer(); // our express server
 
-
-app.get('/razor/image/mk*',
-    function(req, res) {
-        args = req.path.split("/");
-        args.splice(0,3);
-        var args_string = getArguments(args);
-        if (args.length < 2) {
-            args_string = args_string + "default "
-        }
-        console.log(razor_bin + " image path " + args_string);
-        exec(razor_bin + " image path " + args_string, function (err, stdout, stderr) {
-            console.log(stdout);
-            path = getPath(stdout);
-            respondWithFileMK(path, res)
-        });
-    });
-
-
 app.get('/razor/image/*',
     function(req, res) {
         path = decodeURIComponent(req.path.replace(/^\/razor\/image/, image_svc_path));
@@ -35,25 +17,6 @@ app.get('/razor/image/*',
         respondWithFile(path, res, req);
     });
 
-
-function respondWithFileMK(path, res) {
-    if (path != null) {
-        var filename = path.split("/")[path.split("/").length - 1];
-
-        res.setHeader('Content-disposition', 'attachment; filename=' + filename);
-        res.writeHead(200, {'Content-Type': 'application/octet-stream'});
-
-        var fileStream = fs.createReadStream(path);
-        fileStream.on('data', function(chunk) {
-            res.write(chunk);
-        });
-        fileStream.on('end', function() {
-            res.end();
-        });
-    } else {
-        res.send("Error", 404, {"Content-Type": "application/octet-stream"});
-    }
-}
 
 function respondWithFile(path, res, req) {
     if (path != null) {
@@ -100,32 +63,12 @@ function respondWithFile(path, res, req) {
     }
 }
 
-function getPath(json_string) {
-    var response = JSON.parse(json_string);
-    if (response['errcode'] == 0) {
-        return response['response'];
-    } else {
-        console.log("Error: finding file" )
-        return null
-    }
-
-}
-
 function getConfig() {
     exec(razor_bin + " config read", function (err, stdout, stderr) {
         //console.log(stdout);
         startServer(stdout);
     });
 }
-
-function getArguments(args_array) {
-    var arg_string = " ";
-    for (x = 0; x < args.length; x++) {
-        arg_string = arg_string + args[x] + " "
-    }
-    return arg_string;
-}
-
 
 function getRange() {
     // This handles range requests per (http://tools.ietf.org/html/draft-ietf-http-range-retrieval-00)

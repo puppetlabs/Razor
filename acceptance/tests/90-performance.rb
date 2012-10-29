@@ -71,7 +71,8 @@ on Razor, "service xinetd restart"
 
 step "Running perftest suite"
 on Razor, "cd /tmp/perftest && " +
-  "./perftest --target=localhost --esxi-uuid=#{esxi} --ubuntu-uuid=#{ubuntu} " +
+  "./perftest --target=localhost " +
+  "--esxi-uuid=#{esxi} --ubuntu-uuid=#{ubuntu} --mk-uuid=#{mk} " +
   "--load=10 --population=20000"
 
 step "Fetch back performance results"
