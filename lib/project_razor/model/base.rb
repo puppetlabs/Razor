@@ -164,7 +164,7 @@ module ProjectRazor
           meta[:razor_policy_count] = @counter.to_s
           logger.debug "Finished metadata build"
         rescue => e
-          logger.error "metadata error: #{p e}"
+          logger.error "metadata error: #{e}"
         end
         meta
       end

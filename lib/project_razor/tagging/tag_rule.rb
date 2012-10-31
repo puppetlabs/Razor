@@ -78,7 +78,7 @@ module ProjectRazor
             new_tag = new_tag.gsub(sv[:var].to_s,sv[:value].to_s)
           end
         rescue => e
-          logger.error "ERROR: #{p e}"
+          logger.error "ERROR: #{e}"
           tag
         end
         new_tag

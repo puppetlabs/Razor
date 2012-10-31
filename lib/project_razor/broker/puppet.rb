@@ -62,7 +62,7 @@ module ProjectRazor::BrokerPlugin
           end
         end
       rescue => e
-        logger.error "puppet agent error: #{p e}"
+        logger.error "puppet agent error: #{e}"
         return :broker_fail
       end
       # set return to fail by default
