@@ -2,11 +2,11 @@ require "json"
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
 
     # ProjectRazor Slice Node (NEW)
     # Used for policy management
-    class Boot < ProjectRazor::Slice::Base
+    class Boot < ProjectRazor::Slice
       # @param [Array] args
       def initialize(args)
         super(args)

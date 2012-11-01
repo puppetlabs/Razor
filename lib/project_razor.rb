@@ -8,6 +8,7 @@ $temp_path = "#{$razor_root}/tmp"
 #puts "Logging path: #{$logging_path}"
 
 require 'set'
+require "project_razor/version"
 require "project_razor/object"
 require "project_razor/filtering"
 require "project_razor/utility"

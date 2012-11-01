@@ -171,7 +171,7 @@ module ProjectRazor
           options = get_options_web
         end
         # parse our ARGV with the optparse unless options are already set from get_options_web
-        optparse.parse! unless option_items.any? { |k| options[k] }
+        optparse.parse!(@command_array) unless option_items.any? { |k| options[k] }
         # validate required options, we use the :require_one logic to check if at least one :required value is present
         validate_options(:option_items => option_items, :options => options, :logic => logic)
         return uuid, options

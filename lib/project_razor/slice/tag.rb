@@ -1,11 +1,11 @@
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
 
     # ProjectRazor Slice Tag
     # Used for managing the tagging system
-    class Tag < ProjectRazor::Slice::Base
+    class Tag < ProjectRazor::Slice
       # Initializes ProjectRazor::Slice::Tag
       # @param [Array] args
       def initialize(args)

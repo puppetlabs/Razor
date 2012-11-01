@@ -3,14 +3,14 @@ require "json"
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
 
     # ProjectRazor Slice Active_Model
-    class Active_model < ProjectRazor::Slice::Base
+    class ActiveModel < ProjectRazor::Slice
       def initialize(args)
         super(args)
         @hidden          = false
-        @slice_name      = "Active_model"
+        @slice_name      = "ActiveModel"
         @policies        = ProjectRazor::Policies.instance
 
         # get the slice commands map for this slice (based on the set

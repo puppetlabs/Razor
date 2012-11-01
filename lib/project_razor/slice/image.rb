@@ -3,13 +3,13 @@ require "yaml"
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
 
     # TODO - add inspection to prevent duplicate MK's with identical version to be added
 
     # ProjectRazor Slice Image
     # Used for image management
-    class Image < ProjectRazor::Slice::Base
+    class Image < ProjectRazor::Slice
 
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args

@@ -6,11 +6,11 @@ BROKER_PREFIX = "ProjectRazor::BrokerPlugin::"
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
 
     # ProjectRazor Slice Broker
     # Used for broker management
-    class Broker < ProjectRazor::Slice::Base
+    class Broker < ProjectRazor::Slice
 
       # Initializes ProjectRazor::Slice::Broker including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args

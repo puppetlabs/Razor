@@ -1,9 +1,9 @@
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
     # ProjectRazor Slice Node (NEW)
     # Used for policy management
-    class Node < ProjectRazor::Slice::Base
+    class Node < ProjectRazor::Slice
       # @param [Array] args
       def initialize(args)
         super(args)

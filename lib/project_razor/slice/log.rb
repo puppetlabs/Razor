@@ -142,11 +142,11 @@ end
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
 
     # ProjectRazor Slice Log
     # Used for log viewing
-    class Log < ProjectRazor::Slice::Base
+    class Log < ProjectRazor::Slice
 
       # this regular expression should parse out the timestamp for the
       # message, the log-level, the class-name, the method-name, and the

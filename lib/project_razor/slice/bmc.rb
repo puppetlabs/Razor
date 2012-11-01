@@ -7,10 +7,10 @@ EXT_COMMAND_TIMEOUT = 2000
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
     # ProjectRazor Slice Bmc
     # Used for all BMC/IPMI logic
-    class Bmc < ProjectRazor::Slice::Base
+    class Bmc < ProjectRazor::Slice
       include(ProjectRazor::Logging)
 
       # defines the default set of field names that can be used to filter the effects

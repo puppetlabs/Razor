@@ -79,17 +79,6 @@ module ProjectRazor
       flag
     end
 
-    # Returns the version number as [String] from ./conf/version
-    # @return [String]
-    def get_razor_version
-      file = File.open("#{$razor_root}/conf/version", "rb")
-      version = file.read
-      file.close
-      version
-    end
-
-
-
     # Returns a true|false on whether the object type is valid
     # requires that the instance variables for the object have @type & @hidden
     # @param [String] namespace_prefix

@@ -2,7 +2,7 @@ require_rel "slice/"
 
 module ProjectRazor
   module Error
-    module Slice
+    class Slice
 
       [
           [ 'InputError'                , 111 , {'@http_err' => :bad_request}           , ''          , 'ProjectRazor::Error::Slice::Generic' ],

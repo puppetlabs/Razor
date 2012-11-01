@@ -3,10 +3,10 @@ require "yaml"
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
     # ProjectRazor Slice Boot
     # Used for all boot logic by node
-    class Config < ProjectRazor::Slice::Base
+    class Config < ProjectRazor::Slice
       include(ProjectRazor::Logging)
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args

@@ -6,11 +6,11 @@ POLICY_PREFIX = "ProjectRazor::PolicyTemplate::"
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
 
     # ProjectRazor Slice Policy (NEW))
     # Used for policy management
-    class Policy < ProjectRazor::Slice::Base
+    class Policy < ProjectRazor::Slice
 
       # Initializes ProjectRazor::Slice::Policy including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args

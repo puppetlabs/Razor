@@ -2,9 +2,9 @@ require 'json'
 
 # Root ProjectRazor namespace
 module ProjectRazor
-  module Slice
+  class Slice
     # ProjectRazor Slice Model
-    class Model < ProjectRazor::Slice::Base
+    class Model < ProjectRazor::Slice
       include(ProjectRazor::Logging)
       # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
       # @param [Array] args

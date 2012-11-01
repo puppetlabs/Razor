@@ -1,6 +1,6 @@
 module ProjectRazor
   module Error
-    module Slice
+    class Slice
 
       class Generic < ProjectRazor::Error::Generic
 
