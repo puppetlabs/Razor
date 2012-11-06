@@ -116,6 +116,8 @@ module ProjectRazor
     end
 
     def policy_table
+      policy_table_clean
+
       pt = get_data.fetch_object_by_uuid(:policy_table, "policy_table")
       return pt if pt
       pt = ProjectRazor::Policies::PolicyTable.new({})
@@ -123,6 +125,15 @@ module ProjectRazor
       raise ProjectRazor::Error::CannotCreatePolicyTable, "Cannot create policy table" unless pt
       pt
     end
+
+    # This method ensures that no junk entries exist in the policy table collection
+    # after a period of time this will be removed by a new code push
+    # nweaver - 11/6/2012
+    def policy_table_clean
+      # Fetch all does automatic version cleanup for us.
+      get_data.fetch_all_objects(:policy_table)
+    end
+
 
 
     # Get Array of Models that are compatible with a Policy Template
@@ -200,7 +211,6 @@ module ProjectRazor
 
     def get_line_number(policy_uuid)
       pt = policy_table
-      pt.add_p_item(policy_uuid)
       pt.get_line_number(policy_uuid)
     end
 
