@@ -34,13 +34,39 @@ describe ProjectRazor::Data do
       if File.exists?("#{$config_server_path}.backup")
         File.delete($config_server_path)
         FileUtils.mv("#{$config_server_path}.backup", $config_server_path, :force => true) if File.exists?("#{$config_server_path}.backup")
-      else
-        write_config(default_config)
       end
 
     end
 
-    it "should load a config from config path(#{$config_server_path}) on init" do
+    it "should load a config (Hash) from config path(#{$config_server_path}) on init" do
+      config = {
+        "persist_host" => "127.0.0.1",
+        "persist_mode" => :mongo,
+        "persist_port" => 27017,
+        "admin_port" => (rand(1000)+1).to_s,
+        "api_port" => (rand(1000)+1).to_s,
+        "persist_timeout" => PC_TIMEOUT,
+      }
+      write_config(config)
+
+      data = ProjectRazor::Data.instance
+      data.check_init
+
+      # Check to make sure it is our config object
+      data.config.admin_port.should == config["admin_port"]
+      data.config.api_port.should == config["api_port"]
+
+
+      # confirm the reverse that nothing is default
+      data.config.admin_port.should_not == default_config.admin_port
+      data.config.api_port.should_not == default_config.api_port
+
+      # confirm default value was loaded for undefined field
+      data.config.image_svc_path.should == default_config.image_svc_path
+      data.config.mk_log_level.should == default_config.mk_log_level
+    end
+
+    it "should load a config (Config::Server) from config path(#{$config_server_path}) on init" do
       config = default_config
       config.persist_host = "127.0.0.1"
       config.persist_mode = :mongo
@@ -62,9 +88,12 @@ describe ProjectRazor::Data do
       data.config.admin_port.should_not == default_config.admin_port
       data.config.api_port.should_not == default_config.api_port
 
+      # confirm default value was loaded for undefined field
+      data.config.image_svc_path.should == default_config.image_svc_path
+      data.config.mk_log_level.should == default_config.mk_log_level
     end
 
-    it "should create a default config object and new config file if there is none at default path" do
+    it "should create a default config object if there is none at default path" do
       # Delete the existing file
       File.delete($config_server_path) if File.exists?($config_server_path)
       File.exists?($config_server_path).should == false
@@ -79,8 +108,6 @@ describe ProjectRazor::Data do
         data.config.instance_variable_get(iv).should == default_config.instance_variable_get(iv)
       end
 
-      #Confirm we have our default file
-      File.exists?($config_server_path).should == true
       data.persist_ctrl.teardown
     end
 

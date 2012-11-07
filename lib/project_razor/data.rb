@@ -194,71 +194,57 @@ module ProjectRazor
     #
     # @return [ProjectRazor::Config::Server, ProjectRazor]
     def load_config
-      logger.debug "Loading config at (#{$config_server_path}"
-      loaded_config = nil
+      logger.debug "Loading config at (#{$config_server_path})"
+
+      @razor_config = ProjectRazor::Config::Server.new
+
+      loaded_config = {}
       if File.exist?($config_server_path)
         begin
           conf_file = File.open($config_server_path)
           #noinspection RubyResolve,RubyResolve
           loaded_config = YAML.load(conf_file)
-            # We catch the basic root errors
+          # We catch the basic root errors
         rescue SyntaxError
           logger.warn "SyntaxError loading (#{$config_server_path})"
-          loaded_config = nil
+          loaded_config = {}
         rescue StandardError
           logger.warn "Generic error loading (#{$config_server_path})"
-          loaded_config = nil
+          loaded_config = {}
         ensure
           conf_file.close
         end
-      end
 
-      # If our object didn't load we run our config reset
-      if loaded_config.is_a?(ProjectRazor::Config::Server)
-        if loaded_config.validate_instance_vars
-          @razor_config = loaded_config
-        else
-          logger.warn "Config parameter validation error loading (#{$config_server_path})"
-          logger.warn "Resetting (#{$config_server_path}) and loading default config"
-          reset_config
-        end
-      else
-        logger.warn "Cannot load (#{$config_server_path})"
+        # convert to Hash old format or object dump
+        if loaded_config.is_a?(ProjectRazor::Config::Server)
+          logger.debug "Convert config object to hash"
+          loaded_config = loaded_config.to_hash
+        end 
 
-        reset_config
-      end
-    end
-
-    # Creates new 'razor_server.conf' if one does not already exist
-    # @api private
-    #
-    # @return [ProjectRazor::Config::Server, ProjectRazor]
-    def reset_config
-      logger.warn "Resetting (#{$config_server_path}) and loading default config"
-      # use default init
-      new_conf = ProjectRazor::Config::Server.new
-
-      # Very important that we only write the file if it doesn't exist as we may not be the only thread using it
-      unless File.exist?($config_server_path)
-        begin
-          new_conf_file = File.new($config_server_path, 'w+')
-          new_conf_file.write(("#{new_conf_header}#{YAML.dump(new_conf)}"))
-          new_conf_file.close
-          logger.info "Default config saved to (#{$config_server_path})"
-        rescue
-          logger.error "Cannot save default config to (#{$config_server_path})"
+        if not loaded_config.is_a?(Hash)
+          logger.warn "Format error loading (#{$config_server_path}): #{loaded_config.class}"
+          return
         end
       end
-      @razor_config = new_conf
-    end
 
-    # Returns a header for new 'razor_server.conf' files
-    # @api private
-    #
-    # @return [ProjectRazor::Config::Server, ProjectRazor]
-    def new_conf_header
-      "\n# This file is the main configuration for ProjectRazor\n#\n# -- this was system generated --\n#\n#\n"
-    end
+      if loaded_config.nil?
+          logger.warn "loaded config empty (#{$config_server_path}): #{loaded_config}"
+          return
+      end
 
+      # Ensure each key start with a @
+      loaded_config = Hash[loaded_config.map {|k, v| ["@#{k.sub(/^@/,'')}", v]}]
+
+      # Remove incorrect key/value
+      clean_loaded_config = Hash[loaded_config.select {|k, v| not v.nil? or @razor_config.instance_variables.include?(k) }]
+
+      # Warn the user
+      (clean_loaded_config.keys - loaded_config.keys).each do |key|
+        logger.warn "#{key} is invalid, it will be ignored (see razor config to see existing fields)"
+      end
+
+      # merge default config and loaded config
+      @razor_config.from_hash(clean_loaded_config)
+    end
   end
 end
