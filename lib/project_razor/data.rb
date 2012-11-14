@@ -216,6 +216,10 @@ module ProjectRazor
       # If our object didn't load we run our config reset
       if loaded_config.is_a?(ProjectRazor::Config::Server)
         if loaded_config.validate_instance_vars
+          # ensure that missing key/value pairs (if any) from the existing configuration
+          # are filled in using default values
+          new_conf = ProjectRazor::Config::Server.new
+          merge_config_params(new_conf, loaded_config)
           @razor_config = loaded_config
         else
           logger.warn "Config parameter validation error loading (#{$config_server_path})"
@@ -248,8 +252,34 @@ module ProjectRazor
         rescue
           logger.error "Cannot save default config to (#{$config_server_path})"
         end
+      else
+        merge_config_params(new_conf, @razor_config)
       end
       @razor_config = new_conf
+    end
+
+    # Merges key/value pairs from the new_config Hash map into the existing_config
+    # Hash map.  Conflicts between the two Hash maps are handled based on the
+    # value of the "overwrite_existing" flag:
+    #     - by default (or with this flag set to false), this method looks through
+    #       the new_config keys and maps values for any key that DOES NOT EXIST in
+    #       the existing_config Hash map to an equivalent key/value pair the
+    #       existing_config Hash map (this has the effect of setting key/value
+    #       pairs that do not exist in the existing_config to their default values,
+    #       which can be found in the 'ProjectRazor::Config::Server.use_defaults'
+    #       method)
+    #     - with the overwrite_existing flag set to true, any key/value pair that
+    #       DOES exist in the existing_config Hash map is overwritten by the equivalent
+    #       key/value pair from the new_config Hash map (this has the effect of
+    #       resetting all configuration parameters to their default values); Note that
+    #       this functionality is not currently used (and there might be faster ways to
+    #       accomplish the same thing) but we included it in case it's needed later
+    def merge_config_params(new_config, existing_config, overwrite_existing = false)
+      new_config.keys.each { |key|
+        if overwrite_existing || !(existing_config.include?(key))
+          existing_config[key] = new_config[key]
+        end
+      }
     end
 
     # Returns a header for new 'razor_server.conf' files

@@ -36,6 +36,8 @@ module ProjectRazor
       attr_accessor :mk_tce_mirror_uri
       attr_accessor :mk_tce_install_list_uri
       attr_accessor :mk_kmod_install_list_uri
+      attr_accessor :mk_gem_mirror_uri
+      attr_accessor :mk_gemlist_uri
 
       attr_accessor :image_svc_path
 
@@ -87,6 +89,8 @@ module ProjectRazor
         @mk_tce_mirror_uri = "http://localhost:#{@mk_tce_mirror_port}/tinycorelinux"
         @mk_tce_install_list_uri = @mk_tce_mirror_uri + "/tce-install-list"
         @mk_kmod_install_list_uri = @mk_tce_mirror_uri + "/kmod-install-list"
+        @mk_gem_mirror_uri = "http://localhost:2158/gem-mirror"
+        @mk_gemlist_uri = "http://localhost:2158/gem-mirror/gems/gem.list"
 
         @image_svc_path = $img_svc_path
 
@@ -110,6 +114,35 @@ module ProjectRazor
 
       end
 
+      # a few convenience methods that let us treat this class like a Hash map
+      # (to a certain extent); first a "setter" method that lets users set
+      # key/value pairs using a syntax like "config['param_name'] = param_value"
+      def []=(key, val)
+        # "@noun" is a "read-only" key for this class (there is no setter)
+        return if key == "noun"
+        self.send("#{key}=", val)
+      end
+
+      # next a "getter" method that lets a user get the value for a key using
+      # a syntax like "config['param_name']"
+      def [](key)
+        self.send(key)
+      end
+
+      # next, a method that returns a list of the "key" fields from this class
+      def keys
+        self.to_hash.keys.map { |k| k.sub("@","") }
+      end
+
+      # and, finally, a method that gives users the ability to check and see
+      # if a given parameter name is included in the list of "key" fields for
+      # this class
+      def include?(key)
+        keys = self.to_hash.keys.map { |k| k.sub("@","") }
+        keys.include?(key)
+      end
+
+      # returns the current "client configuration" parameters as a Hash map
       def get_client_config_hash
         config_hash = self.to_hash
         client_config_hash = {}
