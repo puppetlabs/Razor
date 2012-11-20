@@ -16,9 +16,13 @@ grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/h
 
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
 
-# Should be using yum, but need a known working repo first. 
-#yum -y install rubygems facter
-#[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_install_ok") %> || curl <%= callback_url("postinstall", "apt_install_fail") %>
+# Need to add the Puppetlabs repo
+rpm -i http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-6.noarch.rpm
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "repo_install_ok") %> || curl <%= callback_url("postinstall", "repo_install_fail") %>
+
+# Install requirements
+yum -y install rubygems facter
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "yum_install_ok") %> || curl <%= callback_url("postinstall", "yum_install_fail") %>
 
 # Get current IP
 node_ip=`facter ipaddress`
