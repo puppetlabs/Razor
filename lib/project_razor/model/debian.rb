@@ -36,6 +36,7 @@ module ProjectRazor
         @final_state = :os_complete
         @req_metadata_hash = {
             "@hostname_prefix" => {
+                :cli_order   => 1,
                 :default     => "node",
                 :example     => "node",
                 :validation  => '^[a-zA-Z0-9][a-zA-Z0-9\-]*$',
@@ -43,6 +44,7 @@ module ProjectRazor
                 :description => "node hostname prefix (will append node number)"
             },
             "@domainname" => {
+              :cli_order   => 2,
               :default     => "localdomain",
               :example     => "example.com",
               :validation  => '^[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9](\.[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])*$',
@@ -50,6 +52,7 @@ module ProjectRazor
               :description => "local domain name (will be used in /etc/hosts file)"
             },
             "@root_password" => {
+                :cli_order   => 3,
                 :default     => "test1234",
                 :example     => "P@ssword!",
                 :validation  => '^[\S]{8,}',
