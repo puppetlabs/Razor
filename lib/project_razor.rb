@@ -4,8 +4,27 @@ $img_svc_path = "#{$razor_root}/image"
 $logging_path = "#{$razor_root}/log/project_razor.log"
 $temp_path = "#{$razor_root}/tmp"
 
-#puts "Razor root: #{$razor_root}"
-#puts "Logging path: #{$logging_path}"
+# In order to work correctly, we need to ensure that ENV['HOME'] has a
+# sensible and correct value.  At least the Net::SSH gem will file if this is
+# unset, and that can happen when Puppet fires up the daemon.
+unless ENV['HOME']
+  if ENV['HOMEPATH']
+    ENV['HOME'] = "#{ENV['HOMEDRIVE']}#{ENV['HOMEPATH']}"
+  else
+    require 'etc'
+    uid = Process.euid or
+      raise "HOME is not set, and unable to determine current process UID"
+    pwent = Etc::getpwuid(uid) or
+      raise "HOME is not set, but #{uid} doesn't have an entry in the passwd db"
+    pwent.dir.empty? and
+      raise "HOME is not set, but #{uid} (#{pwent.name}) has an empty home directory"
+    # Note, we carefully don't check that this is a valid directory or
+    # anything like that.  It can point to a non-existent location just fine,
+    # since that is what the login process would do. --daniel 2012-11-19
+    ENV['HOME'] = pwent.dir
+  end
+end
+
 
 require 'set'
 require "project_razor/version"
