@@ -9,14 +9,14 @@ else
   fail_test "unable to proceed, multiple modules found: #{modules.join(", ")}"
 end
 
-on hosts('razor-server'), "rm -f /tmp/puppetlabs-razor-*.tar.gz"
-scp_to(hosts('razor-server'), "#{ENV['WORKSPACE']}/pkg/#{pkg}", '/tmp')
-on hosts('razor-server'), "puppet module install --force /tmp/#{pkg}"
-on hosts('razor-server'), "puppet module list 2>&1 >/dev/null"
-on hosts('razor-server'), "puppet module list 2>&1 >/dev/null | sed -ne \"/Missing dependency/ s/^.*'\(.*\)'.*$/\1/ p\""
-on hosts('razor-server'), "for module in $(puppet module list 2>&1 >/dev/null " +
-  "| sed -ne \"/Missing dependency/ s/^.*'\(.*\)'.*$/\1/ p\");" +
-  "do echo $module; puppet module install $module; done"
+svr = hosts('razor-sever')
+
+on svr, "rm -f /tmp/puppetlabs-razor-*.tar.gz"
+scp_to(svr, "#{ENV['WORKSPACE']}/pkg/#{pkg}", '/tmp')
+on svr, "puppet module install --force /tmp/#{pkg}"
+on svr, "puppet module list --color=false 2>&1"
+on svr, "puppet module list --color=false 2>&1 | sed -ne '/Missing dependency/ s/^.*'\''\(.*\)'\''.*$/\1/ p'"
+on svr, "puppet module list --color=false 2>&1 | sed -ne '/Missing dependency/ s/^.*'\''\(.*\)'\''.*$/\1/ p' | xargs -n1 puppet module install"
 
 step "configure razor"
 on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %q'
