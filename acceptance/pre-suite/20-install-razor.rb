@@ -11,7 +11,10 @@ end
 
 on hosts('razor-server'), "rm -f /tmp/puppetlabs-razor-*.tar.gz"
 scp_to(hosts('razor-server'), "#{ENV['WORKSPACE']}/pkg/#{pkg}", '/tmp')
-on hosts('razor-server'), "puppet module install /tmp/#{pkg}"
+on hosts('razor-server'), "puppet module install --force /tmp/#{pkg}"
+on hosts('razor-server'), "for module in $(puppet module list 2>&1 >/dev/null " +
+  "| sed -ne \"/Missing dependency/ s/^.*'\(.*\)'.*$/\1/ p\");" +
+  "do puppet module install $module; done"
 
 step "configure razor"
 on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %q'
