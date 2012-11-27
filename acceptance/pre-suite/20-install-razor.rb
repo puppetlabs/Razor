@@ -1,7 +1,17 @@
 test_name "Install Razor using Puppet"
 
 step "install razor modules"
-on hosts('razor-server'), "puppet module install puppetlabs-razor"
+# Find the package, and ensure we only have one!
+require 'pathname'
+if (modules = Pathname.glob('pkg/puppetlabs-razor-*.tar.gz')).size == 1
+  pkg = modules[0].basename
+else
+  fail_test "unable to proceed, multiple modules found: #{modules.join(", ")}"
+end
+
+on hosts('razor-server'), "rm -f /tmp/puppetlabs-razor-*.tar.gz"
+scp_to(hosts('razor-server'), "pkg/#{pkg}", '/tmp')
+on hosts('razor-server'), "puppet module install /tmp/#{pkg}"
 
 step "configure razor"
 on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %q'
