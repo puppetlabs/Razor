@@ -3,6 +3,7 @@ source "http://rubygems.org"
 
 gem "rake"
 gem "mongo"
+gem "pg"
 gem "bson"
 gem "bson_ext"
 gem "syntax"

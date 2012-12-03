@@ -15,7 +15,6 @@ end
 describe ProjectRazor::Persist::Controller do
   before(:all) do
     @config = ProjectRazor::Config::Server.new
-    @config.persist_mode = :mongo
     @persist = ProjectRazor::Persist::Controller.new(@config)
   end
 
@@ -24,8 +23,8 @@ describe ProjectRazor::Persist::Controller do
   end
 
   describe ".Initialize" do
-    it "should create a PersistMongo object for .database if config persist_mode is :mongo" do
-      @persist.database.class.should == ProjectRazor::Persist::MongoPlugin
+    it "should create a plug-in object for .database" do
+      @persist.database.class.name.should end_with('Plugin')
     end
     it "should have stored config object and it should match" do
       #noinspection RubyResolve,RubyResolve

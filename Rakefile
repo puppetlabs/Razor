@@ -15,6 +15,15 @@ RSpec::Core::RakeTask.new(:spec) do |t|
   t.pattern = 'spec/**/*_spec.rb'
 end
 
+task :specsdb => [:specdb]
+
+desc "Run all rspec Persistence tests"
+RSpec::Core::RakeTask.new(:specdb) do |t| 
+  t.rspec_opts = ['--color']
+  # ignores fixtures directory.
+  t.pattern = 'spec/persist/*_spec.rb'
+end
+
 task :specs_html => [:spec_html]
 
 desc "Run all rspec tests with html output"
