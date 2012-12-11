@@ -1,7 +1,9 @@
 *.gem
 *.rbc
 .bundle
+.buildpath
 .config
+.project
 coverage
 InstalledFiles
 lib/bundler/man
@@ -27,3 +29,4 @@ doc/
 /image
 /node_modules
 /razor_daemon.pid
+/Gemfile.lock

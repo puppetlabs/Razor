@@ -1,37 +1,57 @@
-
 require "project_razor"
 require "rspec"
 require "net/http"
 require "json"
 
-
 describe "ProjectRazor::Slice::Broker" do
 
   describe ".RESTful Interface" do
 
-    before(:all) do
+    before(:each) do
       @data = ProjectRazor::Data.instance
       @data.check_init
       @config = @data.config
       @data.delete_all_objects(:broker)
     end
 
-    after(:all) do
+    after(:each) do
       @data.delete_all_objects(:broker)
     end
 
-    it "should be able to get broker plugins from REST" do
-      # We create an array to test the different possible ways to get broker plugins
-      uri_array = []
-      #uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/plugin")
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/plugins")
-      #uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/t")
-      #uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/plugin")
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/plugins")
-      #uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/t")
-      uri_array.each do |uri|
-        res = Net::HTTP.get(uri)
-        res_hash = JSON.parse(res)
+    def razor_uri(path)
+      URI("http://127.0.0.1:#{@config.api_port}/#{path.sub(%r{^/}, '')}")
+    end
+
+    def http_get(path)
+      response = Net::HTTP.get(razor_uri(path))
+      JSON.parse(response)
+    end
+
+    def http_post(path, hash)
+      uri = razor_uri(path)
+      response = Net::HTTP.post_form(uri, 'json_hash' => JSON.generate(hash))
+      JSON.parse(response.body)
+    end
+
+    def create_broker_via_rest(hash)
+      http_post("/razor/api/broker/add", hash)
+    end
+
+    let(:json_hash) do
+      {
+        "plugin"      => "puppet",
+        "name"        => "puppet_test",
+        "description" => "puppet_test_description",
+        "req_metadata_hash" => {
+          "server"          => "puppet.example.com",
+          "broker_version"  => "2.0.9"
+        }
+      }
+    end
+
+    [ "/razor/api/broker/plugins", "/razor/api/broker/get/plugins" ].each do |path|
+      it "GET #{path} lists all broker plugins" do
+        res_hash = http_get(path)
         brokers_plugins = res_hash['response']
         brokers_plugins.count.should > 0
         puppet_flag = false # We will just check for the puppet broker plugin
@@ -40,141 +60,93 @@ describe "ProjectRazor::Slice::Broker" do
       end
     end
 
-    it "should be able to create broker target from REST using GET" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/add?plugin=puppet&name=RSPECPuppetGET&description=RSPECSystemInstanceGET&servers=rspecpuppet.example.org"
-      res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      res_hash['result'].should == "Created"
-      broker_response_array = res_hash['response']
-      $broker_uuid_get = broker_response_array.first['@uuid']
-      $broker_uuid_get.should_not == nil
-    end
+    context "with no broker targets" do
 
-    it "should be able to create broker target from REST using POST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/add"
-      json_hash = {}
-      json_hash["plugin"] = "puppet"
-      json_hash["name"] = "RSPECPuppetPOST"
-      json_hash["description"] = "RSPECSystemInstancePOST "
-      json_hash["servers"] = ["rspecpuppet.example.org"]
-      json_string = JSON.generate(json_hash)
-      res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
-      res_hash = JSON.parse(res.body)
-      res_hash['result'].should == "Created"
-      broker_response_array = res_hash['response']
-      $broker_uuid_post = broker_response_array.first['@uuid']
-      $broker_uuid_post.should_not == nil
-    end
-
-    it "should be able to list all brokers targets from REST" do
-      # We create an array to test the different possible ways to get broker plugins
-      uri_array = []
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker")
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get")
-      uri_array.each do |uri|
+      it "should be able to create broker target from REST using GET" do
+        pending "Not a published API action"
+        uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/add?plugin=puppet&name=RSPECPuppetGET&description=RSPECSystemInstanceGET&servers=rspecpuppet.example.org"
         res = Net::HTTP.get(uri)
         res_hash = JSON.parse(res)
-        brokers_plugins = res_hash['response']
-        brokers_plugins.count.should == 2
-      end
-    end
-
-    it "should be able to find specific broker targets by UUID from REST" do
-      # We create an array to test the different possible ways to get broker plugins
-      uri_array = []
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/#{$broker_uuid_get}")
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get/#{$broker_uuid_get}")
-      uri_array.each do |uri|
-        res = Net::HTTP.get(uri)
-        res_hash = JSON.parse(res)
-        broker_response_array = res_hash['response']
-        broker_response_array.count.should == 1
-        broker_response_array.first['@uuid'].should == $broker_uuid_get
-      end
-    end
-
-    it "should be able to find specific broker targets by attribute from REST" do
-      uri_array = []
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get?name=regex:GET")
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker?name=regex:GET")
-      uri_array.each do |uri|
-        res = Net::HTTP.get(uri)
-        res_hash = JSON.parse(res)
-        res_hash['result'].should == "Ok"
-        broker_response_array = res_hash['response']
-        broker = broker_response_array.first
-        broker['@uuid'].should == $broker_uuid_get
-      end
-
-      uri_array = []
-      uri_array << (URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/get?name=RSPECPuppetPOST")
-      uri_array.each do |uri|
-        res = Net::HTTP.get(uri)
-        res_hash = JSON.parse(res)
-        res_hash['result'].should == "Ok"
-        broker_response_array = res_hash['response']
-        broker = broker_response_array.first
-        broker['@uuid'].should == $broker_uuid_post
-      end
-    end
-
-    it "should be able to delete specific broker targets from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/remove/#{$broker_uuid_get}"
-      res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      res_hash['result'].should == "Removed"
-
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/#{$broker_uuid_get}"
-      res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      res_hash['errcode'].should_not == 0
-
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/remove/#{$broker_uuid_post}"
-      res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      res_hash['result'].should == "Removed"
-
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/#{$broker_uuid_post}"
-      res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      res_hash['errcode'].should_not == 0
-
-    end
-
-    it "should not be able to delete all broker targets from REST" do
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/add"
-      json_hash = {}
-      json_hash["plugin"] = "puppet"
-      json_hash["description"] = "RSPECSystemInstancePOST "
-      json_hash["servers"] = ["rspecpuppet.example.org"]
-      (1..10).each do |x|
-        json_hash["name"] = "RSPECPuppetPOST#{x}"
-        json_string = JSON.generate(json_hash)
-        res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
-        res_hash = JSON.parse(res.body)
         res_hash['result'].should == "Created"
         broker_response_array = res_hash['response']
-        $broker_uuid_post = broker_response_array.first['@uuid']
-        $broker_uuid_post.should_not == nil
+        $broker_uuid_get = broker_response_array.first['@uuid']
+        $broker_uuid_get.should_not == nil
       end
 
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker"
-      res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      brokers_get = res_hash['response']
-      brokers_get.count.should == 10
+      it "POST /razor/api/broker/add creates a broker target" do
+        res_hash = http_post("/razor/api/broker/add", json_hash)
+        res_hash['result'].should == "Created"
+        broker = res_hash['response'].first
+        broker['@name'].should eq("puppet_test")
+        broker['@user_description'].should eq("puppet_test_description")
+        broker['@server'].should eq("puppet.example.com")
+        broker['@broker_version'].should eq("2.0.9")
+      end
+    end
 
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/remove/all"
-      http = Net::HTTP.start(uri.host, uri.port)
-      res = http.send_request('DELETE', uri.request_uri)
-      res.class.should == Net::HTTPMethodNotAllowed
-      res_hash = JSON.parse(res.body)
+    context "with one broker target" do
 
-      uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker"
-      res = Net::HTTP.get(uri)
-      res_hash = JSON.parse(res)
-      brokers_get = res_hash['response']
-      brokers_get.count.should == 10
+      before do
+        res_hash = create_broker_via_rest(json_hash)
+        @broker = res_hash['response'].first
+      end
+
+      [ "/razor/api/broker", "/razor/api/broker/get" ].each do |path|
+        it "GET #{path} lists all brokers targets" do
+          res_hash = http_get(path)
+          brokers_plugins = res_hash['response']
+          brokers_plugins.count.should == 1
+          brokers_plugins.first['@uuid'].should eq(@broker['@uuid'])
+        end
+      end
+
+      [ "/razor/api/broker", "/razor/api/broker/get" ].each do |path|
+        it "GET #{path}/<uuid> finds the specific broker target" do
+          broker_uuid = @broker['@uuid']
+          res_hash = http_get("#{path}/#{broker_uuid}")
+          broker_response_array = res_hash['response']
+          broker_response_array.count.should == 1
+          broker_response_array.first['@uuid'].should == broker_uuid
+        end
+
+        it "GET #{path}?name=regex:<text> finds the broker target by attribute" do
+          res_hash = http_get("#{path}?name=regex:puppet")
+          res_hash['result'].should == "Ok"
+          broker_response_array = res_hash['response']
+          broker = broker_response_array.first
+          broker['@uuid'].should == @broker['@uuid']
+        end
+
+        it "GET /#{path}?name=<full_text> finds the broker target by attribute" do
+          res_hash = http_get("#{path}?name=puppet_test")
+          res_hash['result'].should == "Ok"
+          broker_response_array = res_hash['response']
+          broker = broker_response_array.first
+          broker['@uuid'].should == @broker['@uuid']
+        end
+      end
+
+      it "GET /remove/api/broker/remove/<uuid> deletes specific broker target" do
+        broker_uuid = @broker['@uuid']
+
+        res_hash = http_get("/razor/api/broker/remove/#{broker_uuid}")
+        res_hash['result'].should == "Removed"
+
+        res_hash = http_get("/razor/api/broker/#{broker_uuid}")
+        res_hash['errcode'].should_not == 0
+      end
+
+      it "DELETE /razor/api/broker/remove/all cannot delete all broker targets" do
+        uri = razor_uri("/razor/api/broker/remove/all")
+        http = Net::HTTP.start(uri.host, uri.port)
+        res = http.send_request('DELETE', uri.request_uri)
+        res.class.should == Net::HTTPMethodNotAllowed
+        res_hash = JSON.parse(res.body)
+
+        res_hash = http_get("/razor/api/broker")
+        brokers_get = res_hash['response']
+        brokers_get.count.should == 1
+      end
     end
   end
 end

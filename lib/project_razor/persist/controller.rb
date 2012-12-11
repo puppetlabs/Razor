@@ -1,6 +1,6 @@
-# Persistence Controller for ProjectRazor
 module ProjectRazor
   module Persist
+    # Persistence Controller for ProjectRazor
     class Controller
       include(ProjectRazor::Logging)
 
@@ -8,7 +8,7 @@ module ProjectRazor
       attr_accessor :config
 
       # Initializes the controller and configures the correct '@database' object based on the 'persist_mode' specified in the config
-      # @param @config [ProjectRazor::Configuration]
+      # @param config [ProjectRazor::Configuration]
       def initialize(config)
         logger.debug "Initializing object"
         # copy config into instance
@@ -17,11 +17,21 @@ module ProjectRazor
         # init correct database object
         if (config.persist_mode == :mongo)
           logger.debug "Using Mongo plugin"
+          require "project_razor/persist/mongo_plugin" unless ProjectRazor::Persist.const_defined?(:MongoPlugin)
           @database = ProjectRazor::Persist::MongoPlugin.new
-          check_connection
+        elsif (config.persist_mode == :postgres)
+          logger.debug "Using Postgres plugin"
+          require "project_razor/persist/postgres_plugin" unless ProjectRazor::Persist.const_defined?(:PostgresPlugin)
+          @database = ProjectRazor::Persist::PostgresPlugin.new
+        elsif (config.persist_mode == :memory)
+          logger.debug "Using in-memory plugin"
+          require "project_razor/persist/memory_plugin" unless ProjectRazor::Persist.const_defined?(:MemoryPlugin)
+          @database = ProjectRazor::Persist::MemoryPlugin.new
         else
           logger.error "Invalid Database plugin(#{config.persist_mode})"
+          return;
         end
+        check_connection
       end
 
       # This is where all connection teardown is started. Calls the '@database.teardown'

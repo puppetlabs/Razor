@@ -183,7 +183,9 @@ module ProjectRazor
         #setup_data
         #image_selected = @data.fetch_object_by_uuid(:images, image_uuid)
         image_selected = get_object("image_with_uuid", :images, image_uuid)
-        raise ProjectRazor::Error::Slice::InvalidUUID unless image_selected && (image_selected.class != Array || image_selected.length > 0)
+        unless image_selected && (image_selected.class != Array || image_selected.length > 0)
+          raise ProjectRazor::Error::Slice::InvalidUUID, "invalid uuid [#{image_uuid.inspect}]"
+        end
 
         # Use the Engine instance to remove the selected image from the database
         engine = ProjectRazor::Engine.instance

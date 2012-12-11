@@ -1,15 +1,18 @@
 require "mongo"
 require "set"
 
-# MongoDB version of ProjectRazor::Controller::Plugin
-# used by ProjectRazor::Controller when ':mongo' is the 'persist_mode' in ProjectRazor configuration
 module ProjectRazor
   module Persist
-    class MongoPlugin
+    # MongoDB version of {ProjectRazor::Persist::PluginInterface}
+    # used by {ProjectRazor::Persist::Controller} when ':mongo' is the 'persist_mode' in
+    # ProjectRazor configuration
+    class MongoPlugin < PluginInterface
       include(ProjectRazor::Logging)
 
       # Closes connection if it is active
-      # @return [true, false] - returns connection status
+      #
+      # @return [Boolean] Connection status
+      #
       def teardown
         logger.debug "Connection teardown"
         @connection.active? && disconnect
@@ -17,9 +20,12 @@ module ProjectRazor
       end
 
       # Establishes connection to MongoDB
+      #
       # @param hostname [String]
-      # @param port [String]
-      # @return [true, false] - returns connection status
+      # @param port [Integer]
+      # @param timeout [Integer] Connection timeout
+      # @return [Boolean] Connection status
+      #
       def connect(hostname, port, timeout)
         logger.debug "Connecting to MongoDB (#{hostname}:#{port}) with timeout (#{timeout})"
         begin
@@ -42,7 +48,9 @@ module ProjectRazor
       end
 
       # Disconnects connection
-      # @return [true, false] - returns connection status
+      #
+      # @return [Boolean] Connection status
+      #
       def disconnect
         logger.debug "Disconnecting from MongoDB"
         @connection.close
@@ -50,17 +58,21 @@ module ProjectRazor
       end
 
       # Checks whether DB 'ProjectRazor' is selected in MongoDB
-      # @return [true, false]
+      #
+      # @return [Boolean] Connection status
+      #
       def is_db_selected?
         #logger.debug "Is ProjectRazor DB selected?(#{(@razor_database != nil and @connection.active?)})"
         (@razor_database != nil and @connection.active?)
       end
 
 
-      # From [Array] of documents return [Array] containing newest/unique documents
-      # this also takes all older/duplicate documents and calls [cleanup_old_documents] to remove them
+      # Returns the newest/unique documents from the collection named 'collection_name'
+      # All older/duplicate documents are removed from the collection.
+      #
       # @param collection_name [Symbol]
-      # @return [Array]
+      # @return [Array<Hash>]
+      #
       def object_doc_get_all(collection_name)
         collection_by_name(collection_name).create_index("@version") #ensure index on version
         logger.debug "Get all documents from collection (#{collection_name})"
@@ -80,6 +92,13 @@ module ProjectRazor
         remove_mongo_keys(objects_array)
       end
 
+      # Returns the entry keyed by the '@uuid' of the given 'object_doc' from the collection
+      # named 'collection_name'
+      #
+      # @param object_doc [Hash]
+      # @param collection_name [Symbol]
+      # @return [Hash] or nil if the object cannot be found
+      #
       def object_doc_get_by_uuid(object_doc, collection_name)
         collection_by_name(collection_name).create_index("@uuid") #ensure index on uuid
         logger.debug "Get document from collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
@@ -91,11 +110,13 @@ module ProjectRazor
         end
       end
 
-
-      # Adds object document to the collection with an incremented "@version" key
+      # Adds or updates 'obj_document' in the collection named 'collection_name' with an incremented
+      # '@version' value
+      #
       # @param object_doc [Hash]
       # @param collection_name [Symbol]
-      # @return [Hash] - returns the updated [Hash] of doc
+      # @return [Hash] The updated doc
+      #
       def object_doc_update(object_doc, collection_name)
         logger.debug "Update document in collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
         # We use this to always pull newest
@@ -105,6 +126,13 @@ module ProjectRazor
         object_doc
       end
 
+      # Adds or updates multiple object documents in the collection named 'collection_name'. This will
+      # increase the '@version' value of all the documents
+      #
+      # @param object_docs [Array<Hash>]
+      # @param collection_name [Symbol]
+      # @return [Array<Hash>] The updated documents
+      #
       def object_doc_update_multi(object_docs, collection_name)
         logger.debug "Update documents in collection (#{collection_name})"
         # We use this to always pull newest
@@ -116,10 +144,13 @@ module ProjectRazor
         object_docs
       end
 
-      # Removes all documents from collection: 'collection_name' with 'uuid' in 'object_doc''
+      # Removes a document identified by from the '@uuid' of the given 'object_doc' from the
+      # collection named 'collection_name'
+      #
       # @param object_doc [Hash]
       # @param collection_name [Symbol]
-              # @return [true, Hash] - returns 'true' if successful, otherwise returns 'Hash' with last error
+      # @return [true] - returns 'true' if an object was removed
+      #
       def object_doc_remove(object_doc, collection_name)
         logger.debug "Remove document in collection (#{collection_name}) with uuid (#{object_doc['@uuid']})"
         while collection_by_name(collection_name).find({ "@uuid" => object_doc["@uuid"] }).count > 0
@@ -130,6 +161,11 @@ module ProjectRazor
         true
       end
 
+      # Removes all documents from the collection named 'collection_name'
+      #
+      # @param collection_name [Symbol]
+      # @return [Boolean] - returns 'true' if all entries were successfully removed
+      #
       def object_doc_remove_all(collection_name)
         logger.debug "Remove all documents in collection (#{collection_name})"
         while collection_by_name(collection_name).count > 0

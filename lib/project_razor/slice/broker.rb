@@ -104,19 +104,18 @@ module ProjectRazor
         plugin = options[:plugin]
         name = options[:name]
         description = options[:description]
-        servers = options[:servers]
-        broker_version = options[:version]
-        # check the values that were passed in
-        servers = servers.flatten if servers.is_a? Array
-        servers = servers.split(",") if servers.is_a? String
-        raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless servers.count > 0
-        raise ProjectRazor::Error::Slice::InvalidPlugin, "Invalid broker plugin [#{plugin}]" unless is_valid_template?(BROKER_PREFIX, plugin)
+        req_metadata_hash = options[:req_metadata_hash] if @web_command
         # use the arguments passed in (above) to create a new broker
-        broker                  = new_object_from_template_name(BROKER_PREFIX, plugin)
+        broker = new_object_from_template_name(BROKER_PREFIX, plugin)
+        if @web_command
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must Provide Required Metadata [req_metadata_hash]" unless
+              req_metadata_hash
+          broker.web_create_metadata(req_metadata_hash)
+        else
+          raise ProjectRazor::Error::Slice::UserCancelled, "User cancelled Broker creation" unless broker.cli_create_metadata
+        end
         broker.name             = name
         broker.user_description = description
-        broker.servers          = servers
-        broker.broker_version   = broker_version
         broker.is_template      = false
         # persist that broker, and print the result (or raise an error if cannot persist it)
         setup_data
@@ -132,8 +131,23 @@ module ProjectRazor
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
-        broker_uuid, options = parse_and_validate_options(option_items, "razor broker update (UUID) (options...)", :require_one)
+        if @web_command
+          broker_uuid, options = parse_and_validate_options(option_items, "razor broker update (UUID) (options...)", :require_none)
+        else
+          broker_uuid, options = parse_and_validate_options(option_items, "razor broker update (UUID) (options...)", :require_one)
+        end
+
         includes_uuid = true if broker_uuid
+        # the :req_metadata_hash is not a valid value via the CLI but might be
+        # included as part of a web command; as such the parse_and_validate_options
+        # can't properly handle this error and we have to check here to ensure that
+        # at least one value was provided in the update command
+        if @web_command && options.all?{ |x| x == nil }
+          option_names = option_items.map { |val| val[:name] }
+          option_names.delete(:change_metadata)
+          option_names << :req_metadata_hash
+          raise ProjectRazor::Error::Slice::MissingArgument, "Must provide one option from #{option_names.inspect}."
+        end
         # check for usage errors (the boolean value at the end of this method
         # call is used to indicate whether the choice of options from the
         # option_items hash must be an exclusive choice)
@@ -141,19 +155,29 @@ module ProjectRazor
         plugin = options[:plugin]
         name = options[:name]
         description = options[:description]
-        servers = options[:servers]
-        broker_version = options[:version]
-        # check the values that were passed in
-        if servers
-          servers = servers.split(",") if servers.is_a? String
-          raise ProjectRazor::Error::Slice::MissingArgument, "Broker Server [server_hostname(,server_hostname)]" unless servers.count > 0
-        end
+        change_metadata = options[:change_metadata]
+        req_metadata_hash = options[:req_metadata_hash] if @web_command
+
+        # check the values that were passed in (and gather new meta-data if
+        # the --change-metadata flag was included in the update command and the
+        # command was invoked via the CLI...it's an error to use this flag via
+        # the RESTful API, the req_metadata_hash should be used instead)
         broker = get_object("broker_with_uuid", :broker, broker_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Broker Target with UUID: [#{broker_uuid}]" unless broker && (broker.class != Array || broker.length > 0)
+        if @web_command
+          if change_metadata
+            raise ProjectRazor::Error::Slice::InputError, "Cannot use the change_metadata flag with a web command"
+          elsif req_metadata_hash
+            broker.web_create_metadata(req_metadata_hash)
+          end
+        else
+          if change_metadata
+            raise ProjectRazor::Error::Slice::UserCancelled, "User cancelled Broker creation" unless
+                broker.cli_create_metadata
+          end
+        end
         broker.name             = name if name
         broker.user_description = description if description
-        broker.servers          = servers if servers
-        broker.broker_version   = broker_version if broker_version
         broker.is_template      = false
         raise ProjectRazor::Error::Slice::CouldNotUpdate, "Could not update Broker Target [#{broker.uuid}]" unless broker.update_self
         print_object_array [broker], "", :success_type => :updated

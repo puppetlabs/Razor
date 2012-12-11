@@ -94,7 +94,7 @@ class ProjectRazor::CLI
       print "\n [#{raw_name}] ".red
       print "<- #{e.message} \n".yellow
     end
-    raise exception if @debug
+    raise e if @debug
     return false
   end
 
