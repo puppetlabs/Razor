@@ -20,17 +20,3 @@
   :description: A description for the broker target.
   :uuid_is: not_allowed
   :required: true
-- :name: :servers
-  :default: false
-  :short_form: -s
-  :long_form: --servers SERVER_LIST
-  :description: A comma-separated list of servers for this broker target
-  :uuid_is: not_allowed
-  :required: true
-- :name: :version
-  :default: false
-  :short_form: -v
-  :long_form: --version VERSION
-  :description: A target broker version (used in gem install)
-  :uuid_is: not_allowed
-  :required: false

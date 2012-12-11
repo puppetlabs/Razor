@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Bootstrapping code is based off the "chef-full.erb" knife bootstrap template
+# which ships with the Chef gem.
+#
+# See: https://github.com/opscode/chef/blob/master/lib/chef/knife/bootstrap/chef-full.erb
+#
+# **Note** The Omnibus installer script will be downloaded from the
+# $install_sh URL and executed as the root user. Please read and verify that
+# this script is suitable to run in your environment.
+
+set -e
+
+exists() {
+  if command -v $1 &>/dev/null
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+install_sh="<%= install_sh_url %>"
+version_string="-v <%= chef_version %>"
+
+if ! exists /usr/bin/chef-client; then
+  if exists wget; then
+    bash <(wget ${install_sh} -O -) ${version_string}
+  elif exists curl; then
+    bash <(curl -L ${install_sh}) ${version_string}
+  else
+    echo ">> wget or curl must be installed, bootstrap failed"
+    exit 1
+  fi
+fi
+
+mkdir -p /etc/chef
+
+# write validation key and ensure file ends with a newline
+(
+cat <<'EOP'
+<%= validation_key %>
+EOP
+) | awk NF > /etc/chef/validation.pem
+chmod 0600 /etc/chef/validation.pem
+
+(
+cat <<'EOP'
+<%= config_content %>
+EOP
+) > /etc/chef/client.rb
+
+(
+cat <<'EOP'
+<%= first_boot.to_json %>
+EOP
+) > /etc/chef/first-boot.json
+
+<%= start_chef %>
