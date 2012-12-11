@@ -18,7 +18,6 @@ bootloader --location=mbr --driveorder=sda --append=crashkernel=auto rhgb quiet
 # Note that any partitions you deleted are not expressed
 # here so unless you clear all partitions first, this is
 # not guaranteed to work
-zerombr
 clearpart --all --initlabel
 autopart
 # reboot automatically
