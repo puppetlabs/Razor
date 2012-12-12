@@ -6,7 +6,7 @@ echo <%= hostname %> > /etc/hostname
 # this set of commands should convert the first local (but non-loopback) IP
 # address in the /etc/hosts file to an entry that has the fully-qualified
 # hostname and local hostname as part of the entry (so that tehse names can
-# be resolved properly).  A backup of the original file will be left in place
+# be resolved properly). A backup of the original file will be left in place
 # in the /etc/hosts- file
 cp -p /etc/hosts /etc/hosts-
 grep '^127\.0\.0\.1.*' /etc/hosts- > /etc/hosts
@@ -16,15 +16,13 @@ grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/h
 
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
 
-sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && <%= callback_url("postinstall", "sources_fix") %>
-apt-get -y update
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_update_ok") %> || curl <%= callback_url("postinstall", "apt_update_fail") %>
+# Need to add the Puppetlabs repo
+rpm -i http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-6.noarch.rpm
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "repo_install_ok") %> || curl <%= callback_url("postinstall", "repo_install_fail") %>
 
-apt-get -y upgrade
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_upgrade_ok") %> || curl <%= callback_url("postinstall", "apt_upgrade_fail") %>
-
-apt-get -y install rubygems facter
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_install_ok") %> || curl <%= callback_url("postinstall", "apt_install_fail") %>
+# Install requirements
+yum -y install rubygems facter
+[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "yum_install_ok") %> || curl <%= callback_url("postinstall", "yum_install_fail") %>
 
 # Get current IP
 node_ip=`facter ipaddress`
