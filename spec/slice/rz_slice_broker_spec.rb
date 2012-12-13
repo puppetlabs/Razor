@@ -18,8 +18,10 @@ describe "ProjectRazor::Slice::Broker" do
       @data.delete_all_objects(:broker)
     end
 
-    def razor_uri(path)
-      URI("http://127.0.0.1:#{@config.api_port}/#{path.sub(%r{^/}, '')}")
+    def razor_uri(path, json_hash = nil)
+      return URI("http://127.0.0.1:#{@config.api_port}/#{path.sub(%r{^/}, '')}") unless json_hash
+      json_hash_str = URI.encode(JSON.generate(json_hash))
+      URI("http://127.0.0.1:#{@config.api_port}/#{path.sub(%r{^/}, '')}?json_hash=#{json_hash_str}")
     end
 
     def http_get(path)
@@ -31,6 +33,14 @@ describe "ProjectRazor::Slice::Broker" do
       uri = razor_uri(path)
       response = Net::HTTP.post_form(uri, 'json_hash' => JSON.generate(hash))
       JSON.parse(response.body)
+    end
+
+    def http_put(path, hash)
+      uri = razor_uri(path, hash)
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        response = http.send_request('PUT', uri.request_uri)
+        JSON.parse(response.body)
+      end
     end
 
     def create_broker_via_rest(hash)
@@ -62,15 +72,17 @@ describe "ProjectRazor::Slice::Broker" do
 
     context "with no broker targets" do
 
-      it "should be able to create broker target from REST using GET" do
-        pending "Not a published API action"
-        uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/add?plugin=puppet&name=RSPECPuppetGET&description=RSPECSystemInstanceGET&servers=rspecpuppet.example.org"
+      it "should not be able to create broker target from REST using GET" do
+        # pending "Not a published API action"
+        lcl_hash = {"plugin" => "puppet", "name" => "RSPECPuppetGET",
+          "description" => "RSPECSystemInstanceGET", "req_metadata_hash" => {
+            "server" => "rspecpuppet.example.org", "broker_version" => ""}}
+        uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/broker/add?" +
+          "json_hash=#{URI.encode(JSON.generate(lcl_hash))}"
         res = Net::HTTP.get(uri)
+
         res_hash = JSON.parse(res)
-        res_hash['result'].should == "Created"
-        broker_response_array = res_hash['response']
-        $broker_uuid_get = broker_response_array.first['@uuid']
-        $broker_uuid_get.should_not == nil
+        res_hash['result'].should_not == "Created"
       end
 
       it "POST /razor/api/broker/add creates a broker target" do
@@ -82,6 +94,7 @@ describe "ProjectRazor::Slice::Broker" do
         broker['@server'].should eq("puppet.example.com")
         broker['@broker_version'].should eq("2.0.9")
       end
+
     end
 
     context "with one broker target" do
@@ -124,6 +137,50 @@ describe "ProjectRazor::Slice::Broker" do
           broker = broker_response_array.first
           broker['@uuid'].should == @broker['@uuid']
         end
+
+        it "PUT /#{path}/#{@uuid}?json_hash=<json_str> should allow update of broker using default server/version" do
+          # pending "Not a published API action"
+          lcl_hash = {"plugin" => "puppet", "name" => "RSPECPuppetBrokerPUT1",
+            "description" => "RSPECPuppetBrokerInstancePUT1", "req_metadata_hash" => {
+              "server" => "", "broker_version" => ""}}
+          res = http_put("/razor/api/broker/update/#{@broker['@uuid']}", lcl_hash)
+          res['result'].should == "Updated"
+        end
+
+        it "PUT /#{path}/#{@uuid}?json_hash=<json_str> should allow update of broker using valid server/version" do
+          # pending "Not a published API action"
+          lcl_hash = {"plugin" => "puppet", "name" => "RSPECPuppetBrokerPUT1",
+            "description" => "RSPECPuppetBrokerInstancePUT1", "req_metadata_hash" => {
+              "server" => "puppet-local.localdomain.net", "broker_version" => "3.0.1_rc1"}}
+          res = http_put("/razor/api/broker/update/#{@broker['@uuid']}", lcl_hash)
+          res['result'].should == "Updated"
+          broker = res['response'].first
+          broker['@server'].should == "puppet-local.localdomain.net"
+          broker['@broker_version'].should == "3.0.1_rc1"
+        end
+
+        it "PUT /#{path}/#{@uuid}?json_hash=<json_str> should fail to update a broker with an invalid hostname" do
+          # pending "Not a published API action"
+          lcl_hash = {"plugin" => "puppet", "name" => "RSPECPuppetBrokerPUT1",
+            "description" => "RSPECPuppetBrokerInstancePUT1", "req_metadata_hash" => {
+              "server" => "---invalid-hostname---", "broker_version" => ""}}
+          res = http_put("/razor/api/broker/update/#{@broker['@uuid']}", lcl_hash)
+          res['result'].should_not == "Updated"
+          res['http_err_code'].should == 400
+          res['err_class'].should == "ProjectRazor::Error::Slice::InvalidBrokerMetadata"
+        end
+
+        it "PUT /#{path}/#{@uuid}?json_hash=<json_str> should fail to update a broker with an invalid version" do
+          # pending "Not a published API action"
+          lcl_hash = {"plugin" => "puppet", "name" => "RSPECPuppetBrokerPUT1",
+            "description" => "RSPECPuppetBrokerInstancePUT1", "req_metadata_hash" => {
+              "server" => "", "broker_version" => "this_is_not_a_valid_broker_version"}}
+          res = http_put("/razor/api/broker/update/#{@broker['@uuid']}", lcl_hash)
+          res['result'].should_not == "Updated"
+          res['http_err_code'].should == 400
+          res['err_class'].should == "ProjectRazor::Error::Slice::InvalidBrokerMetadata"
+        end
+
       end
 
       it "GET /remove/api/broker/remove/<uuid> deletes specific broker target" do

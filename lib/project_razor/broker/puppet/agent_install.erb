@@ -4,7 +4,7 @@ set -u
 set -e
 
 function install_puppet() {
-    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] %>
+    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
     puppet master --mkusers
 }
 
@@ -18,8 +18,8 @@ vardir = /var/lib/puppet
 ssldir = /var/lib/puppet/ssl
 pluginsync = true
 report = true
-ca_server = <%= @options[:ca_server] %>
-server = <%= @options[:server] %>
+<%= "ca_server = #{@options[:ca_server]}" if @options[:ca_server] && !@options[:ca_server].empty? %>
+<%= "server = #{@options[:server]}" if @options[:server] && !@options[:server].empty? %>
 certname = <%= @options[:puppetagent_certname] %>
 EOFPUPPETCONF
 
@@ -48,7 +48,7 @@ function run_agent() {
 function facts_dot_d() {
     mkdir -p /etc/facter/facts.d
     <% if @options[:metadata] %> echo Installing custom facts
-        <% @options[:metadata].each do |fact,value| %> echo '<%= fact %>=<%= value %>' > /etc/facter/facts.d/<%= fact %>.txt
+        <% @options[:metadata].each do |fact,value| %> echo '<%= fact %>=<%= value %>' > /etc/facter/facts.d/<%= fact %>.txt <%= if value && !value.empty? %>
     <% end %> <% end %>
 }
 

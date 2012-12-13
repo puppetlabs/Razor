@@ -17,6 +17,6 @@
   :default: false
   :short_form: -c
   :long_form: --change-metadata
-  :description: Used to trigger a change in the model's meta-data
+  :description: Used to trigger a change in the broker's meta-data
   :uuid_is: required
   :required: true
