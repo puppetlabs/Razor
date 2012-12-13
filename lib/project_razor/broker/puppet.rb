@@ -26,16 +26,16 @@ module ProjectRazor::BrokerPlugin
         "@server" => {
           :default      => "",
           :example      => "puppet.example.com",
-          :validation   => '^[\w.]{3,}$',
-          :required     => true,
-          :description  => "Hostname of the puppet master server"
+          :validation   => '(^$|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$)',
+          :required     => false,
+          :description  => "Hostname of Puppet Master; optional"
         },
         "@broker_version" => {
           :default      => "",
           :example      => "3.0.1",
-          :validation   => '^[0-9]+\.[0-9]+\.[0-9](\.[a-zA-Z0-9\.]+)?$',
+          :validation   => '(^$|^[0-9]+(\.([0-9a-zA-Z\-\_]+))*$)',
           :required     => false,
-          :description  => "Puppet version (used in gem install)"
+          :description  => "Puppet Version; for gem install, blank for latest"
         }
       }
     end

@@ -37,6 +37,8 @@ module ProjectRazor
           [ 'MissingCallbackNamespace'  , 159 , {'@http_err'=> :bad_request}            , ''          , 'ProjectRazor::Error::Slice::Generic' ],
           [ 'ActiveModelInvalid'        , 160 , {'@http_err'=> :bad_request}            , ''          , 'ProjectRazor::Error::Slice::Generic' ],
           [ 'InvalidMaximumCount'       , 161 , {'@http_err'=> :bad_request}            , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'MissingBrokerMetadata'     , 162 , {'@http_err'=> :bad_request}            , ''          , 'ProjectRazor::Error::Slice::Generic' ],
+          [ 'InvalidBrokerMetadata'     , 163 , {'@http_err'=> :bad_request}            , ''          , 'ProjectRazor::Error::Slice::Generic' ],
       ].each do |err|
         ProjectRazor::Error.create_class *err
       end

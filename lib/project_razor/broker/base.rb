@@ -76,14 +76,14 @@ module ProjectRazor
           md = (!md.is_a?(Symbol) ? md.gsub(/^@/,'').to_sym : md)
           md_fld_name = '@' + md.to_s
           if provided_metadata[md]
-            raise ProjectRazor::Error::Slice::InvalidModelMetadata, "Invalid Metadata [#{md.to_s}:'#{provided_metadata[md]}']" unless
+            raise ProjectRazor::Error::Slice::InvalidBrokerMetadata, "Invalid Metadata [#{md.to_s}:'#{provided_metadata[md]}']" unless
                 set_metadata_value(md_fld_name, provided_metadata[md], metadata[:validation])
           else
             if metadata[:default] != ""
-              raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" unless
+              raise ProjectRazor::Error::Slice::MissingBrokerMetadata, "Missing metadata [#{md.to_s}]" unless
                   set_metadata_value(md_fld_name, metadata[:default], metadata[:validation])
             else
-              raise ProjectRazor::Error::Slice::MissingModelMetadata, "Missing metadata [#{md.to_s}]" if metadata[:required]
+              raise ProjectRazor::Error::Slice::MissingBrokerMetadata, "Missing metadata [#{md.to_s}]" if metadata[:required]
             end
           end
         end
@@ -112,7 +112,9 @@ module ProjectRazor
               when "QUIT"
                 return false
               when ""
-                if metadata[:default] != ""
+                # if a default value is defined for this parameter (i.e. the metadata[:default]
+                # value is non-nil) then use that value as the value for this parameter
+                if metadata[:default]
                   flag = set_metadata_value(key, metadata[:default], metadata[:validation])
                 else
                   puts "No default value, must enter something".red
