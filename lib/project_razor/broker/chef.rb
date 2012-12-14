@@ -23,7 +23,7 @@ module ProjectRazor::BrokerPlugin
         "@chef_server_url" => {
           :default      => "",
           :example      => "https://chef.example.com:4000",
-          :validation   => URI::DEFAULT_PARSER.regexp[:ABS_URI].to_s,
+          :validation   => URI::regexp.to_s,
           :required     => true,
           :description  => "the URL for the Chef server."
         },
@@ -59,7 +59,7 @@ module ProjectRazor::BrokerPlugin
         "@install_sh_url" => {
           :default      => "http://opscode.com/chef/install.sh",
           :example      => "http://mirror.example.com/install.sh",
-          :validation   => URI::DEFAULT_PARSER.regexp[:ABS_URI].to_s,
+          :validation   => URI::regexp.to_s,
           :required     => true,
           :description  => "the Omnibus installer script URL."
         },
