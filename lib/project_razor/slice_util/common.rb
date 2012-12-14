@@ -351,7 +351,7 @@ module ProjectRazor
                 (filter_hash[key] = true; next) if val == "true"
                 filter_hash[key] = false if val == "false"
               }
-              return return_objects_using_filter(filter_hash, collection)
+              return return_objects_using_filter(collection, filter_hash)
             rescue StandardError => e
               # We caught an error / likely JSON. We return the error text as a Slice error.
               slice_error(e.message, false)
@@ -371,7 +371,7 @@ module ProjectRazor
       # @param collection [Symbol] collection symbol
       def return_objects_using_filter(collection, filter_hash)
         setup_data
-        @data.fetch_objects_by_filter(filter_hash, collection)
+        @data.fetch_objects_by_filter(collection, filter_hash)
       end
 
       # Return all objects (no filtering)
