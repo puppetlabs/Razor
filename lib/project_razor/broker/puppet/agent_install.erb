@@ -47,9 +47,14 @@ function run_agent() {
 # puppet-module install puppetlabs/stdlib
 function facts_dot_d() {
     mkdir -p /etc/facter/facts.d
-    <% if @options[:metadata] %> echo Installing custom facts
-        <% @options[:metadata].each do |fact,value| %> echo '<%= fact %>=<%= value %>' > /etc/facter/facts.d/<%= fact %>.txt <%= if value && !value.empty? %>
-    <% end %> <% end %>
+    <% if @options[:metadata] %>
+        echo Installing custom facts
+        <% @options[:metadata].each do |fact,value| %>
+            <% if value && !value.empty? %>
+                echo '<%= fact %>=<%= value %>' > /etc/facter/facts.d/<%= fact %>.txt
+            <% end %>
+        <% end %>
+    <% end %>
 }
 
 function provision_puppet() {
