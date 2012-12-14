@@ -136,9 +136,15 @@ module ProjectRazor
       end
 
       def version_weight
-        # Cap any subset with 999 being the maximum
-        @iso_version.split(".").map! {|v| v.to_i > 999 ? 999 : v}.join(".")
-        @iso_version.split(".").map {|x| "%03d" % x}.join.to_i
+        # parse the version numbers from the @iso_version value (which could be
+        # in the form of 0.9.5.0, v0.9.5.0, or even v0.9.5.0+15, where 15 is the
+        # commit number since the Razor-Microkernel project was tagged)
+        version_nums = /([0-9][\.\+]?)+/.match(@iso_version)[0].gsub("+", ".")
+        # Limit any part of the version number to a number that is 999 or less
+        version_nums.split(".").map! {|v| v.to_i > 999 ? 999 : v}.join(".")
+        # and join them all into a single number for comparison (to determine which
+        # image should be used)
+        version_nums.split(".").map {|x| "%03d" % x}.join.to_i
       end
 
       def print_item_header
