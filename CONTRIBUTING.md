@@ -37,7 +37,7 @@ speed quickly.
 You can always reach out and ask for help:
 
 * by email or through the web on the [puppet-razor@googlegroups.com][puppet-razor]
-  mailing list.  (membership is required to post.)
+  mailing list (membership is required to post).
 * by IRC, through [#puppet-razor][irc] on [the FreeNode IRC network][freenode].
 
 
@@ -45,11 +45,12 @@ You can always reach out and ask for help:
 
 You should start by discussing your change in public:
 * for small but clear changes, [open an issue describing the bug or feature][bugs].
-* for larger changes, send an email to puppet-dev@googlegroups.com or
-  [post through the web][puppet-dev] before creating the issue.
+* for larger changes, send an email to puppet-razor@googlegroups.com or
+  [post through the web][puppet-razor] before creating the issue.
 
-Any and all members of the community can respond to an issue, and make
-comments or suggestions.  You should take these comments seriously, but you
+Once an issue exists for a bug or feature, all discussion should take place in
+the issue.  Any and all members of the community can respond to an issue, and
+make comments or suggestions.  You should take these comments seriously, but you
 are not obliged to do what they say.
 
 If the issue is going in the wrong direction, one of the project leaders will
@@ -131,12 +132,12 @@ Right now any change committed to `master` must be considered "live".
 * Push your changes to a topic branch in your fork of the repository.
 * Submit a pull request to the repository in the puppetlabs organization.
 * Update your ticket to mark that you have submitted code and are ready to be
-  reviewed, if it is separate from the pull request.
+  reviewed.
   * Mentioning the issue number in the subject will make this happen through
 	GitHub magic.
 * A committer checks that the pull request is well formed.  If not, they will
   ask that it is fixed:
-  1. it is on it's own, appropriately named, branch.
+  1. it is on its own, appropriately named, branch.
   2. it was submitted to an appropriate target branch.
   3. it only has commits relevant to the specific issue.
   4. it has appropriate, clear, and effective commit messages.
