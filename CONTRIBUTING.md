@@ -88,6 +88,8 @@ This gives three outcomes from the discussion:
 * Having too many commits is better than having too few commits.
 * Check for unnecessary whitespace with `git diff --check` before committing.
 * Make sure your commit messages are in the proper format.
+  If your commit fixes an issue, close it with your commit message (by
+  appending, e.g., `fixes #99999`, to the summary).
 
 ````
 	(#99999) Make the example in CONTRIBUTING imperative and concrete
