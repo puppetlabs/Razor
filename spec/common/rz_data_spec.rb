@@ -48,6 +48,8 @@ describe ProjectRazor::Data do
       config.admin_port = (rand(1000)+1).to_s
       config.api_port = (rand(1000)+1).to_s
       config.persist_timeout = PC_TIMEOUT
+      config.rz_mk_boot_debug_level = "quiet"
+      config.rz_mk_boot_kernel_args = "console=ttyS0"
       write_config(config)
 
       data = ProjectRazor::Data.instance
@@ -56,11 +58,15 @@ describe ProjectRazor::Data do
       # Check to make sure it is our config object
       data.config.admin_port.should == config.admin_port
       data.config.api_port.should == config.api_port
+      data.config.rz_mk_boot_debug_level.should == config.rz_mk_boot_debug_level
+      data.config.rz_mk_boot_kernel_args.should == config.rz_mk_boot_kernel_args
 
 
       # confirm the reverse that nothing is default
       data.config.admin_port.should_not == default_config.admin_port
       data.config.api_port.should_not == default_config.api_port
+      data.config.rz_mk_boot_debug_level.should_not == default_config.rz_mk_boot_debug_level
+      data.config.rz_mk_boot_kernel_args.should_not == default_config.rz_mk_boot_kernel_args
 
     end
 

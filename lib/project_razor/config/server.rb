@@ -53,6 +53,7 @@ module ProjectRazor
       attr_accessor :node_expire_timeout
 
       attr_accessor :rz_mk_boot_debug_level
+      attr_accessor :rz_mk_boot_kernel_args
 
       attr_reader   :noun
 
@@ -108,9 +109,14 @@ module ProjectRazor
         # node has not checked in for this long, it'll be removed
         @node_expire_timeout = 300
 
+        # DEPRECATED: use rz_mk_boot_kernel_args instead!
         # used to set the Microkernel boot debug level; valid values are
         # either the empty string (the default), "debug", or "quiet"
         @rz_mk_boot_debug_level = ""
+
+        # used to pass arguments to the Microkernel's linux kernel;
+        # e.g. "console=ttyS0" or "razor.ip=1.2.3.4"
+        @rz_mk_boot_kernel_args = ""
 
       end
 
