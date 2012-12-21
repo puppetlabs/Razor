@@ -131,6 +131,7 @@ Right now any change committed to `master` must be considered "live".
 
 ## Submitting Changes
 
+* Sign the [Contributor License Agreement][cla] (requires a [Redmine account][redmine]).
 * Push your changes to a topic branch in your fork of the repository.
 * Submit a pull request to the repository in the puppetlabs organization.
 * Update your ticket to mark that you have submitted code and are ready to be
@@ -267,3 +268,5 @@ leader.  The details of why are private, and will not be shared.
 [puppet-razor]:  https://groups.google.com/forum/?fromgroups#!forum/puppet-razor
 [irc]:           https://webchat.freenode.net/?channels=puppet-razor
 [freenode]:      http://freenode.net/
+[cla]:           https://projects.puppetlabs.com/contributor_licenses/sign
+[redmine]:       http://projects.puppetlabs.com
