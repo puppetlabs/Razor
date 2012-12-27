@@ -1,0 +1,38 @@
+---
+project:      razor
+author:       Puppet Labs
+email:        puppet-razor@puppetlabs.com
+homepage:     https://github.com/puppetlabs/razor
+version_file: lib/project_razor/version.rb
+summary: flexible discovery and provisioning solution for bare metal and virtual machines
+description: |
+  Razor is a full-stack solution for managing the full bare metal and
+  virtual machine lifecycle, designed to scale from small deployments
+  to clusters of hundreds of thousands of physical machines.
+  
+  It melds together dynamic discovery of machine properties, simple models
+  of current and desired state, and a flexible policy engine to easily
+  express configuration for networks at any scale.
+  
+  Razor also focuses beyond the simple "OS installation" scenario, and is
+  designed to enable complex models such as "upgrade firmware, then install",
+  or "decommission, securely wipe disks, rediscover, and reprovision".
+  
+  Unlike many tools, Razor focuses on doing one job extremely well, and
+  handling on responsibility.  Once the basic configuration is done, Razor
+  will hand the system to a configuration management broker like Puppet
+  to provide ongoing change management - or it can simple stop, hands off,
+  for manual management.
+  
+  It also focuses heavily on providing extension points and hooks to allow
+  you to model your needs.  It is deliberately agnostic to platform, OS,
+  and configuration broker choices.
+files:
+  - "[A-Z]*"
+  - acceptance
+  - bin
+  - conf
+  - ext
+  - lib
+  - spec
+

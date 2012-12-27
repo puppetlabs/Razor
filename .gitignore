@@ -30,3 +30,5 @@ doc/
 /node_modules
 /razor_daemon.pid
 /Gemfile.lock
+
+/ext/packaging
