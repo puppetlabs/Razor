@@ -1,0 +1,14 @@
+Source: <%= @name %>
+Section: ruby
+Priority: optional
+Maintainer: Puppet Labs <info@puppetlabs.com>
+Build-Depends: debhelper (>> 7), ruby | ruby-interpreter
+Standards-Version: 3.9.1
+Homepage: http://www.puppetlabs.com
+
+Package: <%= @name %>
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter, ruby-dev, sudo, build-essential, mongodb, curl, nodejs, npm, which
+Suggests: tftpd-hpa, xinetd
+Description: <%= @summary %>
+ <%= @description.gsub(/^$/m, '.').gsub(/^/m, ' ') %>

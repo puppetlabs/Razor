@@ -111,7 +111,7 @@ class RazorDaemon < ProjectRazor::Object
   include Singleton
 
   BIN_DIR = File.dirname(File.expand_path(__FILE__))
-  NODE_COMMAND = %x[which node].strip
+  NODE_COMMAND = %x[which nodejs || which node].strip
   NODE_INSTANCE_NAMES = %W[api.js image_svc.js]
   NODE_COMMAND_MAP = { 'api.js' => "#{NODE_COMMAND} #{BIN_DIR}/api.js",
                        'image_svc.js' => "#{NODE_COMMAND} #{BIN_DIR}/image_svc.js"}

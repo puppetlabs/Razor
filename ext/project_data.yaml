@@ -1,5 +1,5 @@
 ---
-project:      razor
+project:      puppet-razor
 author:       Puppet Labs
 email:        puppet-razor@puppetlabs.com
 homepage:     https://github.com/puppetlabs/razor
@@ -29,10 +29,10 @@ description: |
   and configuration broker choices.
 files:
   - "[A-Z]*"
-  - acceptance
   - bin
   - conf
   - ext
+  - image/README
   - lib
-  - spec
-
+  - log/README
+  - tmp/README

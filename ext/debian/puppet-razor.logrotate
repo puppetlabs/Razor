@@ -1,0 +1,11 @@
+/opt/razor/log/*.log {
+	weekly
+	rotate 3
+	compress
+	nomail
+	notifempty
+	missingok
+        postrotate
+                /opt/razor/bin/razor_daemons.rb restart
+        endscript
+}
