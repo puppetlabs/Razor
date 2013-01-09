@@ -62,10 +62,10 @@ module ProjectRazor
         puts "\trazor bmc [get] (UUID) [--query,-q (IPMI_QUERY)]  " + "Display info for a BMC".yellow
         puts "\trazor bmc register (options...)                   " + "Registers a new BMC".yellow
         puts "\trazor bmc update (UUID) --power-state,-p (STATE)  " + "Set power state using BMC".yellow
-        puts "  Note; the IPMI_QUERY value passed via the --query flag be one of (info, guid,".red
-        puts "        enables, fru_print, lan_print, chassis_status, or power_status), while".red
-        puts "        the STATE passed via the --power-state flag can be one of (on, off,".red
-        puts "        cycle, or reset)".red
+        puts "  Note: the IPMI_QUERY value passed via the --query flag be one of (info,".red
+        puts "        guid, enables, fru_print, lan_print, chassis_status, identify or".red
+        puts "        power_status), while the STATE passed via the --power-state flag can".red
+        puts "        be one of (on, off, cycle, or reset)".red
       end
 
       # This function is used to print out an array of all of the Bmc nodes in a tabular form
@@ -385,6 +385,7 @@ module ProjectRazor
       # get, enables => bmc_getenables
       # get, guid => bmc_guid
       # get, chassis_status => chassis_status
+      # get, identify => chassis_identify
       # lan, print => lan_print
       # fru, print => fru_print
       #
@@ -404,6 +405,8 @@ module ProjectRazor
             return "bmc_guid"
           when "get, chassis_status"
             return "chassis_status"
+          when "get, identify"
+            return "chassis_identify"
           when "lan, print"
             return "lan_print"
           when "fru, print"

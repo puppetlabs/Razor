@@ -102,13 +102,16 @@ module ProjectRazor
             return @_ipmi.bmc_guid(@ip, username, password)
           when "chassis_status"
             return @_ipmi.chassis_status(@ip, username, password)
+          when "chassis_identify"
+            return @_ipmi.chassis_identify(@ip, username, password)
           when "lan_print"
             return @_ipmi.lan_print(@ip, username, password)
           when "fru_print"
             return @_ipmi.fru_print(@ip, username, password)
           else
             return [false, "Unrecognized query command #{cmd}; acceptable values are power_status," +
-                " bmc_info, bmc_getenables, bmc_guid, chassis_status, lan_print or fru_print"]
+                " bmc_info, bmc_getenables, bmc_guid, chassis_status, chassis_identify," +
+                " lan_print or fru_print"]
         end
       end
 

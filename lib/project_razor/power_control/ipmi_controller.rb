@@ -107,6 +107,28 @@ module ProjectRazor
         [true, chassis_hash]
       end
 
+      # A wrapper method for the ipmitool's 'chassis identify' command that can be used to
+      # switch on identification light on machine's chassis for visual identification.
+      #
+      # @param (see #power_status)
+      # @return [Array<Boolean, String>] an array containing a Boolean indicating whether or not the
+      #     'chassis identify' command succeeded and a String containing results of that command
+      def chassis_identify(host_ip, username, passwd)
+        command_failed, identify_output = run_ipmi_command(host_ip, username, passwd, 'chassis', 'identify')
+        if command_failed
+          return [false, identify_output]
+        end
+
+        # e.g.: "Chassis identify interval: default (15 seconds)"
+        identify_output = identify_output.split("\n")
+        identify_interval = /:\s*(off|indefinite|(default \()?\d+ seconds\)?)/.match(identify_output[0])[1]
+        if not identify_output.nil?
+          return [true, identify_interval]
+        end
+
+        return [false, identify_output]
+      end
+
       # A wrapper method for the ipmitool's 'lan print' command that can be used to obtain the
       # 'lan print' information for the node with a specified IP address (as a Hash map).
       #

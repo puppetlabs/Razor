@@ -66,6 +66,14 @@ describe ProjectRazor::PowerControl::IpmiController do
     @ipmi.chassis_status(@ipmi_hostname, @ipmi_username, @ipmi_password)
   end
 
+  def test_ipmi_chassis_identify_mock
+    filename = @mock_data_dir + File::SEPARATOR + 'chassis-identify.out'
+    @ipmi.expects(:run_ipmi_command).
+        with(@ipmi_hostname, @ipmi_username, @ipmi_password, 'chassis', 'identify').
+        returns([false, File.read(filename)])
+    @ipmi.chassis_identify(@ipmi_hostname, @ipmi_username, @ipmi_password)
+  end
+
   def test_ipmi_lan_print_mock
     filename = @mock_data_dir + File::SEPARATOR + 'lan-print.out'
     @ipmi.expects(:run_ipmi_command).
@@ -155,6 +163,10 @@ describe ProjectRazor::PowerControl::IpmiController do
       yaml_filename = @mock_data_dir + File::SEPARATOR + 'chassis-status.yaml'
       test_hash = YAML::load(File.open(yaml_filename))
       test_ipmi_chassis_status_mock.should == [true, test_hash]
+    end
+
+    it "should switch on identification light on chassis (using the IpmiController)" do
+      test_ipmi_chassis_identify_mock.should == [true, 'default (15 seconds)']
     end
 
     it "should return the impitool lan print as a hash (using the IpmiController)" do
