@@ -48,6 +48,7 @@ module ProjectRazor
                 "Model Commands:".yellow,
                 "\trazor model [get] [all]                 " + "View all models".yellow,
                 "\trazor model [get] (UUID)                " + "View specific model instance".yellow,
+                "\trazor model [get] template|templates    " + "View list of model templates".yellow,
                 "\trazor model add (options...)            " + "Create a new model instance".yellow,
                 "\trazor model update (UUID) (options...)  " + "Update a specific model instance".yellow,
                 "\trazor model remove (UUID)|all           " + "Remove existing model(s)".yellow,
