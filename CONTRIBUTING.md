@@ -131,6 +131,8 @@ Right now any change committed to `master` must be considered "live".
 
 ## Submitting Changes
 
+* Unless your contribution is [trivial][exemption], ensure you have signed the
+  [Contributor License Agreement][cla] (requires a [Redmine account][redmine]).
 * Push your changes to a topic branch in your fork of the repository.
 * Submit a pull request to the repository in the puppetlabs organization.
 * Update your ticket to mark that you have submitted code and are ready to be
@@ -267,3 +269,6 @@ leader.  The details of why are private, and will not be shared.
 [puppet-razor]:  https://groups.google.com/forum/?fromgroups#!forum/puppet-razor
 [irc]:           https://webchat.freenode.net/?channels=puppet-razor
 [freenode]:      http://freenode.net/
+[exemption]:     http://docs.puppetlabs.com/community/trivial_patch_exemption.html
+[cla]:           https://projects.puppetlabs.com/contributor_licenses/sign
+[redmine]:       https://projects.puppetlabs.com/account/register
