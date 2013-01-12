@@ -4,8 +4,12 @@ set -u
 set -e
 
 function install_puppet() {
-    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
-    puppet master --mkusers
+    if [ -f /etc/debian_version ] ; then
+        apt-get -y install puppet
+    else
+        gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
+        puppet master --mkusers
+    fi
 }
 
 function configure_puppet() {
