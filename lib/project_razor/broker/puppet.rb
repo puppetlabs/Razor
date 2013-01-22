@@ -92,7 +92,7 @@ module ProjectRazor::BrokerPlugin
         Net::SSH.start(options[:ipaddress], options[:username], { :password => options[:password], :user_known_hosts_file => '/dev/null'} ) do |session|
           logger.debug "Copy: #{session.exec! "echo \"#{@puppet_script}\" > /tmp/puppet_init.sh" }"
           logger.debug "Chmod: #{session.exec! "chmod +x /tmp/puppet_init.sh"}"
-          @run_script_str << session.exec!("bash /tmp/puppet_init.sh |& tee /tmp/puppet_init.out")
+          @run_script_str << session.exec!("bash /tmp/puppet_init.sh 2>&1 | tee /tmp/puppet_init.out")
           @run_script_str.split("\n").each do |line|
             logger.debug "puppet script: #{line}"
           end
