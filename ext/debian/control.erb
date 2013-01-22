@@ -8,7 +8,7 @@ Homepage: http://www.puppetlabs.com
 
 Package: <%= @name %>
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter, ruby-dev, sudo, build-essential, mongodb, curl, nodejs, npm, which
+Depends: ${shlibs:Depends}, ${misc:Depends}, ruby | ruby-interpreter, ruby-dev, sudo, build-essential, mongodb, curl, nodejs, npm
 Suggests: tftpd-hpa, xinetd
 Description: <%= @summary %>
  <%= @description.gsub(/^$/m, '.').gsub(/^/m, ' ') %>
