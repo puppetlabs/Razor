@@ -1,5 +1,32 @@
 test_name "Install Razor using Puppet"
 
+case ENV['INSTALL_MODE']
+when nil, '', 'git'      then
+  source = 'git'
+  repo   = ''
+when 'internal-packages' then
+  source = 'package'
+  # This is going to have to change to respect the platform, eventually.
+  repo   = '
+apt::key { "internal-packages":
+  key        => "27D8D6F1",
+  key_source => "http://neptune.puppetlabs.lan/dev/razor/deb/pubkey.gpg",
+  before     => Apt::Source["internal-packages"]
+}
+
+apt::source { "internal-packages":
+  location    => "http://neptune.puppetlabs.lan/dev/razor/deb",
+  release     => ${lsbdistcodename},
+  repos       => "main",
+  include_src => false,
+  before      => Class[razor]
+}
+'
+else
+  raise "***** UNKNOWN INSTALL MODE [#{ENV['INSTALL_MODE'].inspect}] *****"
+end
+
+
 step "install razor modules"
 # Find the package, and ensure we only have one!
 require 'pathname'
@@ -25,13 +52,16 @@ while test -n \"${module}\"; do
     module=\"#{next_missing}\"
 done"
 
-step "configure razor"
-on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %q'
+step "configure razor, installing from #{source}"
+on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %Q'
+#{repo}
+
 class { sudo:
     config_file_replace => false,
 }
 
 class { razor:
+  source    => #{source},
   username  => razor,
   mk_source => "https://github.com/downloads/puppetlabs/Razor-Microkernel/rz_mk_prod-image.0.9.0.4.iso",
 }
@@ -47,3 +77,7 @@ on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %q'
   package { [rake, rspec, mocha, net-ssh]: ensure => installed, provider => gem }
   package { curl: ensure => installed }
 '
+
+# check if we already have the spec files on the machine
+step "copy the spec tests from git to the test host"
+scp_to(hosts('razor-server'), "#{ENV['WORKSPACE']}/spec", '/opt/razor')
