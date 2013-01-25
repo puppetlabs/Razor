@@ -16,7 +16,7 @@ apt::key { "internal-packages":
 
 apt::source { "internal-packages":
   location    => "http://neptune.puppetlabs.lan/dev/razor/deb",
-  release     => ${lsbdistcodename},
+  release     => $lsbdistcodename,
   repos       => "main",
   include_src => false,
   before      => Class[razor]
