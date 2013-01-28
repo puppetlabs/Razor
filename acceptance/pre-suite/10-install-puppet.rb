@@ -45,7 +45,9 @@ function rpm_install() {
 
 function apt_install() {
   # Download and install the puppetlabs apt public
-  apt-key adv --recv-key --keyserver pool.sks-keyservers.net 4BD6EC30
+  apt-key adv --recv-key --keyserver pool.sks-keyservers.net 4BD6EC30 || \
+    apt-key adv --recv-key --keyserver pgp.mit.edu 4BD6EC30 || \
+      apt-key adv --recv-key --keyserver keyserver.pgp.com 4BD6EC30
 
   # We need to grab the distro and release in order to populate
   # the apt repo details. We are assuming that the lsb_release command
