@@ -43,6 +43,8 @@ for file in <%= @files.join(' ') %>; do
   cp -pr "${file}" %{buildroot}/opt/razor/"${file}"
 done
 
+install -Dp -m0755 %{confdir}/puppet-razor.init %{buildroot}%{_initrddir}/puppet-razor
+
 
 %clean
 rm -rf %{buildroot}
@@ -50,9 +52,9 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-/opt/razor
 %doc LICENSE README.md CONTRIBUTING.md
-
+/opt/razor
+%{_initrddir}/puppet-razor
 
 %changelog
 * <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  1:<%= @rpmversion %>-<%= @rpmrelease %>

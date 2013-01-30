@@ -1,0 +1,32 @@
+#! /bin/sh
+#
+# <%= @name %> <%= @summary %>
+#
+# chkconfig:   2345 99 01
+# description: <description, split multiple lines with \
+#              a backslash>
+
+### BEGIN INIT INFO
+# Provides:          puppet-razor
+# Required-Start:    $network $named $remote_fs $syslog
+# Required-Stop:     $network $named $remote_fs $syslog
+# Should-Start:      
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: <%= @summary %>
+# Description: <%= desc = @description.split(/\n/); desc.shift %>
+<%= desc.map {|x| "#     " + x }.join("\n") %>
+### END INIT INFO
+
+PATH=/opt/razor/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/opt/razor/bin/razor_daemon.rb
+NAME=razor
+DESC="Puppet Razor provisioning server"
+PIDFILE="/opt/razor/${NAME}.pid"
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+# We can just delegate all our operations to the Ruby wrapper script.
+exec $DAEMON "$@"
