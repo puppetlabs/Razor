@@ -44,7 +44,7 @@ step "Ensure we fail to install the package!"
 # in 3.0.2 ralsh kinda sucks: http://projects.puppetlabs.com/issues/18937
 # --daniel 2013-01-28
 on razor, puppet_resource('package', 'puppet-razor', 'ensure=latest') do
-  unless stdout =~ /ensure => 'absent'/ or stderr =~ /ensure => 'absent'/ then
+  unless (stdout + stderr) =~ /ensure => '(absent|purged)'/ then
     fail_test("I guess maybe we installed something when we shouldn't have, maybe?")
   end
 end
