@@ -234,7 +234,7 @@ module ProjectRazor
         key = options[:key]
         compare = options[:compare]
         value = options[:value]
-        inverse = (options[:invert] == nil ? "false" : options[:invert])
+        inverse = (options[:inverse] == nil ? "false" : options[:inverse])
 
         # check the values that were passed in
         tagrule = get_object("tagrule_with_uuid", :tag, tagrule_uuid)
@@ -265,17 +265,17 @@ module ProjectRazor
         key = options[:key]
         compare = options[:compare]
         value = options[:value]
-        invert = options[:invert]
+        inverse = options[:inverse]
 
         # check the values that were passed in
         matcher, tagrule = find_matcher(matcher_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot find Tag Matcher with UUID [#{matcher_uuid}]" unless matcher
         raise ProjectRazor::Error::Slice::MissingArgument, "Option for --compare must be [equal|like]" unless !compare || compare == "equal" || compare == "like"
-        raise ProjectRazor::Error::Slice::MissingArgument, "Option for --invert must be [true|false]" unless !invert || invert == "true" || invert == "false"
+        raise ProjectRazor::Error::Slice::MissingArgument, "Option for --inverse must be [true|false]" unless !inverse || inverse == "true" || inverse == "false"
         matcher.key = key if key
         matcher.compare = compare if compare
         matcher.value = value if value
-        matcher.inverse = invert if invert
+        matcher.inverse = inverse if inverse
         if tagrule.update_self
           print_object_array([matcher], "Tag Matcher updated [#{matcher.uuid}]\nTag Rule:", :success_type => :updated)
         else
