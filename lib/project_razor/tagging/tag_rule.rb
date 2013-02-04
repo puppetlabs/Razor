@@ -27,7 +27,7 @@ module ProjectRazor
       # Remove symbols, whitespace, junk from tags
       # tags are alphanumeric mostly (with the exception of '%, =, -, _')
       def sanitize_tag(in_tag)
-        in_tag.gsub(/[^\w%=-\\+]+/,"")
+        in_tag.gsub(/[^\w%=\-\\+]+/,"")
       end
 
       # Used for parsing tag metanaming vars
