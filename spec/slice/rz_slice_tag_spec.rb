@@ -101,7 +101,7 @@ describe "ProjectRazor::Slice::Tag" do
       json_hash["key"] = "hostname"
       json_hash["value"] = "nick01"
       json_hash["compare"] = "equal"
-      json_hash["invert"] = "false"
+      json_hash["inverse"] = "false"
       json_string = JSON.generate(json_hash)
       res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
       res.class.should == Net::HTTPCreated
@@ -118,7 +118,7 @@ describe "ProjectRazor::Slice::Tag" do
       json_hash["key"] = "ip_address"
       json_hash["value"] = 'regex:^192.168.1.1[0-9][0-9]$'
       json_hash["compare"] = "like"
-      json_hash["invert"] = "true"
+      json_hash["inverse"] = "true"
       json_string = JSON.generate(json_hash)
       res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
       res.class.should == Net::HTTPCreated
@@ -160,7 +160,7 @@ describe "ProjectRazor::Slice::Tag" do
       matcher_hash = response_hash['response'].first
       matcher_hash['@key'].should == "changed"
       json_hash = {}
-      json_hash = {"value" => "newname", "compare" => "like", "invert" => "true"}
+      json_hash = {"value" => "newname", "compare" => "like", "inverse" => "true"}
       json_string = JSON.generate(json_hash)
       request = Net::HTTP::Put.new(uri.request_uri)
       request.set_form_data('json_hash' => json_string)
@@ -272,7 +272,7 @@ describe "ProjectRazor::Slice::Tag" do
       json_hash["@key"] = "hostname"
       json_hash["@value"] = "rspechost"
       json_hash["@compare"] = "like"
-      json_hash["@invert"] = "false"
+      json_hash["@inverse"] = "false"
       json_string = JSON.generate(json_hash)
       res = Net::HTTP.post_form(uri, 'json_hash' => json_string)
       json_hash = {}
@@ -280,7 +280,7 @@ describe "ProjectRazor::Slice::Tag" do
       json_hash["@key"] = "ip address"
       json_hash["@value"] = '192\.168\.13\.1[6][0-9]'
       json_hash["@compare"] = "like"
-      json_hash["@invert"] = "false"
+      json_hash["@inverse"] = "false"
       json_string = JSON.generate(json_hash)
       Net::HTTP.post_form(uri, 'json_hash' => json_string)
 
@@ -306,7 +306,7 @@ describe "ProjectRazor::Slice::Tag" do
       json_hash["@key"] = "secure"
       json_hash["@value"] = 'true'
       json_hash["@compare"] = "like"
-      json_hash["@invert"] = "true"
+      json_hash["@inverse"] = "true"
       json_string = JSON.generate(json_hash)
       Net::HTTP.post_form(uri, 'json_hash' => json_string)
 
