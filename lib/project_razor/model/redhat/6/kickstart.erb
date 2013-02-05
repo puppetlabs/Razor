@@ -31,6 +31,8 @@ reboot
 %end
 
 %post --log=/root/razor-post.log
-cd /root
 curl <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/kickstart/end
+curl -o /tmp/razor_postinstall.sh <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/postinstall/inject
+echo bash /tmp/razor_postinstall.sh >> /etc/rc.local
+chmod +x /tmp/razor_postinstall.sh
 ############
