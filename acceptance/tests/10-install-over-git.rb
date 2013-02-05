@@ -27,16 +27,15 @@ end
 # option; while installation is still so full of random "install from
 # upstream" bits, we have to run the full module to get a sane install.
 step "install razor from git"
-on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %Q'
-class { sudo:
-    config_file_replace => false,
-}
+mk_url = if ENV['INSTALL_MODE'] == 'internal-packages' then
+           "http://neptune.puppetlabs.lan/dev/razor/iso/#{ENV['ISO_VERSION']}/razor-microkernel-latest.iso"
+         else
+           "https://github.com/downloads/puppetlabs/Razor-Microkernel/rz_mk_prod-image.0.9.0.4.iso"
+         end
 
-class { razor:
-  source    => git,
-  username  => razor,
-  mk_source => "https://github.com/downloads/puppetlabs/Razor-Microkernel/rz_mk_prod-image.0.9.0.4.iso",
-}
+on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %Q'
+class { sudo: config_file_replace => false }
+class { razor: source => git, username => razor, mk_source => "#{mk_url}" }
 '
 
 step "Ensure we fail to install the package!"
