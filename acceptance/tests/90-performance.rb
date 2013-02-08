@@ -36,7 +36,13 @@ def add_image(args = {})
 end
 
 step "Add OS images to Razor"
-mk     = add_image(:type => 'mk', :url => "https://github.com/downloads/puppetlabs/Razor-Microkernel/rz_mk_prod-image.0.9.1.6.iso")
+mk_url = if ENV['INSTALL_MODE'] == 'internal-packages' then
+           "http://neptune.puppetlabs.lan/dev/razor/iso/#{ENV['isoversion']}/#{ENV['mkflavour']}/razor-microkernel-latest.iso"
+         else
+           "https://downloads.puppetlabs.com/razor/builds/iso/${ENV['mkflavour'] || 'prod'}/razor-microkernel-latest.iso"
+         end
+
+mk     = add_image(:type => 'mk', :url => mk_url)
 esxi   = add_image(:type => 'esxi', :url => "http://faro.puppetlabs.lan/Software/VMware/VMware-VMvisor-Installer-5.0.0-469512.x86_64.iso")
 ubuntu = add_image(:type => 'os', :name => 'ubuntu', :version => '1204', :url => "http://faro.puppetlabs.lan/ISO/Ubuntu/ubuntu-12.04-server-amd64.iso")
 
