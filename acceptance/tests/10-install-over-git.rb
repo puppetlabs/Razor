@@ -28,7 +28,7 @@ end
 # upstream" bits, we have to run the full module to get a sane install.
 step "install razor from git"
 mk_url = if ENV['INSTALL_MODE'] == 'internal-packages' then
-           "http://neptune.puppetlabs.lan/dev/razor/iso/#{ENV['isoversion']}/#{ENV['mkflavour']}/razor-microkernel-latest.iso"
+           "http://neptune.puppetlabs.lan/dev/razor/iso/#{ENV['isobuild']}/#{ENV['mkflavour']}/razor-microkernel-latest.iso"
          else
            "https://downloads.puppetlabs.com/razor/builds/iso/${ENV['mkflavour'] || 'prod'}/razor-microkernel-latest.iso"
          end

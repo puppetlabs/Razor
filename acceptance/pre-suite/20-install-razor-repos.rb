@@ -30,12 +30,12 @@ if ENV['INSTALL_MODE'] == 'internal-packages' then
   on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %Q'
 apt::key { "internal-packages":
   key        => "27D8D6F1",
-  key_source => "http://neptune.puppetlabs.lan/dev/razor/deb/#{ENV['debversion']}/pubkey.gpg",
+  key_source => "http://neptune.puppetlabs.lan/dev/razor/deb/#{ENV['debbuild']}/pubkey.gpg",
   before     => Apt::Source["internal-packages"]
 }
 
 apt::source { "internal-packages":
-  location    => "http://neptune.puppetlabs.lan/dev/razor/deb/#{ENV['debversion']}",
+  location    => "http://neptune.puppetlabs.lan/dev/razor/deb/#{ENV['debbuild']}",
   release     => $lsbdistcodename,
   repos       => "main",
   include_src => false
