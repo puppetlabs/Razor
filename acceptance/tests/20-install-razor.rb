@@ -11,7 +11,7 @@ step "install razor"
 mk_url = if ENV['INSTALL_MODE'] == 'internal-packages' then
            "http://neptune.puppetlabs.lan/dev/razor/iso/#{ENV['isobuild']}/#{ENV['mkflavour']}/razor-microkernel-latest.iso"
          else
-           "https://downloads.puppetlabs.com/razor/builds/iso/${ENV['mkflavour'] || 'prod'}/razor-microkernel-latest.iso"
+           "https://downloads.puppetlabs.com/razor/builds/iso/#{ENV['mkflavour'] || 'prod'}/razor-microkernel-latest.iso"
          end
 
 on hosts('razor-server'), puppet_apply("--verbose"), :stdin => %Q'

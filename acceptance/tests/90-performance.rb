@@ -39,7 +39,7 @@ step "Add OS images to Razor"
 mk_url = if ENV['INSTALL_MODE'] == 'internal-packages' then
            "http://neptune.puppetlabs.lan/dev/razor/iso/#{ENV['isobuild']}/#{ENV['mkflavour']}/razor-microkernel-latest.iso"
          else
-           "https://downloads.puppetlabs.com/razor/builds/iso/${ENV['mkflavour'] || 'prod'}/razor-microkernel-latest.iso"
+           "https://downloads.puppetlabs.com/razor/builds/iso/#{ENV['mkflavour'] || 'prod'}/razor-microkernel-latest.iso"
          end
 
 mk     = add_image(:type => 'mk', :url => mk_url)
