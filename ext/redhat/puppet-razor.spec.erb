@@ -13,6 +13,7 @@ Group:          System Environment/Base
 URL:            http://www.puppetlabs.com/puppet/related-projects/%{name}
 # Note this     URL will only be valid at official tags from Puppet Labs
 Source0:        http://puppetlabs.com/downloads/%{name}/%{name}-%{realversion}.tar.gz
+BuildArch:      noarch
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -82,5 +83,5 @@ rm -rf %{buildroot}
 %{_initrddir}/puppet-razor
 
 %changelog
-* <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  1:<%= @rpmversion %>-<%= @rpmrelease %>
+* <%= Time.now.strftime("%a %b %d %Y") %> Puppet Labs Release <info@puppetlabs.com> -  <%= @rpmversion %>-<%= @rpmrelease %>
 - Build for <%= @version %>
