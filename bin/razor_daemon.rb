@@ -118,7 +118,7 @@ class RazorDaemon < ProjectRazor::Object
 
   # used to obtain a copy of the Razor configuration
   def get_config
-    resp = %x[#{BIN_DIR}/razor -w config]
+    resp = %x[#{BIN_DIR}/razor -j config]
     JSON.parse(resp)
   end
 
