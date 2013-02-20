@@ -1,9 +1,16 @@
 #!/bin/bash
 
+# Wait for network to come up when using NetworkManager.
+if service NetworkManager status >/dev/null 2>&1 && type -P nm-online; then
+    nm-online -q --timeout=10 || nm-online -q -x --timeout=30
+    [ "$?" -eq 0 ] || exit 1
+fi
+
+# Configure hostname.
 hostname <%= hostname %>
 echo <%= hostname %> > /etc/hostname
 
-# this set of commands should convert the first local (but non-loopback) IP
+# This set of commands should convert the first local (but non-loopback) IP
 # address in the /etc/hosts file to an entry that has the fully-qualified
 # hostname and local hostname as part of the entry (so that tehse names can
 # be resolved properly). A backup of the original file will be left in place
