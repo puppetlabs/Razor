@@ -1,11 +1,22 @@
 Testing the Razor project
 -------------------------
 
-At the moment we have no real unit tests, just the acceptance tests.
-Worse luck, those are fairly heavily tied to the Puppet Labs acceptance test
-suite, so are not as easy to get going as you would like.
+There are two collections of tests in the Razor project, our unit tests, and the acceptance tests.
 
-You can run the rspec suite - it is acceptance level - though:
+## Unit Tests
+
+The unit test suite is kind of incomplete right now - most of it is
+placeholders that do nothing beyond a syntax check.  You should still run it
+before you submit something, though, since it is better than no checking.
+
+To run that:
+
+    rspec spec  # whee!
+
+
+## Acceptance Tests
+
+You can run the acceptance rspec suite fairly easily:
 
 1. Install `MongoDB` and have it running.
 2. Install `nodejs` and `npm`.
@@ -13,11 +24,12 @@ You can run the rspec suite - it is acceptance level - though:
 4. Install the required gems.  (See [the Puppet module for details, again](https://github.com/puppetlabs/puppetlabs-razor/blob/master/manifests/ruby.pp))
 5. Make sure you don't care about your data!  This will **DESTROY** the Razor database!
 6. Start razor with `/opt/razor/bin/razor_daemons.rb start`
-7. Run `rspec spec`
+7. Run `rspec acceptance/spec`
 
-If you want to use our acceptance suite, which saves you destroying your local
-data, you are welcome to.  It is not totally trivial to get working, but
-should be possible even outside our staff.
+If you want to use our full acceptance suite, which saves you destroying your
+local data, and provides a bunch of valuable additional testing you are
+welcome to.  It is not totally trivial to get working, but should be possible
+even outside our offices:
 
 1. Get a copy of the Razor git repo.  (`$REPO` will represent that in future.)
 2. Get a copy of the [puppet-acceptance](https://github.com/puppetlabs/puppet-acceptance) git repository.
@@ -29,4 +41,5 @@ should be possible even outside our staff.
 8. Put that as the *only* tarball in `$REPO/pkg`
 9. Run something akin it `cd $REPO && WORKSPACE=$REPO ../puppet-acceptance/systest.rb --vmrun fusion -c local-acceptance.cfg --type manual -t acceptance --debug`
 
-That *should* go through, build, and test everything for you.
+That *should* go through, build, and test everything for you.  Ask on the mailing list if it isn't sufficient to get a test run going.
+

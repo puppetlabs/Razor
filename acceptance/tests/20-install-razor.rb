@@ -25,4 +25,4 @@ on hosts('razor-server'), "/opt/razor/bin/razor_daemon.rb status" do
 end
 
 step "copy the spec tests from git to the test host"
-scp_to(hosts('razor-server'), "#{ENV['WORKSPACE']}/spec", '/opt/razor')
+scp_to(hosts('razor-server'), "#{ENV['WORKSPACE']}/acceptance/spec", '/opt/razor')
