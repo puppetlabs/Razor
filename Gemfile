@@ -9,6 +9,9 @@ gem 'require_all'
 gem 'json',        '>= 1.7.7'
 gem 'net-ssh'
 gem 'mongo'
+gem 'pg'
+gem 'daemons'
+gem 'logger'
 
 group :test do
   gem 'rspec',              '>= 2.13.0'
