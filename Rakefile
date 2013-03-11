@@ -1,43 +1,46 @@
 require 'rubygems'
 require 'rake'
-require 'rspec/core/rake_task'
 require 'yaml'
 require 'pathname'
 
+begin
+  require 'rspec/core/rake_task'
+rescue LoadError
+end
 
 task :default do
   system("rake -T")
 end
 
-task :specs => [:spec]
+if defined?(RSpec::Core::RakeTask)
+  task :specs => [:spec]
 
-desc "Run all rspec tests"
-RSpec::Core::RakeTask.new(:spec) do |t|
-  t.rspec_opts = ['--color']
-  # ignores fixtures directory.
-  t.pattern = 'spec/**/*_spec.rb'
+  desc "Run all rspec tests"
+  RSpec::Core::RakeTask.new(:spec) do |t|
+    t.rspec_opts = ['--color']
+    # ignores fixtures directory.
+    t.pattern = 'spec/**/*_spec.rb'
+  end
+
+  task :specsdb => [:specdb]
+
+  desc "Run all rspec Persistence tests"
+  RSpec::Core::RakeTask.new(:specdb) do |t|
+    t.rspec_opts = ['--color']
+    # ignores fixtures directory.
+    t.pattern = 'spec/persist/*_spec.rb'
+  end
+
+  task :specs_html => [:spec_html]
+
+  desc "Run all rspec tests with html output"
+  RSpec::Core::RakeTask.new(:spec_html) do |t|
+    fpath = "#{ENV['RAZOR_RSPEC_WEBPATH']||'.'}/razor_tests.html"
+    t.rspec_opts = ['--color', '--format h', "--out #{fpath}"]
+    # ignores fixtures directory.
+    t.pattern = 'spec/**/*_spec.rb'
+  end
 end
-
-task :specsdb => [:specdb]
-
-desc "Run all rspec Persistence tests"
-RSpec::Core::RakeTask.new(:specdb) do |t| 
-  t.rspec_opts = ['--color']
-  # ignores fixtures directory.
-  t.pattern = 'spec/persist/*_spec.rb'
-end
-
-task :specs_html => [:spec_html]
-
-desc "Run all rspec tests with html output"
-RSpec::Core::RakeTask.new(:spec_html) do |t|
-  fpath = "#{ENV['RAZOR_RSPEC_WEBPATH']||'.'}/razor_tests.html"
-  t.rspec_opts = ['--color', '--format h', "--out #{fpath}"]
-  # ignores fixtures directory.
-  t.pattern = 'spec/**/*_spec.rb'
-end
-
-
 
 # Puppet Labs packaging automation support infrastructure.
 Dir['ext/packaging/tasks/**/*.{rb,rake}'].sort.each{|task| load task }
