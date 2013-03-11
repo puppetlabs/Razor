@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#   XenServer Post Install Script
+#
+# This script is executed at the end of the XenServer installation before reboot.
+
+# Retrieves the firstboot script and sets it to execute on the firstboot
+wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/postinstall/inject -O /tmp/root/etc/firstboot.d/95-custom-firstboot
+chmod +x /tmp/root/etc/firstboot.d/95-custom-firstboot

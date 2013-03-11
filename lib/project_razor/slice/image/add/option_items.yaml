@@ -3,7 +3,7 @@
   :default:
   :short_form: -t
   :long_form: --type TYPE
-  :description: The type of image (mk, os, or esxi)
+  :description: The type of image (mk, os, esxi, or xenserver)
   :uuid_is: not_allowed
   :required: true
 - :name: :path

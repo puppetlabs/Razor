@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+#   XenServer Firstboot Script
+#
+# Downloaded by postinstall script, used for automation during firstboot of XenServer
+wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/postinstall/end

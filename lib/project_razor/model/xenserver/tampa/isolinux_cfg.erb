@@ -1,0 +1,11 @@
+DEFAULT install
+PROMPT 1
+TIMEOUT 50
+DISPLAY pg_main
+F1 pg_main
+F2 pg_help
+
+LABEL install
+        KERNEL <%= "#{image_svc_uri}/#{@image_uuid}" %>/boot/pxelinux/mboot.c32
+        APPEND <%= "#{image_svc_uri}/#{@image_uuid}" %>/boot/xen.gz dom0_max_vcpus=1-2 dom0_mem=max:752M com1=115200,8n1 console=com1,vga --- <%= "#{image_svc_uri}/#{@image_uuid}" %>/boot/vmlinuz xencons=hvc console=hvc0 console=tty0 answerfile=<%= "#{api_svc_uri}/policy/callback/#{policy_uuid}/xenserverinstall_xml/file" %> install --- <%= "#{image_svc_uri}/#{@image_uuid}" %>/install.img
+

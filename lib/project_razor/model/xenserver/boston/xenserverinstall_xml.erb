@@ -1,0 +1,21 @@
+<installation mode="fresh" srtype="ext">
+<primary-disk gueststorage="yes">sda</primary-disk>
+<network-backend>openvswitch</network-backend>
+<keymap>us</keymap>
+<hostname><%= hostname %></hostname>
+<root-password><%= @root_password %></root-password>
+<source type="url">http://<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/xenserver/<%= @image_uuid %></source>
+<admin-interface name="eth0" proto="static">
+<ip><%= node_ip_address %></ip>
+<subnet-mask><%= @ip_range_subnet %></subnet-mask>
+<gateway><%= @gateway %></gateway>
+</admin-interface>
+<nameserver><%= @nameserver %></nameserver>
+<timezone>Central</timezone>
+<script stage="filesystem-populated" type="url">
+<%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/xenserverinstall_xml/end
+</script>
+<script stage="installation-complete" type="url">
+<%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/postinstall/download
+</script>
+</installation>

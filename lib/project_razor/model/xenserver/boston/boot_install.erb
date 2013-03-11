@@ -1,0 +1,11 @@
+#!ipxe
+echo Razor <%= @label %> model boot_call
+echo Installation node UUID : <%= node.uuid %>
+echo Installation image UUID: <%= @image_uuid %>
+echo Active Model node state: <%= @current_state %>
+
+sleep 3
+set 210:string  <%= "#{image_svc_uri}/#{@image_uuid}" %> || goto error 
+set 209:string  <%= "#{pxelinuxconfigfile_path}" %> || goto error
+imgfetch <%= "#{image_svc_uri}/#{@image_uuid}/#{pxelinux_path}" %> || goto error
+boot <%= "#{pxelinuxbin}" %> || goto error

@@ -86,7 +86,10 @@ module ProjectRazor
                                :method => "add_os"},
                        :esxi => {:desc => "VMware Hypervisor ISO",
                                  :classname => "ProjectRazor::ImageService::VMwareHypervisor",
-                                 :method => "add_esxi"}}
+                                 :method => "add_esxi"},
+                       :xenserver => {:desc => "XenServer Hypervisor ISO",
+                               :classname => "ProjectRazor::ImageService::XenServerHypervisor",
+                               :method => "add_xenserver"}}
 
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
@@ -139,6 +142,11 @@ module ProjectRazor
       end
 
       def add_esxi(new_image, iso_path, image_svc_path)
+        puts "Attempting to add, please wait...".green
+        new_image.add(iso_path, image_svc_path, nil)
+      end
+
+      def add_xenserver(new_image, iso_path, image_svc_path)
         puts "Attempting to add, please wait...".green
         new_image.add(iso_path, image_svc_path, nil)
       end
