@@ -12,9 +12,10 @@
 require 'rubygems'
 require 'daemons'
 require 'json'
+require 'pathname'
 
 # add our the Razor lib path to the load path. This is for non-gem ease of use
-bin_dir = File.dirname(File.expand_path(__FILE__))
+bin_dir = Pathname(__FILE__).realpath.dirname.to_s
 lib_path = bin_dir.sub(/\/bin$/,"/lib")
 $LOAD_PATH.unshift(lib_path)
 # We require the root lib
@@ -110,7 +111,7 @@ end
 class RazorDaemon < ProjectRazor::Object
   include Singleton
 
-  BIN_DIR = File.dirname(File.expand_path(__FILE__))
+  BIN_DIR = Pathname(__FILE__).realpath.dirname.to_s
   NODE_COMMAND = %x[which nodejs || which node].strip
   NODE_INSTANCE_NAMES = %W[api.js image_svc.js]
   NODE_COMMAND_MAP = { 'api.js' => "#{NODE_COMMAND} #{BIN_DIR}/api.js",

@@ -5,8 +5,8 @@
 #
 
 # We first add our Lib path to the load path. This is for non-gem ease of use
-lib_path = File.dirname(File.expand_path(__FILE__)).sub(/\/bin$/,"/lib")
-$LOAD_PATH.unshift(lib_path)
+require 'pathname'
+$LOAD_PATH.unshift((Pathname(__FILE__).realpath.dirname + '../lib').cleanpath.to_s)
 
 require 'rubygems' if RUBY_VERSION < '1.9'
 require 'project_razor/cli'
