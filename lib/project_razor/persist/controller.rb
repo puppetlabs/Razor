@@ -60,8 +60,8 @@ module ProjectRazor
 
       # Connect to database using ProjectRazor::Persist::Database::Plugin loaded
       def connect_database
-        logger.debug "Connecting to database(#{@config.persist_host}:@config.persist_port) with timeout(#{@config.persist_timeout})"
-        @database.connect(@config.persist_host, @config.persist_port, @config.persist_timeout)
+        logger.debug "Connecting to database(#{@config.persist_username}#{@config.persist_host}:#{@config.persist_port}) with timeout(#{@config.persist_timeout})"
+        @database.connect(@config.persist_host, @config.persist_port, @config.persist_username, @config.persist_password, @config.persist_timeout)
       end
 
 

@@ -27,14 +27,16 @@ module ProjectRazor
       #
       # @param hostname DNS name or IP-address of host
       # @param port [Integer] Port number to use when connecting to the host
+      # @param username [String] Username that will be used to authenticate to the host
+      # @param password [String] Password that will be used to authenticate to the host
       # @param timeout [Integer] Connection timeout
       # @return [Boolean] Connection status
       #
-      def connect(hostname, port, timeout)
-        logger.debug "Connecting to PostgreSQL (#{hostname}:#{port}) with timeout (#{timeout})"
+      def connect(hostname, port, username, password, timeout)
+        logger.debug "Connecting to PostgreSQL (#{username}@#{hostname}:#{port}) with timeout (#{timeout})"
         dbname = "project_razor"
         begin
-          @connection = PG::Connection.new(:host => hostname, :port => port, :connect_timeout => timeout, :dbname => dbname)
+          @connection = PG::Connection.new(:host => hostname, :port => port, :connect_timeout => timeout, :dbname => dbname, :user => username, :password => password)
         rescue PG::Error => e
           if e.message.include? 'database "' + dbname + '" does not exist'
             @connection = create_database(hostname, port, dbname, timeout)
@@ -86,9 +88,10 @@ module ProjectRazor
       # @return [Hash] or nil if the object cannot be found
       #
       def object_doc_get_by_uuid(object_doc, collection_name)
+        uuid = object_doc['@uuid']
         statement_name = "one:#{collection_name}"
         if @statements.add?(statement_name)
-          prepare_on_collection(statement_name, collection_name, 'SELECT value::varchar FROM ' + table_for_collection(collection_name) + ' WHERE id = $1::uuid')
+          prepare_on_collection(statement_name, collection_name, 'SELECT value::varchar FROM ' + table_for_collection(collection_name) + ' WHERE id = $1::' + id_type_for(collection_name).downcase)
         end
         hits = exec_select_on_collection(statement_name, [unpack_uuid(uuid)])
         return hits.count == 0 ? nil : hits[0]
@@ -137,7 +140,7 @@ module ProjectRazor
       def object_doc_remove(object_doc, collection_name)
         statement_name = "delete:#{collection_name}"
         if @statements.add?(statement_name)
-          prepare_on_collection(statement_name, collection_name, 'DELETE FROM ' + table_for_collection(collection_name) + ' WHERE id = $1::uuid')
+          prepare_on_collection(statement_name, collection_name, 'DELETE FROM ' + table_for_collection(collection_name) + ' WHERE id = $1::' + id_type_for(collection_name))
         end
         result = nil
         transaction {|conn| result = conn.exec_prepared(statement_name, [unpack_uuid(object_doc['@uuid'])])}
@@ -175,18 +178,20 @@ module ProjectRazor
       #
       # @param hostname DNS name or IP-address of host
       # @param port [Integer] Port number to use when connecting to the host
+      # @param username [String] Username that will be used to authenticate to the host
+      # @param password [String] Password that will be used to authenticate to the host
       # @param dbname Name of the database
       # @param timeout [Integer] Connection timeout
       # @return [PG::Connection] A connection to the new database
       #
-      def create_database(hostname, port, dbname, timeout)
-        pg_conn = PG::Connection.new(:host => hostname, :port => port, :connect_timeout => timeout, :dbname => "postgres")
+      def create_database(hostname, port, username, password, dbname, timeout)
+        pg_conn = PG::Connection.new(:host => hostname, :port => port, :connect_timeout => timeout, :dbname => "postgres", :user => username, :password => password)
         begin
           pg_conn.exec('CREATE DATABASE ' + dbname)
         ensure
           pg_conn.close
         end
-        PG::Connection.new(:host => hostname, :port => port, :connect_timeout => timeout, :dbname => dbname)
+        PG::Connection.new(:host => hostname, :port => port, :connect_timeout => timeout, :dbname => dbname, :user => username, :password => password)
       end
 
       # If the version is 0, then fetch the record from the table associated with the 'collection_name'. If
@@ -202,13 +207,15 @@ module ProjectRazor
       # @return The updated document (with new version)
       #
       def insert_or_update(conn, object_doc, collection_name)
-        if object_doc['@version'] == 0
+        encoded_object_doc = Utility.encode_symbols_in_hash(object_doc)
+
+        if encoded_object_doc['@version'] == 0 || collection_name == :active
           # obtain the version if possible
-          version = table_fetch_version(conn, object_doc['@uuid'], collection_name)
-          return table_insert(conn, object_doc, collection_name) if version === nil
-          object_doc['@version'] = version
+          version = table_fetch_version(conn, encoded_object_doc['@uuid'], collection_name)
+          return table_insert(conn, encoded_object_doc, collection_name) if version === nil
+          encoded_object_doc['@version'] = version
         end
-        table_update(conn, object_doc, collection_name)
+        table_update(conn, encoded_object_doc, collection_name)
       end
 
       # Fetch the current version for the given 'uuid' from the collection named 'collection_name'
@@ -285,7 +292,7 @@ module ProjectRazor
       #
       def exec_select_on_collection(statement_name, params)
         @connection.exec_prepared(statement_name, params, 0).collect do
-          | row | JSON.parse!(row['value'])
+          | row | Utility.decode_symbols_in_hash(JSON.parse!(row['value']))
         end
       end
 
@@ -302,7 +309,7 @@ module ProjectRazor
             return @connection.prepare(statement_name, statement)
           rescue PG::Error => e
             if sqlstate(e) == SQLSTATE_NO_SUCH_TABLE
-              @connection.exec('CREATE TABLE ' + table_for_collection(collection_name) + '(id UUID PRIMARY KEY NOT NULL, version INTEGER NOT NULL, value VARCHAR NOT NULL)')
+              @connection.exec('CREATE TABLE ' + table_for_collection(collection_name) + "(id #{id_type_for(collection_name)} PRIMARY KEY NOT NULL, version INTEGER NOT NULL, value VARCHAR NOT NULL)")
               return @connection.prepare(statement_name, statement)
             else
               raise e
@@ -322,6 +329,8 @@ module ProjectRazor
       # @return base62 encoded UUID
       #
       def pack_uuid(uuid)
+        return uuid if uuid == "policy_table"
+
         compressed = uuid.gsub!(/^(\h{8})-?(\h{4})-?(\h{4})-?(\h{4})-?(\h{12})$/, '\1\2\3\4\5')
         if compressed === nil
           raise ArgumentError.new('Not a valid UUID: "' + uuid + '"')
@@ -336,16 +345,17 @@ module ProjectRazor
       #
       def ensure_prepared_update_statements(collection_name)
         statement_name = "version:#{collection_name}"
+        id_type = id_type_for(collection_name).downcase
         if @statements.add?(statement_name)
-          prepare_on_collection(statement_name, collection_name, 'SELECT version::int FROM ' + table_for_collection(collection_name) + ' WHERE id = $1::uuid')
+          prepare_on_collection(statement_name, collection_name, 'SELECT version::int FROM ' + table_for_collection(collection_name) + ' WHERE id = $1::' + id_type)
         end
         statement_name = "update:#{collection_name}"
         if @statements.add?(statement_name)
-          prepare_on_collection(statement_name, collection_name, 'UPDATE ' + table_for_collection(collection_name) + ' SET version = version + 1, value = $3::varchar WHERE id = $1::uuid AND version = $2::int')
+          prepare_on_collection(statement_name, collection_name, 'UPDATE ' + table_for_collection(collection_name) + ' SET version = version + 1, value = $3::varchar WHERE id = $1::' + id_type + ' AND version = $2::int')
         end
         statement_name = "insert:#{collection_name}"
         if @statements.add?(statement_name)
-          prepare_on_collection(statement_name, collection_name, 'INSERT INTO ' + table_for_collection(collection_name) + ' (id, version, value) VALUES ($1::uuid, 1, $2::varchar)')
+          prepare_on_collection(statement_name, collection_name, 'INSERT INTO ' + table_for_collection(collection_name) + ' (id, version, value) VALUES ($1::' + id_type + ', 1, $2::varchar)')
         end
         nil
       end
@@ -357,6 +367,8 @@ module ProjectRazor
       # @return expanded UUID
       #
       def unpack_uuid(base62_encoded_uuid)
+        return base62_encoded_uuid if base62_encoded_uuid == "policy_table"
+
         hex = base62_encoded_uuid.base62_decode().to_s(16).rjust(32,'0')
         hex[0,8] + '-' + hex[8,4] + '-' + hex[12,4] + '-' + hex[16,4] + '-' + hex[20,12]
       end
@@ -376,6 +388,10 @@ module ProjectRazor
           raise "DB appears to be down"
         end
         nil
+      end
+
+      def id_type_for(collection_name)
+        collection_name == :policy_table ? "VARCHAR" : "UUID"
       end
     end
   end

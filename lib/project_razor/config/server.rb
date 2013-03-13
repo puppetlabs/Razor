@@ -16,6 +16,8 @@ module ProjectRazor
       attr_accessor :persist_mode
       attr_accessor :persist_host
       attr_accessor :persist_port
+      attr_accessor :persist_username
+      attr_accessor :persist_password
       attr_accessor :persist_timeout
 
       attr_accessor :admin_port
@@ -69,6 +71,8 @@ module ProjectRazor
         @persist_mode = :mongo
         @persist_host = "127.0.0.1"
         @persist_port = 27017
+        @persist_username = ""
+        @persist_password = ""
         @persist_timeout = 10
 
         @admin_port = 8025

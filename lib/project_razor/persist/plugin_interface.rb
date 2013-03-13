@@ -17,10 +17,12 @@ module ProjectRazor
       #
       # @param hostname [String] DNS name or IP-address of host
       # @param port [Integer] Port number to use when connecting to the host
+      # @param username [String] Username that will be used to authenticate to the host
+      # @param password [String] Password that will be used to authenticate to the host
       # @param timeout [Integer] Connection timeout
       # @return [Boolean] Connection status
       #
-      def connect(hostname, port, timeout)
+      def connect(hostname, port, username, password, timeout)
         raise NotImplementedError
       end
 
