@@ -265,7 +265,7 @@ module ProjectRazor
       end
 
       def config
-        get_data.config
+        ProjectRazor.config
       end
 
       def image_svc_uri

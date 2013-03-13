@@ -23,7 +23,7 @@ module ProjectRazor
         super(args)
         @hidden = false
         @slice_name = "Bmc"
-        config = get_data.config
+        config = ProjectRazor.config
         @ipmi_username = config.default_ipmi_username
         @ipmi_password = config.default_ipmi_password
 

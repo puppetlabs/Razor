@@ -33,10 +33,10 @@ module ProjectRazor
       def read_config
         setup_data
         if @web_command # is this a web command
-          print @data.config.to_hash.to_json
+          print ProjectRazor.config.to_hash.to_json
         else
           puts "ProjectRazor Config:"
-          @data.config.to_hash.each do
+          ProjectRazor.config.to_hash.each do
           |key,val|
             print "\t#{key.sub("@","")}: ".white
             print "#{val} \n".green
@@ -49,7 +49,7 @@ module ProjectRazor
 
         @ipxe_options = {}
         @ipxe_options[:style] = :new
-        @ipxe_options[:uri] =  @data.config.mk_uri
+        @ipxe_options[:uri] =  ProjectRazor.config.mk_uri
         @ipxe_options[:timeout_sleep] = 15
         @ipxe_options[:nic_max] = 7
 

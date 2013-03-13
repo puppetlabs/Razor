@@ -122,10 +122,10 @@ module ProjectRazor
         res = []
         unless image_type == "os"
           res = self.send image_types[image_type.to_sym][:method], new_image, iso_path,
-                          @data.config.image_svc_path
+                          ProjectRazor.config.image_svc_path
         else
           res = self.send image_types[image_type.to_sym][:method], new_image, iso_path,
-                          @data.config.image_svc_path, os_name, os_version
+                          ProjectRazor.config.image_svc_path, os_name, os_version
         end
 
         raise ProjectRazor::Error::Slice::InternalError, res[1] unless res[0]

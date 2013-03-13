@@ -72,13 +72,6 @@ module ProjectRazor
       end
     end
 
-    # Validates that all instance variables for the object are not nil
-    def validate_instance_vars
-      flag = true
-      self.instance_variables.each { |iv| flag = false if (self.instance_variable_get(iv) == nil && !iv.to_s.start_with?("@_")) }
-      flag
-    end
-
     # Returns a true|false on whether the object type is valid
     # requires that the instance variables for the object have @type & @hidden
     # @param [String] namespace_prefix

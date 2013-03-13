@@ -23,7 +23,7 @@ end
 
 describe ProjectRazor::Data do
 
-  describe ".Config" do
+  describe ".config" do
     before(:all) do
       #Backup existing razor_server.conf being nice to the developer's environment
       FileUtils.mv($config_server_path, "#{$config_server_path}.backup", :force => true) if File.exists?($config_server_path)

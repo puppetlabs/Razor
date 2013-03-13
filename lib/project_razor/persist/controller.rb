@@ -8,11 +8,14 @@ module ProjectRazor
       attr_accessor :config
 
       # Initializes the controller and configures the correct '@database' object based on the 'persist_mode' specified in the config
-      # @param config [ProjectRazor::Configuration]
-      def initialize(config)
+      def initialize()
         logger.debug "Initializing object"
         # copy config into instance
-        @config = config
+        #
+        # @todo danielp 2013-03-13: well, this seems less helpful now that
+        # config has a sane global accessor, but whatever.  Keeping this
+        # reduces code churn right this second.
+        @config = ProjectRazor.config
 
         # init correct database object
         if (config.persist_mode == :mongo)

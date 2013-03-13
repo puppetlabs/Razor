@@ -1,4 +1,17 @@
 require 'spec_helper'
+require 'project_razor'
+
+describe ProjectRazor do
+  context "the module" do
+    subject { ProjectRazor }
+    it { should respond_to "config" }
+    its("config") { should be_an_instance_of ProjectRazor::Config::Server }
+
+    # We are carefully not testing that the *same* instance is returned from
+    # config, since a perfectly legitimate implementation could return
+    # distinct objects. --daniel 2013-03-13
+  end
+end
 
 describe Object, "extensions" do
   context ".class_children" do

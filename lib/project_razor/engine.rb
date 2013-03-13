@@ -29,7 +29,7 @@ module ProjectRazor
 
     def default_mk
       mk_images = []
-      get_data.fetch_all_objects(:images).each { |i| mk_images << i if i.path_prefix == "mk" && i.verify(get_data.config.image_svc_path) == true }
+      get_data.fetch_all_objects(:images).each { |i| mk_images << i if i.path_prefix == "mk" && i.verify(ProjectRazor.config.image_svc_path) == true }
 
       if mk_images.count > 0
         mk_image = nil
@@ -74,7 +74,7 @@ module ProjectRazor
 
         # Check to see if the time span since the last node contact
         # is greater than our register_timeout
-        if (node.timestamp - old_timestamp) > get_data.config.register_timeout
+        if (node.timestamp - old_timestamp) > ProjectRazor.config.register_timeout
           # Our node hasn't talked to the server within an acceptable time frame
           # we will request a re-register to refresh details about the node
           logger.debug "Asking Node #{node.uuid} to re-register as we haven't talked to him in #{(node.timestamp - old_timestamp)} seconds"
@@ -354,7 +354,7 @@ module ProjectRazor
       node.attributes_hash
       active_model = find_active_models(node)
       return "bound" if active_model
-      max_active_elapsed_time = get_data.config.register_timeout
+      max_active_elapsed_time = ProjectRazor.config.register_timeout
       time_since_last_checkin = Time.now.to_i - node.timestamp.to_i
       return "inactive" if time_since_last_checkin > max_active_elapsed_time
       return "active"
@@ -412,7 +412,7 @@ module ProjectRazor
         end
       }
       data = get_data
-      unless image.remove(data.config.image_svc_path)
+      unless image.remove(ProjectRazor.config.image_svc_path)
         logger.error 'attempt to remove image from image_svc_path failed'
         raise RuntimeError, "Attempt to remove image '#{image.uuid}' from the image_svc_path failed"
       end

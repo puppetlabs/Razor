@@ -17,18 +17,11 @@ module ProjectRazor
     #  Attempts to load {ProjectRazor::Configuration} and initialize {ProjectRazor::Persist::Controller}
     def initialize
       logger.debug "Initializing object"
-      load_config
       setup_persist
     end
 
     def check_init
-      load_config
       setup_persist if !@persist_ctrl || !@persist_ctrl.check_connection
-    end
-
-    def config
-      load_config
-      @razor_config
     end
 
     # Called when work with {ProjectRazor::Data} is complete
@@ -186,109 +179,7 @@ module ProjectRazor
     # @return [ProjectRazor::Persist::Controller, ProjectRazor]
     def setup_persist
       logger.debug "Persist controller init"
-      @persist_ctrl = ProjectRazor::Persist::Controller.new(config)
+      @persist_ctrl = ProjectRazor::Persist::Controller.new
     end
-
-    # Attempts to load the './conf/razor_server.conf' YAML file into @config
-    # @api private
-    #
-    # @return [ProjectRazor::Config::Server, ProjectRazor]
-    def load_config
-      logger.debug "Loading config at (#{$config_server_path}"
-      loaded_config = nil
-      if File.exist?($config_server_path)
-        begin
-          conf_file = File.open($config_server_path)
-          #noinspection RubyResolve,RubyResolve
-          loaded_config = YAML.load(conf_file)
-            # We catch the basic root errors
-        rescue SyntaxError
-          logger.warn "SyntaxError loading (#{$config_server_path})"
-          loaded_config = nil
-        rescue StandardError
-          logger.warn "Generic error loading (#{$config_server_path})"
-          loaded_config = nil
-        ensure
-          conf_file.close
-        end
-      end
-
-      # If our object didn't load we run our config reset
-      if loaded_config.is_a?(ProjectRazor::Config::Server)
-        if loaded_config.validate_instance_vars
-          # ensure that missing key/value pairs (if any) from the existing configuration
-          # are filled in using default values
-          new_conf = ProjectRazor::Config::Server.new
-          merge_config_params(new_conf, loaded_config)
-          @razor_config = loaded_config
-        else
-          logger.warn "Config parameter validation error loading (#{$config_server_path})"
-          logger.warn "Resetting (#{$config_server_path}) and loading default config"
-          reset_config
-        end
-      else
-        logger.warn "Cannot load (#{$config_server_path})"
-
-        reset_config
-      end
-    end
-
-    # Creates new 'razor_server.conf' if one does not already exist
-    # @api private
-    #
-    # @return [ProjectRazor::Config::Server, ProjectRazor]
-    def reset_config
-      logger.warn "Resetting (#{$config_server_path}) and loading default config"
-      # use default init
-      new_conf = ProjectRazor::Config::Server.new
-
-      # Very important that we only write the file if it doesn't exist as we may not be the only thread using it
-      unless File.exist?($config_server_path)
-        begin
-          new_conf_file = File.new($config_server_path, 'w+')
-          new_conf_file.write(("#{new_conf_header}#{YAML.dump(new_conf)}"))
-          new_conf_file.close
-          logger.info "Default config saved to (#{$config_server_path})"
-        rescue
-          logger.error "Cannot save default config to (#{$config_server_path})"
-        end
-      else
-        merge_config_params(new_conf, @razor_config)
-      end
-      @razor_config = new_conf
-    end
-
-    # Merges key/value pairs from the new_config Hash map into the existing_config
-    # Hash map.  Conflicts between the two Hash maps are handled based on the
-    # value of the "overwrite_existing" flag:
-    #     - by default (or with this flag set to false), this method looks through
-    #       the new_config keys and maps values for any key that DOES NOT EXIST in
-    #       the existing_config Hash map to an equivalent key/value pair the
-    #       existing_config Hash map (this has the effect of setting key/value
-    #       pairs that do not exist in the existing_config to their default values,
-    #       which can be found in the 'ProjectRazor::Config::Server.use_defaults'
-    #       method)
-    #     - with the overwrite_existing flag set to true, any key/value pair that
-    #       DOES exist in the existing_config Hash map is overwritten by the equivalent
-    #       key/value pair from the new_config Hash map (this has the effect of
-    #       resetting all configuration parameters to their default values); Note that
-    #       this functionality is not currently used (and there might be faster ways to
-    #       accomplish the same thing) but we included it in case it's needed later
-    def merge_config_params(new_config, existing_config, overwrite_existing = false)
-      new_config.keys.each { |key|
-        if overwrite_existing || !(existing_config.include?(key))
-          existing_config[key] = new_config[key]
-        end
-      }
-    end
-
-    # Returns a header for new 'razor_server.conf' files
-    # @api private
-    #
-    # @return [ProjectRazor::Config::Server, ProjectRazor]
-    def new_conf_header
-      "\n# This file is the main configuration for ProjectRazor\n#\n# -- this was system generated --\n#\n#\n"
-    end
-
   end
 end

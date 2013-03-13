@@ -50,7 +50,15 @@ require "project_razor/broker"
 
 # Root ProjectRazor namespace
 module ProjectRazor
-
+  # Provide access to the global configuration for the project.
+  #
+  # This makes the global data available fairly uniformly to the project,
+  # replacing the older mechanism of connecting to the database to access the
+  # configuration object by coincidence, navigating through the
+  # data abstraction.
+  def self.config
+    ProjectRazor::Config::Server.instance
+  end
 end
 
 class ::Object

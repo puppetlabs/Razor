@@ -193,7 +193,7 @@ module ProjectRazor
       end
 
       def print_items
-        set_image_svc_path(get_data.config.image_svc_path) unless @_image_svc_path
+        set_image_svc_path(ProjectRazor.config.image_svc_path) unless @_image_svc_path
         return @uuid, @description, @filename, image_path.to_s, "#{verify(@_image_svc_path) ? "Valid".green : "Broken/Missing".red}"
       end
 
@@ -202,7 +202,7 @@ module ProjectRazor
       end
 
       def print_item
-        set_image_svc_path(get_data.config.image_svc_path) unless @_image_svc_path
+        set_image_svc_path(ProjectRazor.config.image_svc_path) unless @_image_svc_path
         return @uuid, @description, @filename, image_path.to_s, "#{verify(@_image_svc_path) ? "Valid".green : "Broken/Missing".red}"
       end
 
