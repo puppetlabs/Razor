@@ -14,7 +14,7 @@ describe "ProjectRazor::Slice::Model" do
     before(:all) do
       @data = ProjectRazor::Data.instance
       @data.check_init
-      @config = @data.config
+      @config = ProjectRazor.config
       @data.delete_all_objects(:model)
     end
 

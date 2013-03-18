@@ -1,5 +1,6 @@
-require "require_all"
-require "project_razor/slice_util/common"
+require 'require_all'
+require 'project_razor/object'
+require 'project_razor/slice_util/common'
 
 # @todo danielp 2012-10-24: this shouldn't include the database tooling.
 class ProjectRazor::Slice < ProjectRazor::Object

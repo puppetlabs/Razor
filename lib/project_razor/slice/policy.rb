@@ -1,3 +1,6 @@
+require 'project_razor/slice'
+require 'project_razor/data'
+
 require "json"
 
 # Root namespace for policy objects
@@ -125,7 +128,7 @@ module ProjectRazor
         setup_data
         model = get_object("model_by_uuid", :model, options[:model_uuid])
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model && (model.class != Array || model.length > 0)
-        raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.template}] != [#{policy.template}]" unless policy.template == model.template
+        raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.template}] != [#{policy.template}]" unless policy.template.to_s == model.template.to_s
         broker = get_object("broker_by_uuid", :broker, options[:broker_uuid])
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Broker UUID [#{options[:broker_uuid]}]" unless (broker && (broker.class != Array || broker.length > 0)) || options[:broker_uuid] == "none"
         options[:tags] = options[:tags].split(",") unless options[:tags].class.to_s == "Array"

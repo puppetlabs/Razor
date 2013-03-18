@@ -1,3 +1,5 @@
+require 'project_razor'
+
 module ProjectRazor
   module Persist
     # Persistence Controller for ProjectRazor

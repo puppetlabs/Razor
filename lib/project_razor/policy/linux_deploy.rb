@@ -1,5 +1,7 @@
 # ProjectRazor Policy Base class
 # Root abstract
+require 'project_razor/policy/base'
+
 module ProjectRazor
   module PolicyTemplate
     class LinuxDeploy < ProjectRazor::PolicyTemplate::Base

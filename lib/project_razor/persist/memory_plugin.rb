@@ -4,17 +4,12 @@ module ProjectRazor
     # used by {ProjectRazor::Persist::Controller} when ':memory' is the 'persist_mode'
     # in ProjectRazor configuration
     class MemoryPlugin < PluginInterface
-      def initialize
-        @collections = Hash.new # Hash representing all named collections
-        @status = false # Boolean used to simulate connection status
-      end
-
       # Closes connection if it is active
       #
       # @return [Boolean] Connection status
       #
       def teardown
-        @status = false
+        @collections = nil
       end
 
       # Establishes connection to the data store.
@@ -25,7 +20,7 @@ module ProjectRazor
       # @return [Boolean] Connection status
       #
       def connect(hostname, port, timeout)
-        @status = true
+        @collections = Hash.new do |hash, key| hash[key] = {} end
       end
 
       # Disconnects connection
@@ -33,7 +28,7 @@ module ProjectRazor
       # @return [Boolean] Connection status
       #
       def disconnect
-        @status = false
+        @collections = nil
       end
 
       # Checks whether the database is connected and active
@@ -41,7 +36,7 @@ module ProjectRazor
       # @return [Boolean] Connection status
       #
       def is_db_selected?
-        @status
+        !!@collections
       end
 
       # Returns all entries from the collection named 'collection_name'
@@ -50,8 +45,7 @@ module ProjectRazor
       # @return [Array<Hash>]
       #
       def object_doc_get_all(collection_name)
-        entries = @collections[collection_name]
-        return entries === nil ? [] : entries.values.collect {|entry|JSON.parse!(entry[:json])}
+        @collections[collection_name].values.map {|e| JSON.parse!(e[:json]) }
       end
 
       # Returns the entry keyed by the '@uuid' of the given 'object_doc' from the collection
@@ -62,8 +56,12 @@ module ProjectRazor
       # @return [Hash] or nil if the object cannot be found
       #
       def object_doc_get_by_uuid(object_doc, collection_name)
-        entry = object_doc_get_all(collection_name)[object_doc['@uuid']]
-        return entry === nil ? nil : JSON.parse!(entry[:json])
+        entry = @collections[collection_name][object_doc['@uuid']]
+        if entry
+          JSON.parse!(entry[:json])
+        else
+          nil
+        end
       end
 
       # Adds or updates 'obj_document' in the collection named 'collection_name' with an incremented

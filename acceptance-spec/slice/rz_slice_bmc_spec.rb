@@ -13,7 +13,7 @@ describe "ProjectRazor::Slice::Bmc" do
     before(:all) do
       @data = ProjectRazor::Data.instance
       @data.check_init
-      @config = @data.config
+      @config = ProjectRazor.config
       @data.delete_all_objects(:bmc)
       @mac = ["00:15:17:FA:E0:36", "00:15:17:FA:DE:66"]
       @ip = ["192.168.2.51", "192.168.2.52"]

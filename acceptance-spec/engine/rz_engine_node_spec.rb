@@ -9,7 +9,7 @@ describe ProjectRazor::Engine do
   before (:all) do
     @data = ProjectRazor::Data.instance
     @data.check_init
-    @config = @data.config
+    @config = ProjectRazor.config
     @engine = ProjectRazor::Engine.instance
     # Clean stuff out
     @data.delete_all_objects(:node)

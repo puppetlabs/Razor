@@ -2,11 +2,8 @@ require "spec_helper"
 
 describe "ProjectRazor::NodeJS::API" do
 
-  let(:data) { ProjectRazor::Data.instance }
-  let(:config) {
-    data.check_init
-    data.config
-  }
+  let(:data)   { ProjectRazor::Data.instance }
+  let(:config) { ProjectRazor.config }
 
   describe ".Image Service" do
 

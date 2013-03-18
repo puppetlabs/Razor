@@ -11,7 +11,7 @@ describe "ProjectRazor::Slice::Node" do
     before(:all) do
       @data = ProjectRazor::Data.instance
       @data.check_init
-      @config = @data.config
+      @config = ProjectRazor.config
 
       @hw_id = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
     end

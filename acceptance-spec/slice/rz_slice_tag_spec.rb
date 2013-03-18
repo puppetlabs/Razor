@@ -14,7 +14,7 @@ describe "ProjectRazor::Slice::Tag" do
     before(:all) do
       @data = ProjectRazor::Data.instance
       @data.check_init
-      @config = @data.config
+      @config = ProjectRazor.config
       @data.delete_all_objects(:tag)
       @data.delete_all_objects(:node)
       @uuid = "TEST#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}#{rand(9)}"
@@ -42,10 +42,10 @@ describe "ProjectRazor::Slice::Tag" do
       response_hash = JSON.parse(res.body)
       response_hash['http_err_code'].should == 201
       $uuid01 = response_hash['response'][0]['@uuid']
-      $tag_rule_uri01 = response_hash['response'][0]['@uri']
+      $tag_rule_uri01 = URI(response_hash['response'][0]['@uri'])
+      $tag_rule_uri01.host = '127.0.0.1' # take that!
 
-      uri = URI $tag_rule_uri01
-      res = Net::HTTP.get(uri)
+      res = Net::HTTP.get($tag_rule_uri01)
       res_hash = JSON.parse(res)
       res_hash['response'][0]['@name'].should == name
       res_hash['response'][0]['@tag'].should == tag
@@ -53,8 +53,7 @@ describe "ProjectRazor::Slice::Tag" do
     end
 
     it "should be able to update a new tag rule from REST" do
-      uri = URI $tag_rule_uri01
-      res = Net::HTTP.get(uri)
+      res = Net::HTTP.get($tag_rule_uri01)
       res_hash = JSON.parse(res)
       res_hash['response'].first['@uuid'].should == $uuid01
       tagrule_hash =  res_hash['response'].first
@@ -64,9 +63,8 @@ describe "ProjectRazor::Slice::Tag" do
       json_hash = {}
       json_hash["name"] = "changed"
       json_string = JSON.generate(json_hash)
-      uri = URI $tag_rule_uri01
-      http = Net::HTTP.new(uri.host, uri.port)
-      request = Net::HTTP::Put.new(uri.request_uri)
+      http = Net::HTTP.new($tag_rule_uri01.host, $tag_rule_uri01.port)
+      request = Net::HTTP::Put.new($tag_rule_uri01.request_uri)
       request.set_form_data('json_hash' => json_string)
       res = http.request(request)
       res.class.should == Net::HTTPAccepted
@@ -75,7 +73,7 @@ describe "ProjectRazor::Slice::Tag" do
       tagrule_hash['@name'].should == "changed"
       json_hash = {"name" => "newname", "tag" => "somethingelse"}
       json_string = JSON.generate(json_hash)
-      request = Net::HTTP::Put.new(uri.request_uri)
+      request = Net::HTTP::Put.new($tag_rule_uri01.request_uri)
       request.set_form_data('json_hash' => json_string)
       res = http.request(request)
       res.class.should == Net::HTTPAccepted
@@ -87,8 +85,7 @@ describe "ProjectRazor::Slice::Tag" do
 
     it "should be able to create a tag matchers for a tag rule from REST" do
 
-      uri = URI $tag_rule_uri01
-      res = Net::HTTP.get(uri)
+      res = Net::HTTP.get($tag_rule_uri01)
       res_hash = JSON.parse(res)
       res_hash['response'].first['@uuid'].should == $uuid01
       tag_rule = ProjectRazor::Tagging::TagRule.new(res_hash['response'].first)
@@ -107,6 +104,7 @@ describe "ProjectRazor::Slice::Tag" do
       res.class.should == Net::HTTPCreated
       response_hash = JSON.parse(res.body)
       uri = URI response_hash['response'].first['@uri']
+      uri.host = '127.0.0.1'
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
       matcher = ProjectRazor::Tagging::TagMatcher.new(response_hash['response'].first, tag_rule.uuid)
@@ -124,6 +122,7 @@ describe "ProjectRazor::Slice::Tag" do
       res.class.should == Net::HTTPCreated
       response_hash = JSON.parse(res.body)
       uri = URI response_hash['response'].first['@uri']
+      uri.host = '127.0.0.1'
       res = Net::HTTP.get(uri)
       response_hash = JSON.parse(res)
       matcher_hash = response_hash['response'].first
@@ -134,8 +133,7 @@ describe "ProjectRazor::Slice::Tag" do
     end
 
     it "should be able to update values for a tag matcher for a tag rule from REST" do
-      uri = URI $tag_rule_uri01
-      res = Net::HTTP.get(uri)
+      res = Net::HTTP.get($tag_rule_uri01)
       res_hash = JSON.parse(res)
       res_hash['response'].first['@uuid'].should == $uuid01
       tagrule_hash =  res_hash['response'].first
@@ -151,7 +149,7 @@ describe "ProjectRazor::Slice::Tag" do
       json_hash["key"] = "changed"
       json_string = JSON.generate(json_hash)
       uri = URI matcher_hash['@uri']
-      http = Net::HTTP.new(uri.host, uri.port)
+      http = Net::HTTP.new('127.0.0.1', uri.port)
       request = Net::HTTP::Put.new(uri.request_uri)
       request.set_form_data('json_hash' => json_string)
       res = http.request(request)
@@ -174,8 +172,7 @@ describe "ProjectRazor::Slice::Tag" do
     end
 
     it "should be able to delete a tag matcher for a tag rule from REST" do
-      uri = URI $tag_rule_uri01
-      res = Net::HTTP.get(uri)
+      res = Net::HTTP.get($tag_rule_uri01)
       res_hash = JSON.parse(res)
       res_hash['response'].first['@uuid'].should == $uuid01
       tagrule_hash =  res_hash['response'].first
@@ -184,7 +181,7 @@ describe "ProjectRazor::Slice::Tag" do
 
 
       uri = URI matcher_hash['@uri']
-      http = Net::HTTP.start(uri.host, uri.port)
+      http = Net::HTTP.start('127.0.0.1', uri.port)
       res = http.send_request('DELETE', uri.request_uri)
       res.class.should == Net::HTTPAccepted
       response_hash = JSON.parse(res.body)
@@ -200,7 +197,7 @@ describe "ProjectRazor::Slice::Tag" do
       res_hash['response'].count.should == 1
 
       uri = URI $tag_rule_uri01
-      http = Net::HTTP.start(uri.host, uri.port)
+      http = Net::HTTP.start('127.0.0.1', uri.port)
       res = http.send_request('DELETE', uri.request_uri)
       res.class.should == Net::HTTPAccepted
       response_hash = JSON.parse(res.body)
@@ -368,7 +365,7 @@ describe "ProjectRazor::Slice::Tag" do
 
     it "should not be able to delete all tag rules from REST" do
       uri = URI "http://127.0.0.1:#{@config.api_port}/razor/api/tag/all"
-      http = Net::HTTP.start(uri.host, uri.port)
+      http = Net::HTTP.start('127.0.0.1', uri.port)
       res = http.send_request('DELETE', uri.request_uri)
       res.class.should == Net::HTTPMethodNotAllowed
       response_hash = JSON.parse(res.body)

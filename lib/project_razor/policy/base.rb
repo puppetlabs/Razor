@@ -1,5 +1,7 @@
 # ProjectRazor Policy Base class
 # Root abstract
+require 'project_razor/object'
+
 module ProjectRazor
   module PolicyTemplate
     class Base< ProjectRazor::Object

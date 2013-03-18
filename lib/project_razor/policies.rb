@@ -18,6 +18,13 @@ module ProjectRazor
       attr_accessor :p_table
       def initialize(hash)
         super()
+        # @todo danielp 2013-03-18: this non-UUID value is used to ensure that
+        # we have a consistent value for this object, allowing us to access
+        # the same object from any location that wants to modify it.
+        #
+        # We could, and probably should, use a real UUID hard-coded, but the
+        # original authors didn't.  In migration to a real storage engine,
+        # that totally should happen.
         @uuid = "policy_table"
         @_namespace = :policy_table
         @p_table = []

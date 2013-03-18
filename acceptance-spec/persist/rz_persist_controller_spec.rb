@@ -14,8 +14,7 @@ end
 
 describe ProjectRazor::Persist::Controller do
   before(:all) do
-    @config = ProjectRazor::Config::Server.new
-    @persist = ProjectRazor::Persist::Controller.new(@config)
+    @persist = ProjectRazor::Persist::Controller.new
   end
 
   after(:all) do
@@ -25,10 +24,6 @@ describe ProjectRazor::Persist::Controller do
   describe ".Initialize" do
     it "should create a plug-in object for .database" do
       @persist.database.class.name.should end_with('Plugin')
-    end
-    it "should have stored config object and it should match" do
-      #noinspection RubyResolve,RubyResolve
-      @persist.config.should == @config
     end
     it "should have established a connection on initialization" do
       @persist.is_connected?.should == true

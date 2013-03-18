@@ -12,6 +12,11 @@ describe ProjectRazor::Config::Server do
     @saved_config_server_path = $config_server_path
     # Since we only run on Unix, this should be portable enough.
     $config_server_path = '/dev/empty'
+
+    # This runs *after* the global configuration, which resets our state to
+    # "blank" and allows our tests to function.  This comment, my friends,
+    # is why we shouldn't write stateful code.
+    ProjectRazor::Config::Server._reset_instance
   end
 
   after :each do

@@ -1,3 +1,5 @@
+require 'project_razor/policy/base'
+
 module ProjectRazor
   module PolicyTemplate
     # ProjectRazor Policy Default class
@@ -15,7 +17,7 @@ module ProjectRazor
 
         @data = ProjectRazor::Data.instance
         @data.check_init
-        @config = @data.config
+        @config = ProjectRazor.config
       end
 
       # TODO - add logging ability from iPXE back to Razor for detecting node errors

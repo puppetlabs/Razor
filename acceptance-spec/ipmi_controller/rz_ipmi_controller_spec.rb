@@ -4,7 +4,7 @@ require "project_razor/power_control/ipmi_controller"
 require "rspec"
 require "net/http"
 require "net/http"
-require "mocha"
+require "mocha/api"
 require "yaml"
 
 describe ProjectRazor::PowerControl::IpmiController do
@@ -14,7 +14,7 @@ describe ProjectRazor::PowerControl::IpmiController do
     @mock_data_dir = File.expand_path(File.dirname(__FILE__)) + File::SEPARATOR + 'ipmitool-mock-files'
     data = ProjectRazor::Data.instance
     data.check_init
-    config = data.config
+    config = ProjectRazor.config
     @ipmi_username = config.default_ipmi_username
     @ipmi_password = config.default_ipmi_password
     @ipmi_hostname = '192.168.2.51'
