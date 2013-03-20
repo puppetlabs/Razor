@@ -196,9 +196,8 @@ describe "ProjectRazor::Slice::Tag" do
       res_hash = JSON.parse(res)
       res_hash['response'].count.should == 1
 
-      uri = URI $tag_rule_uri01
-      http = Net::HTTP.start('127.0.0.1', uri.port)
-      res = http.send_request('DELETE', uri.request_uri)
+      http = Net::HTTP.start('127.0.0.1', $tag_rule_uri01.port)
+      res = http.send_request('DELETE', $tag_rule_uri01.request_uri)
       res.class.should == Net::HTTPAccepted
       response_hash = JSON.parse(res.body)
 
