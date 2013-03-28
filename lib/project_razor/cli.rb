@@ -15,13 +15,52 @@ class ProjectRazor::CLI
     @logger = @obj.get_logger
   end
 
+  def run(*argv)
+    tmp_argv = argv.dup
+
+    # Preparse args and check for batch mode.
+    first_args = get_first_args(tmp_argv)
+    first_args.size.times {tmp_argv.shift}
+    @options = {}
+    optparse = get_optparse
+    begin
+      optparse.parse(first_args)
+    rescue OptionParser::InvalidOption => e
+      # We may use this option later so we will continue
+      #puts e.message
+      #puts optparse
+      #exit
+    end
+
+    if @options[:batch]
+      status = false
+
+      $stdin.each_line do |line|
+        if line.strip.empty?
+          next
+        end
+
+        line_argv = Shellwords.shellwords(line)
+        status = run_once(*line_argv)
+        $stdout.flush
+        if status != true
+          return status
+        end
+      end
+
+      return status
+    else
+      return run_once(*argv)
+    end
+  end
+
   # Run a single invocation of a command line from Razor; this translates the
   # command line into a slice invocation, parsing options along the way, and
   # eventually reports back the result.
   #
   # @param [Array<String>] the command line arguments
   # @return [Boolean] true on success, false on failure
-  def run(*argv)
+  def run_once(*argv)
     first_args = get_first_args(argv)
     first_args.size.times {argv.shift}
     @options = {}
@@ -174,6 +213,11 @@ class ProjectRazor::CLI
       @options[:nocolor] = false
       opts.on( '-n', '--no-color', 'Disables console color. Useful for script wrapping.'.yellow ) do
         @options[:nocolor] = true
+      end
+
+      @options[:batch] = false
+      opts.on( '-b', '--batch', 'Enables razor to take multiple commands.'.yellow ) do
+        @options[:batch] = true
       end
 
       opts.on_tail('-V', '--version', 'Display the version of Razor'.yellow) do
