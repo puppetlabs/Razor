@@ -8,17 +8,17 @@ require 'stringio'
 
 # Root namespace for ProjectRazor
 module ProjectRazor::BrokerPlugin
-  # Script Error
-  class Error < RuntimeError; end
-  class ScriptError < Error
-    attr :return_code
-    def initialize(return_code)
-      @return_code = return_code
-    end
-  end
-
   # Root namespace for Script Broker plugin defined in ProjectRazor for node handoff.
   class Script < ProjectRazor::BrokerPlugin::Base
+    # Script Error
+    class Error < RuntimeError; end
+    class ScriptError < Error
+      attr :return_code
+      def initialize(return_code)
+        @return_code = return_code
+      end
+    end
+
     include(ProjectRazor::Logging)
 
     def initialize(hash)

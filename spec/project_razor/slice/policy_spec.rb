@@ -3,6 +3,8 @@ require 'project_razor/slice/policy'
 require 'project_razor/model/debian'
 
 describe ProjectRazor::Slice::Policy do
+  subject('slice') { ProjectRazor::Slice::Policy.new([]) }
+
   describe "razor policy add" do
     let('model') do
       model = ProjectRazor::ModelTemplate::Debian.new({})
@@ -31,5 +33,16 @@ describe ProjectRazor::Slice::Policy do
       stdout.should =~ /Label =>  test_policy/
       stdout.should =~ /Tags =>  \[domaincheck\]/
     end
+  end
+
+  # This checks for a bug found after pull request #437 was merged, where a
+  # class that was not a classic object was added under the namespace.
+  # Because we meta-program everything, this caused an error class to be
+  # assumed to be a real broker plugin.  This ensures that doesn't sneak
+  # in again.
+  it "should be able to fetch all child template objects" do
+    templates = slice.get_child_templates(ProjectRazor::PolicyTemplate)
+    templates.should_not be_empty
+    templates.each {|t| t.should be_a ProjectRazor::PolicyTemplate::Base }
   end
 end
