@@ -15,29 +15,31 @@ module ProjectRazor
     # Used for policy management
     class Policy < ProjectRazor::Slice
 
-      # Initializes ProjectRazor::Slice::Policy including #slice_commands, #slice_commands_help, & #slice_name
+      # Initializes ProjectRazor::Slice::Policy including #slice_commands, #slice_commands_help
       # @param [Array] args
       def initialize(args)
         super(args)
         @hidden          = false
-        @slice_name      = "Policy"
         @policies        = ProjectRazor::Policies.instance
+      end
 
+      def slice_commands
         # get the slice commands map for this slice (based on the set
         # of commands that are typical for most slices)
-        @slice_commands = get_command_map("policy_help",
-                                          "get_all_policies",
-                                          "get_policy_by_uuid",
-                                          "add_policy",
-                                          "update_policy",
-                                          "remove_all_policies",
-                                          "remove_policy_by_uuid")
+        commands = get_command_map(
+          "policy_help",
+          "get_all_policies",
+          "get_policy_by_uuid",
+          "add_policy",
+          "update_policy",
+          "remove_all_policies",
+          "remove_policy_by_uuid")
         # and add any additional commands specific to this slice
-        @slice_commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
-        @slice_commands[:get][:else] = "get_policy_by_uuid"
-        @slice_commands[:get][[/^(temp|template|templates|types)$/]] = "get_policy_templates"
-        @slice_commands[:get][[/^(callback)$/]] = "get_callback"
-
+        commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
+        commands[:get][:else] = "get_policy_by_uuid"
+        commands[:get][[/^(temp|template|templates|types)$/]] = "get_policy_templates"
+        commands[:get][[/^(callback)$/]] = "get_callback"
+        commands
       end
 
       def policy_help
@@ -46,7 +48,7 @@ module ProjectRazor
           begin
             # load the option items for this command (if they exist) and print them
             option_items = load_option_items(:command => command.to_sym)
-            print_command_help(@slice_name.downcase, command, option_items)
+            print_command_help(command, option_items)
             return
           rescue
           end
@@ -125,7 +127,6 @@ module ProjectRazor
 
         # check for errors in inputs
         raise ProjectRazor::Error::Slice::InvalidPolicyTemplate, "Policy Template is not valid [#{options[:template]}]" unless policy
-        setup_data
         model = get_object("model_by_uuid", :model, options[:model_uuid])
         raise ProjectRazor::Error::Slice::InvalidUUID, "Invalid Model UUID [#{options[:model_uuid]}]" unless model && (model.class != Array || model.length > 0)
         raise ProjectRazor::Error::Slice::InvalidModel, "Invalid Model Type [#{model.template}] != [#{policy.template}]" unless policy.template.to_s == model.template.to_s
@@ -218,7 +219,6 @@ module ProjectRazor
         policy_uuid = get_uuid_from_prev_args
         policy = get_object("policy_with_uuid", :policy, policy_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Policy with UUID: [#{policy_uuid}]" unless policy && (policy.class != Array || policy.length > 0)
-        setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{policy.uuid}]" unless @data.delete_object(policy)
         slice_success("Active policy [#{policy.uuid}] removed", :success_type => :removed)
       end
@@ -241,7 +241,6 @@ module ProjectRazor
       def make_callback(active_model, callback_namespace)
         callback = active_model.model.callback[callback_namespace]
         raise ProjectRazor::Error::Slice::NoCallbackFound, "Missing callback" unless callback
-        setup_data
         node            = @data.fetch_object_by_uuid(:node, active_model.node_uuid)
         callback_return = active_model.model.callback_init(callback, @command_array, node, active_model.uuid, active_model.broker)
         active_model.update_self

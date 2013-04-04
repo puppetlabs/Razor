@@ -12,26 +12,30 @@ module ProjectRazor
     # Used for broker management
     class Broker < ProjectRazor::Slice
 
-      # Initializes ProjectRazor::Slice::Broker including #slice_commands, #slice_commands_help, & #slice_name
+      # Initializes ProjectRazor::Slice::Broker including #slice_commands, #slice_commands_help
       # @param [Array] args
       def initialize(args)
         super(args)
         @hidden          = false
-        @slice_name      = "Broker"
+      end
 
+      def slice_commands
         # get the slice commands map for this slice (based on the set
         # of commands that are typical for most slices)
-        @slice_commands = get_command_map("broker_help",
-                                          "get_all_brokers",
-                                          "get_broker_by_uuid",
-                                          "add_broker",
-                                          "update_broker",
-                                          "remove_all_brokers",
-                                          "remove_broker_by_uuid")
-        # and add any additional commands specific to this slice
-        @slice_commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
-        @slice_commands[:get][:else] = "get_broker_by_uuid"
-        @slice_commands[:get][[/^(plugin|plugins|t)$/]] = "get_broker_plugins"
+        commands = get_command_map(
+          "broker_help",
+          "get_all_brokers",
+          "get_broker_by_uuid",
+          "add_broker",
+          "update_broker",
+          "remove_all_brokers",
+          "remove_broker_by_uuid")
+
+        commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
+        commands[:get][:else] = "get_broker_by_uuid"
+        commands[:get][[/^(plugin|plugins|t)$/]] = "get_broker_plugins"
+
+        commands
       end
 
       def broker_help
@@ -40,7 +44,7 @@ module ProjectRazor
           begin
             # load the option items for this command (if they exist) and print them
             option_items = load_option_items(:command => command.to_sym)
-            print_command_help(@slice_name.downcase, command, option_items)
+            print_command_help(command, option_items)
             return
           rescue
           end
@@ -118,7 +122,6 @@ module ProjectRazor
         broker.user_description = description
         broker.is_template      = false
         # persist that broker, and print the result (or raise an error if cannot persist it)
-        setup_data
         get_data.persist_object(broker)
         broker ? print_object_array([broker], "", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Broker Target")
       end
@@ -228,7 +231,6 @@ module ProjectRazor
         broker_uuid = get_uuid_from_prev_args
         broker = get_object("broker_with_uuid", :broker, broker_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Broker with UUID: [#{broker_uuid}]" unless broker && (broker.class != Array || broker.length > 0)
-        setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove policy [#{broker.uuid}]" unless @data.delete_object(broker)
         slice_success("Broker [#{broker.uuid}] removed", :success_type => :removed)
       end

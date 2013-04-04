@@ -6,25 +6,30 @@ module ProjectRazor
     # ProjectRazor Slice Model
     class Model < ProjectRazor::Slice
       include(ProjectRazor::Logging)
-      # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help, & #slice_name
+      # Initializes ProjectRazor::Slice::Model including #slice_commands, #slice_commands_help
       # @param [Array] args
       def initialize(args)
         super(args)
         @hidden = false
-        @slice_name = "Model"
+      end
+
+      def slice_commands
         # get the slice commands map for this slice (based on the set
         # of commands that are typical for most slices)
-        @slice_commands = get_command_map("model_help",
-                                          "get_all_models",
-                                          "get_model_by_uuid",
-                                          "add_model",
-                                          "update_model",
-                                          "remove_all_models",
-                                          "remove_model_by_uuid")
+        commands = get_command_map(
+          "model_help",
+          "get_all_models",
+          "get_model_by_uuid",
+          "add_model",
+          "update_model",
+          "remove_all_models",
+          "remove_model_by_uuid")
         # and add any additional commands specific to this slice
-        @slice_commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
-        @slice_commands[:get][:else] = "get_model_by_uuid"
-        @slice_commands[:get][[/^(temp|template|templates|types)$/]] = "get_all_templates"
+        commands[:get].delete(/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/)
+        commands[:get][:else] = "get_model_by_uuid"
+        commands[:get][[/^(temp|template|templates|types)$/]] = "get_all_templates"
+
+        commands
       end
 
       def model_help
@@ -33,7 +38,7 @@ module ProjectRazor
           begin
             # load the option items for this command (if they exist) and print them
             option_items = load_option_items(:command => command.to_sym)
-            print_command_help(@slice_name.downcase, command, option_items)
+            print_command_help(command, option_items)
             return
           rescue
           end
@@ -117,7 +122,6 @@ module ProjectRazor
         model.label = label
         model.image_uuid = image.uuid
         model.is_template = false
-        setup_data
         @data.persist_object(model)
         model ? print_object_array([model], "Model created", :success_type => :created) : raise(ProjectRazor::Error::Slice::CouldNotCreate, "Could not create Model")
       end
@@ -196,7 +200,6 @@ module ProjectRazor
         model_uuid = get_uuid_from_prev_args
         model = get_object("model_with_uuid", :model, model_uuid)
         raise ProjectRazor::Error::Slice::InvalidUUID, "Cannot Find Model with UUID: [#{model_uuid}]" unless model && (model.class != Array || model.length > 0)
-        setup_data
         raise ProjectRazor::Error::Slice::CouldNotRemove, "Could not remove Model [#{model.uuid}]" unless @data.delete_object(model)
         slice_success("Active Model [#{model.uuid}] removed",:success_type => :removed)
       end
@@ -207,7 +210,6 @@ module ProjectRazor
       end
 
       def verify_image(model, image_uuid)
-        setup_data
         image = get_object("find_image", :images, image_uuid)
         if image && (image.class != Array || image.length > 0)
           return image if model.image_prefix == image.path_prefix

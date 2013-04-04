@@ -8,18 +8,21 @@ module ProjectRazor
       def initialize(args)
         super(args)
         @hidden          = false
-        @slice_name = "Node"
         @engine = ProjectRazor::Engine.instance
+      end
+
+      def slice_commands
         # get the slice commands map for this slice (based on the set
         # of commands that are typical for most slices); note that there is
         # no support for adding, updating, or removing nodes via the slice
         # API, so the last three arguments are nil
-        @slice_commands = get_command_map("node_help", "get_all_nodes",
+        commands = get_command_map("node_help", "get_all_nodes",
                                           "get_node_by_uuid", nil, nil, nil, nil)
         # and add a few more commands specific to this slice
-        @slice_commands[["register", /^[Rr]$/]] = "register_node"
-        @slice_commands[["checkin", /^[Cc]$/]] = "checkin_node"
-        @slice_commands[:get][/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/][:else] = "get_node_by_uuid"
+        commands[["register", /^[Rr]$/]] = "register_node"
+        commands[["checkin", /^[Cc]$/]] = "checkin_node"
+        commands[:get][/^(?!^(all|\-\-help|\-h|\{\}|\{.*\}|nil)$)\S+$/][:else] = "get_node_by_uuid"
+        commands
       end
 
       def node_help
@@ -28,7 +31,7 @@ module ProjectRazor
           begin
             # load the option items for this command (if they exist) and print them
             option_items = load_option_items(:command => command.to_sym)
-            print_command_help(@slice_name.downcase, command, option_items)
+            print_command_help(command, option_items)
             return
           rescue
           end
@@ -112,13 +115,18 @@ module ProjectRazor
         # Grab next arg as json string var
         json_string = @command_array.first
         # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-        if is_valid_json?(json_string)
+        begin
           # Grab vars as hash using sanitize to strip the @ prefix if used
           @vars_hash = sanitize_hash(JSON.parse(json_string))
           @vars_hash['hw_id'] = @vars_hash['uuid'] if @vars_hash['uuid']
           @hw_id = @vars_hash['hw_id']
           @last_state = @vars_hash['last_state']
           @attributes_hash = @vars_hash['attributes_hash']
+        rescue Exception
+          # @todo danielp 2013-03-27: the original code simply ignored invalid
+          # JSON in this field, and carried on.  Here we do the same, even
+          # though that puts a somewhat bad taste in my mouth.  (Yes, even to
+          # the level of capturing the parent of all exceptions here.)
         end
         #end
         #@hw_id, @last_state, @attributes_hash = *@command_array unless @hw_id || @last_state || @attributes_hash
@@ -154,13 +162,18 @@ module ProjectRazor
         # Grab next arg as json string var
         json_string = @command_array.first
         # Validate JSON, if valid we treat like a POST VAR request. Otherwise it passes on to CLI which handles GET like CLI
-        if is_valid_json?(json_string)
+        begin
           # Grab vars as hash using sanitize to strip the @ prefix if used
           @vars_hash = sanitize_hash(JSON.parse(json_string))
           @vars_hash['hw_id'] = @vars_hash['uuid'] if @vars_hash['uuid']
           @hw_id = @vars_hash['hw_id']
           @last_state = @vars_hash['last_state']
           @first_checkin = @vars_hash['first_checkin']
+        rescue Exception
+          # @todo danielp 2013-03-27: the original code simply ignored invalid
+          # JSON in this field, and carried on.  Here we do the same, even
+          # though that puts a somewhat bad taste in my mouth.  (Yes, even to
+          # the level of capturing the parent of all exceptions here.)
         end
         #end
         #@hw_id, @last_state, @first_checkin = *@command_array unless @hw_id || @last_state || @first_checkin

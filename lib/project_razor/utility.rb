@@ -35,22 +35,6 @@ module ProjectRazor
       hash
     end
 
-    # Iterates and converts BSON:OrderedHash back to vanilla hash / MongoDB specific
-    # @param bson_hash [Hash]
-    # @return [Hash]
-    def bson_to_hash(bson_hash)
-      new_hash = {}
-      bson_hash.each_key do
-      |k|
-        if bson_hash[k].class == BSON::OrderedHash
-          new_hash[k] = bson_to_hash(bson_hash[k])
-        else
-          new_hash[k] = bson_hash[k]
-        end
-      end
-      new_hash
-    end
-
     # Sets instance variables
     # will not include any that start with "_" (Mongo specific)
     # @param [Hash] hash
@@ -72,22 +56,6 @@ module ProjectRazor
       end
     end
 
-    # Returns a true|false on whether the object type is valid
-    # requires that the instance variables for the object have @type & @hidden
-    # @param [String] namespace_prefix
-    # @param [String] type_name
-    # @return [true|false]
-    def is_valid_type?(namespace_prefix, template_name = "default")
-      get_child_types(namespace_prefix).each do
-        |template|
-        return true if template.template.to_s.strip == template_name.strip && !template.hidden
-      end
-      false
-    end
-
-
-    alias :is_valid_template? :is_valid_type?
-
     def new_object_from_template_name(namespace_prefix, object_template_name)
       get_child_types(namespace_prefix).each do
       |template|
@@ -99,22 +67,8 @@ module ProjectRazor
     alias :new_object_from_type_name :new_object_from_template_name
 
 
-    def is_valid_json?(json_string)
-      begin
-        JSON.parse(json_string)
-        return true
-      rescue Exception => e
-        return false
-      end
-    end
-
     def sanitize_hash(in_hash)
-      new_hash = {}
-      in_hash.each_key do
-      |k|
-        new_hash[k.sub(/^@/,"")] = in_hash[k]
-      end
-      new_hash
+      in_hash.inject({}) {|h, (k, v)| h[k.sub(/^@/, '')] = v; h }
     end
 
     def self.encode_symbols_in_hash(obj)

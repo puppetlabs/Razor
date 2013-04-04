@@ -2,11 +2,26 @@ require 'spec_helper'
 require 'project_razor/slice'
 
 describe ProjectRazor::Slice do
-  # REVISIT: this is a stub - we test that we can load the code, which is
-  # better than no testing at all, but not actually very interesting in the
-  # bigger picture.  When we write any real test for the class then this
-  # next to useless test should be removed. --daniel 2013-02-21
-  it "should exist as a constant" do
-    described_class.should be
+  # before :each do
+  #   @test = TestClass.new
+  #   @test.extend(ProjectRazor::SliceUtil::Common)
+  #   # TODO: Review external dependencies here:
+  #   @test.extend(ProjectRazor::Utility)
+  # end
+
+  context "code formerly known as SliceUtil::Common" do
+    describe "validate_arg" do
+      subject('slice') { ProjectRazor::Slice.new([]) }
+      it "should return false for empty values" do
+        [ nil, {}, '', '{}', '{1}', ['', 1], [nil, 1], ['{}', 1] ].each do |val|
+          slice.validate_arg(*[val].flatten).should == false
+        end
+      end
+
+      it "should return valid value" do
+        slice.validate_arg('foo','bar').should == ['foo', 'bar']
+      end
+    end
+
   end
 end

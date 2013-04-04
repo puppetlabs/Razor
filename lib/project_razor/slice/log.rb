@@ -156,18 +156,20 @@ module ProjectRazor
       # section of the line that matches if there is a match)
       LOG_LINE_REGEXP = /^[A-Z]\,\s+\[([^\s]+)\s+\#[0-9]+\]\s+([A-Z]+)\s+\-\-\s+([^\s\#]+)\#([^\:]+)\:\s+(.*)$/
 
-      # Initializes ProjectRazor::Slice::Log including #slice_commands, #slice_commands_help, & #slice_name
+      # Initializes ProjectRazor::Slice::Log including #slice_commands, #slice_commands_help
       # @param [Array] args
       def initialize(args)
 
         super(args)
         @hidden = false
 
-        @slice_name = "Log"
         @logfile = File.join(get_logfile_path, "project_razor.log")
-        @slice_commands = { :get => "get_razor_log",
-                            :default => :get,
-                            :else => :get
+      end
+
+      def slice_commands
+        { :get => "get_razor_log",
+          :default => :get,
+          :else => :get
         }
       end
 
