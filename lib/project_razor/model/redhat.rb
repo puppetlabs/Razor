@@ -61,8 +61,11 @@ module ProjectRazor
       end
 
       def callback
-        { "kickstart"     => :kickstart_call,
-          "postinstall" => :postinstall_call, }
+        {
+          "broker"      => :broker_agent_handoff,
+          "kickstart"   => :kickstart_call,
+          "postinstall" => :postinstall_call,
+        }
       end
 
       def broker_agent_handoff

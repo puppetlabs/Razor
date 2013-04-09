@@ -153,9 +153,12 @@ module ProjectRazor
       end
 
       def callback
-        { "boot_cfg"    => :boot_cfg,
+        {
+          "broker"      => :broker_agent_handoff,
+          "boot_cfg"    => :boot_cfg,
           "kickstart"   => :kickstart,
-          "postinstall" => :postinstall }
+          "postinstall" => :postinstall,
+        }
       end
 
       def fsm_tree

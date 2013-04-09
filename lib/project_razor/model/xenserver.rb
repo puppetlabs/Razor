@@ -122,9 +122,12 @@ module ProjectRazor
       end
       
       def callback
-        { "isolinux_cfg"           => :isolinux_cfg_call,
-          "xenserverinstall_xml"   => :xenserverinstall_xml_call,
-	  "postinstall"            => :postinstall }
+        {
+          "broker"                => :broker_agent_handoff,
+          "isolinux_cfg"          => :isolinux_cfg_call,
+          "xenserverinstall_xml"  => :xenserverinstall_xml_call,
+          "postinstall"           => :postinstall,
+        }
       end
 
       def fsm_tree

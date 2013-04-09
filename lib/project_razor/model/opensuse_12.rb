@@ -54,8 +54,11 @@ module ProjectRazor
       end
 
       def callback
-        { "yast"     => :yast_call,
-          "postinstall" => :postinstall_call, }
+        {
+          "broker"      => :broker_agent_handoff,
+          "yast"        => :yast_call,
+          "postinstall" => :postinstall_call,
+        }
       end
 
       def broker_agent_handoff

@@ -62,8 +62,11 @@ module ProjectRazor
 
 
       def callback
-        { "preseed"     => :preseed_call,
-          "postinstall" => :postinstall_call, }
+        {
+          "broker"      => :broker_agent_handoff,
+          "preseed"     => :preseed_call,
+          "postinstall" => :postinstall_call,
+        }
       end
 
       def broker_agent_handoff
