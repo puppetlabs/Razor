@@ -24,10 +24,16 @@ class ProjectRazor::Slice < ProjectRazor::Object
   end
 
   # Return the name of this slice - essentially, the final classname without
-  # the leading hierarchy.  Not cached, because this is seldom used, and is
-  # never on the hot path.
+  # the leading hierarchy, in Ruby "filename" format rather than "classname"
+  # format.  Not cached, because this is seldom used, and is never on the
+  # hot path.
   def slice_name
-    self.class.name.sub(/^.*:/, '')
+    self.class.name.
+      split('::').
+      last.
+      scan(/[[:upper:]][[:lower:]]*/).
+      join('_').
+      downcase
   end
 
   def slice_commands
@@ -135,7 +141,7 @@ class ProjectRazor::Slice < ProjectRazor::Object
     if @web_command
       puts JSON.dump(return_hash)
     else
-      print "\n\n#{slice_name.capitalize}"
+      print "\n\n#{slice_name}"
       print " #{return_hash["command"]}\n"
       print " #{return_hash["response"]}\n"
     end
@@ -198,7 +204,7 @@ class ProjectRazor::Slice < ProjectRazor::Object
 
   def list_help(return_hash = nil)
     if return_hash != nil
-      print "[#{slice_name.capitalize}] "
+      print "[#{slice_name}] "
       print "[#{return_hash["command"]}] ".red
       print "<-#{return_hash["result"]}\n".yellow
     end
@@ -216,7 +222,7 @@ class ProjectRazor::Slice < ProjectRazor::Object
   end
 
   def slice_option_items_file(options = {})
-    File.join(File.dirname(__FILE__), "slice/#{slice_name.downcase}/#{options[:command].to_s}/option_items.yaml")
+    File.join(File.dirname(__FILE__), "slice/#{slice_name}/#{options[:command].to_s}/option_items.yaml")
   end
 
 
@@ -366,12 +372,12 @@ class ProjectRazor::Slice < ProjectRazor::Object
     banner = ""
     if contained_resource
       banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
-        "razor #{slice_name.downcase} (#{slice_name.upcase}_UUID) #{contained_resource} #{command} (UUID) (options...)" :
-        "razor #{slice_name.downcase} (#{slice_name.upcase}_UUID) #{contained_resource} #{command} (options...)")
+        "razor #{slice_name} (#{slice_name.upcase}_UUID) #{contained_resource} #{command} (UUID) (options...)" :
+        "razor #{slice_name} (#{slice_name.upcase}_UUID) #{contained_resource} #{command} (options...)")
     else
       banner = ( option_items.select { |elem| elem[:uuid_is] == "required" }.length > 0 ?
-        "razor #{slice_name.downcase} #{command} (UUID) (options...)" :
-        "razor #{slice_name.downcase} #{command} (options...)")
+        "razor #{slice_name} #{command} (UUID) (options...)" :
+        "razor #{slice_name} #{command} (options...)")
     end
     usage_lines = get_options({}, :options_items => option_items,
       :banner => banner).to_s.split("\n")
@@ -418,7 +424,7 @@ class ProjectRazor::Slice < ProjectRazor::Object
   # used by the slices to throw an error when an error occurred while attempting to parse
   # a slice command line
   def throw_syntax_error
-    command_str = "razor #{slice_name.downcase} #{@prev_args.join(" ")}"
+    command_str = "razor #{slice_name} #{@prev_args.join(" ")}"
     command_str << " " + @command_array.join(" ") if @command_array && @command_array.length > 0
     raise ProjectRazor::Error::Slice::SliceCommandParsingFailed,
     "failed to parse slice command: '#{command_str}'; check usage"
