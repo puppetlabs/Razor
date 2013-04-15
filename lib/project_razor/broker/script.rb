@@ -72,6 +72,20 @@ module ProjectRazor::BrokerPlugin
           :description  => "Script log path.",
           :validation   => '.*',
         },
+        "@pre" => {
+          :default      => "",
+          :example      => "pre-web-server.sh",
+          :required     => false,
+          :description  => "Server-side script to be run before client-side script.",
+          :validation   => '.*',
+        },
+        "@post" => {
+          :default      => "",
+          :example      => "post-web-server.sh",
+          :required     => false,
+          :description  => "Server-side script to be run after client-side script.",
+          :validation   => '.*',
+        },
       }
     end
 
@@ -79,7 +93,7 @@ module ProjectRazor::BrokerPlugin
       if @is_template
         return "Plugin", "Description"
       else
-        return "Name", "Description", "Plugin", "UUID", "Script", "Script Path", "Data", "Data Path", "Metadata Path", "Log Path"
+        return "Name", "Description", "Plugin", "UUID", "Script", "Script Path", "Data", "Data Path", "Metadata Path", "Log Path", "Pre", "Post"
       end
     end
 
@@ -87,7 +101,7 @@ module ProjectRazor::BrokerPlugin
       if @is_template
         return @plugin.to_s, @description.to_s
       else
-        return @name, @user_description, @plugin.to_s, @uuid, @script, @script_path, @data, @data_path, @metadata_path, @log_path
+        return @name, @user_description, @plugin.to_s, @uuid, @script, @script_path, @data, @data_path, @metadata_path, @log_path, @pre, @post
       end
     end
 
@@ -100,8 +114,16 @@ module ProjectRazor::BrokerPlugin
       options[:data_path] = @data_path
       options[:metadata_path] = @metadata_path
       options[:log_path] = @log_path
+      options[:pre] = @pre
+      options[:post] = @post
 
       logger.debug "Options processed: #{options.to_json}"
+
+      # Run pre-client-side script.
+      if @pre and not @pre.empty?
+        logger.debug 'Running pre-script...'
+        logger.debug `#{@pre} #{options[:metadata][:razor_active_model_uuid]}`
+      end
 
       @output = ""
       @attempts = 0
@@ -166,6 +188,12 @@ module ProjectRazor::BrokerPlugin
       end
 
       logger.debug "Razor script broker output:\n---\n#{@output}\n---"
+
+      # Run post-client-side script.
+      if @post and not @post.empty?
+        logger.debug 'Running post-script...'
+        logger.debug `#{@post} #{options[:metadata][:razor_active_model_uuid]}`
+      end
 
       return :broker_success
     end
