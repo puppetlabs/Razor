@@ -8,6 +8,8 @@ require 'rspec/expectations'
 require 'stringio'
 require 'tmpdir'
 
+require 'project_razor'
+
 module SpecHelpers
   # Capture and control stdout, stderr, and stdin of some code; used for
   # testing the slices, which unconditionally output text instead of returning

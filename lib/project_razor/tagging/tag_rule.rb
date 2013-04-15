@@ -1,3 +1,4 @@
+require "project_razor/object"
 
 module ProjectRazor
   module Tagging
@@ -118,22 +119,28 @@ module ProjectRazor
         inverse = options[:inverse]
         logger.debug "New tag matcher: '#{key}' #{compare} '#{value}' inverse:#{inverse.to_s}"
         if key.class == String && value.class == String
-          if compare.to_s == "equal" || compare.to_s == "like"
-            if inverse == "true" || inverse == "false"
+          if compare == "equal" || compare == "like"
+            if inverse.to_s == "true" || inverse.to_s == "false"
 
 
               tag_matcher = ProjectRazor::Tagging::TagMatcher.new({"@key" => key,
                                                                    "@value" => value,
                                                                    "@compare" => compare,
-                                                                   "@inverse" => inverse},
+                                                                   "@inverse" => inverse.to_s},
                                                                   @uuid)
               if tag_matcher.class == ProjectRazor::Tagging::TagMatcher
                 logger.debug "New tag matcher added successfully"
                 @tag_matchers << tag_matcher
                 return tag_matcher
               end
+            else
+              logger.warn "Tag matcher inverse value should be 'true' or 'false': #{inverse.to_s}"
             end
+          else
+            logger.warn "Tag matcher compare value should be 'equal' or 'like': #{compare}"
           end
+        else
+          logger.warn "Tag matcher key and value classes should be String: #{key.class}, #{value.class}"
         end
         false
       end
