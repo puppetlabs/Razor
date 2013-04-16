@@ -182,8 +182,14 @@ class RazorDaemon < ProjectRazor::Object
   # used to shut down all "node-related" processes in the system during
   # the process of shutting down this daemon
   def shutdown_node_instances
-    puts "Shutting down node instances using command 'killall -2 node'"
-    %x[killall -2 node]
+    node_proc_info = get_node_instance_info
+    if node_proc_info.size > 0
+      NODE_INSTANCE_NAMES.each do |node|
+        if node_proc_info.key?(node)
+          Process.kill('INT', Integer(node_proc_info[node][0]))
+        end
+      end
+    end
   end
 
   private
