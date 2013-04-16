@@ -20,7 +20,7 @@
   :description: The value to match against
   :uuid_is: not_allowed
   :required: true
-- :name: :invert
+- :name: :inverse
   :default:
   :short_form: -i
   :long_form: --invert VALUE
