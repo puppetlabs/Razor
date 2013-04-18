@@ -72,6 +72,115 @@ module ProjectRazor
         commands
       end
 
+      def all_command_option_data
+        {
+          :add => [
+            { :name        => :name,
+              :default     => false,
+              :short_form  => '-n',
+              :long_form   => '--name NAME',
+              :description => 'Name for the tagrule being created',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :tag,
+              :default     => false,
+              :short_form  => '-t',
+              :long_form   => '--tag TAG',
+              :description => 'Tag for the tagrule being created',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            }
+          ],
+          :update => [
+            { :name        => :name,
+              :default     => nil,
+              :short_form  => '-n',
+              :long_form   => '--name NAME',
+              :description => 'New name for the tagrule being updated.',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :tag,
+              :default     => nil,
+              :short_form  => '-t',
+              :long_form   => '--tag TAG',
+              :description => 'New tag for the tagrule being updated.',
+              :uuid_is     => 'required',
+              :required    => true
+            }
+          ],
+          :add_matcher => [
+            { :name        => :key,
+              :default     => nil,
+              :short_form  => '-k',
+              :long_form   => '--key KEY_FIELD',
+              :description => 'The node attribute key to match against.',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :compare,
+              :default     => nil,
+              :short_form  => '-c',
+              :long_form   => '--compare METHOD',
+              :description => 'The comparison method to use (\'equal\'|\'like\').',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :value,
+              :default     => nil,
+              :short_form  => '-v',
+              :long_form   => '--value VALUE',
+              :description => 'The value to match against',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :inverse,
+              :default     => nil,
+              :short_form  => '-i',
+              :long_form   => '--inverse VALUE',
+              :description => 'Inverse the match (true if key does not match value).',
+              :uuid_is     => 'not_allowed',
+              :required    => false
+            }
+          ],
+          :update_matcher => [
+            { :name        => :key,
+              :default     => nil,
+              :short_form  => '-k',
+              :long_form   => '--key KEY_FIELD',
+              :description => 'The new node attribute key to match against.',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :compare,
+              :default     => nil,
+              :short_form  => '-c',
+              :long_form   => '--compare METHOD',
+              :description => 'The new comparison method to use (\'equal\'|\'like\').',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :value,
+              :default     => nil,
+              :short_form  => '-v',
+              :long_form   => '--value VALUE',
+              :description => 'The new value to match against.',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :inverse,
+              :default     => nil,
+              :short_form  => '-i',
+              :long_form   => '--inverse VALUE',
+              :description => 'Inverse the match (true|false).',
+              :uuid_is     => 'required',
+              :required    => true
+            }
+          ]
+        }.freeze
+      end
+
       def tag_help
         if @prev_args.length > 1
           # get the command name that should be used to load the right options
@@ -81,7 +190,7 @@ module ProjectRazor
             # the command update_matcher (or add_matcher) actually appears on the CLI as
             # the command razor tag (UUID) matcher update (or add), so need to split on the
             # underscore character and swap the order when printing the command usage
-            option_items = load_option_items(:command => command.to_sym)
+            option_items = command_option_data(command)
             command, subcommand = command.split("_")
             print_command_help(command, option_items, subcommand)
             return
@@ -133,7 +242,7 @@ module ProjectRazor
         @command = :add_tagrule
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :add)
+        option_items = command_option_data(:add)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
@@ -156,7 +265,7 @@ module ProjectRazor
         @command = :update_tagrule
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :update)
+        option_items = command_option_data(:update)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return the options map constructed
         # from the @commmand_array)
@@ -222,7 +331,7 @@ module ProjectRazor
         includes_uuid = false
         tagrule_uuid = @prev_args.peek(2)
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :add_matcher)
+        option_items = command_option_data(:add_matcher)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
@@ -252,7 +361,7 @@ module ProjectRazor
         includes_uuid = false
         tagrule_uuid = @prev_args.peek(2)
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :update_matcher)
+        option_items = command_option_data(:update_matcher)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)

@@ -213,18 +213,22 @@ class ProjectRazor::Slice < ProjectRazor::Object
     end
   end
 
-  def load_option_items(options = {})
-    begin
-      return YAML.load_file(slice_option_items_file(options))
-    rescue => e
-      raise ProjectRazor::Error::Slice::SliceCommandParsingFailed, "Slice #{slice_name} cannot parse option items file"
-    end
+  # Return a hash mapping symbolic command names to option data; this is the
+  # internal counterpart to `command_option_data`, which imposes the semantics
+  # around searching this map.
+  def all_command_option_data
+    fail "The #{slice_name} command has not defined any command options!"
   end
+  private 'all_command_option_data'
 
-  def slice_option_items_file(options = {})
-    File.join(File.dirname(__FILE__), "slice/#{slice_name}/#{options[:command].to_s}/option_items.yaml")
+  def command_option_data(command)
+    # The original version of this would raise an exception (Errno::ENOENT)
+    # when the file didn't exist on disk; this roughly mirrors those semantics
+    # albeit without preserving the exact exception.  I don't think anyone
+    # cares, since nothing in Razor catches it specifically. --daniel 2013-04-16
+    all_command_option_data[command.to_sym] or
+      fail "Unknown command #{command} was looked up in `command_option_data`"
   end
-
 
   # here, we define a Stack class that simply delegates the equivalent "push", "pop",
   # "to_s" and "clear" calls to the underlying Array object using the delegation

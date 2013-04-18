@@ -42,12 +42,133 @@ module ProjectRazor
         commands
       end
 
+      def all_command_option_data
+        {
+          :add  =>  [
+            { :name        => :template,
+              :default     => nil,
+              :short_form  => '-p',
+              :long_form   => '--template TEMPLATE_NAME',
+              :description => 'The policy template name to use.',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :label,
+              :default     => nil,
+              :short_form  => '-l',
+              :long_form   => '--label POLICY_LABEL',
+              :description => 'A label to name this policy.',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :model_uuid,
+              :default     => nil,
+              :short_form  => '-m',
+              :long_form   => '--model-uuid MODEL_UUID',
+              :description => 'The model to attach to the policy.',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :broker_uuid,
+              :default     => 'none',
+              :short_form  => '-b',
+              :long_form   => '--broker-uuid BROKER_UUID',
+              :description => 'The broker to attach to the policy [default: none].',
+              :uuid_is     => 'not_allowed',
+              :required    => false
+            },
+            { :name        => :tags,
+              :default     => nil,
+              :short_form  => '-t',
+              :long_form   => '--tags TAG{ ,TAG,TAG}',
+              :description => 'Policy tags. Comma delimited.',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :enabled,
+              :default     => false,
+              :short_form  => '-e',
+              :long_form   => '--enabled ENABLED_FLAG',
+              :description => 'Should policy be enabled (true|false) [default: false]?',
+              :uuid_is     => 'not_allowed',
+              :required    => false
+            },
+            { :name        => :maximum,
+              :default     => '0',
+              :short_form  => '-x',
+              :long_form   => '--maximum MAXIMUM_COUNT',
+              :description => 'Sets the policy maximum count for nodes [default: 0].',
+              :uuid_is     => 'not_allowed',
+              :required    => false
+            }
+          ],
+          :update  =>  [
+            { :name        => :label,
+              :default     => nil,
+              :short_form  => '-l',
+              :long_form   => '--label POLICY_LABEL',
+              :description => 'A label to name this policy.',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :model_uuid,
+              :default     => nil,
+              :short_form  => '-m',
+              :long_form   => '--model-uuid MODEL_UUID',
+              :description => 'The model to attached to the policy.',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :broker_uuid,
+              :default     => nil,
+              :short_form  => '-b',
+              :long_form   => '--broker-uuid BROKER_UUID',
+              :description => 'The broker attached to the policy [default: none].',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :tags,
+              :default     => nil,
+              :short_form  => '-t',
+              :long_form   => '--tags TAG{ ,TAG,TAG}',
+              :description => 'Policy tags. Comma delimited.',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :enabled,
+              :default     => nil,
+              :short_form  => '-e',
+              :long_form   => '--enabled ENABLED_FLAG',
+              :description => 'Should policy be enabled (true|false) [default: false]?',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :maximum,
+              :default     => nil,
+              :short_form  => '-x',
+              :long_form   => '--maximum MAXIMUM_COUNT',
+              :description => 'Sets the policy maximum count for nodes [default: 0].',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :new_line_number,
+              :default     => nil,
+              :short_form  => '-n',
+              :long_form   => '--new-line-number NEW_NUM',
+              :description => 'Change policy rule number.',
+              :uuid_is     => 'required',
+              :required    => true
+            }
+          ]
+        }.freeze
+      end
+
       def policy_help
         if @prev_args.length > 1
           command = @prev_args.peek(1)
           begin
             # load the option items for this command (if they exist) and print them
-            option_items = load_option_items(:command => command.to_sym)
+            option_items = command_option_data(command)
             print_command_help(command, option_items)
             return
           rescue
@@ -106,7 +227,7 @@ module ProjectRazor
         @command = :add_policy
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :add)
+        option_items = command_option_data(:add)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
@@ -155,7 +276,7 @@ module ProjectRazor
         @command = :update_policy
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :update)
+        option_items = command_option_data(:update)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)

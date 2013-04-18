@@ -36,7 +36,7 @@ module ProjectRazor
           command = @prev_args.peek(1)
           begin
             # load the option items for this command (if they exist) and print them
-            option_items = load_option_items(:command => command.to_sym)
+            option_items = command_option_data(command)
             print_command_help(command, option_items)
             return
           rescue

@@ -31,4 +31,22 @@ describe ProjectRazor::Slice do
       end
     end
   end
+
+  describe "#command_option_data" do
+    it "should raise an exception if the command is unknown" do
+      expect {
+        ProjectRazor::Slice::Node.new([]).command_option_data(:unknown_command)
+      }.to raise_error
+    end
+
+    it "should return an array if the command is known" do
+      ProjectRazor::Slice::Node.new([]).command_option_data(:get).
+        should be_an_instance_of Array
+    end
+
+    it "should work with string command names" do
+      ProjectRazor::Slice::Node.new([]).command_option_data('get').
+        should be_an_instance_of Array
+    end
+  end
 end

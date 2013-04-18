@@ -32,12 +32,69 @@ module ProjectRazor
         commands
       end
 
+      def all_command_option_data
+        {
+          :add => [
+            { :name        => :template,
+              :default     => false,
+              :short_form  => '-t',
+              :long_form   => '--template MODEL_TEMPLATE',
+              :description => 'The model template to use for the new model.',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :label,
+              :default     => false,
+              :short_form  => '-l',
+              :long_form   => '--label MODEL_LABEL',
+              :description => 'The label to use for the new model.',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :image_uuid,
+              :default     => false,
+              :short_form  => '-i',
+              :long_form   => '--image-uuid IMAGE_UUID',
+              :description => 'The image UUID to use for the new model.',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            }
+          ],
+          :update => [
+            { :name        => :label,
+              :default     => false,
+              :short_form  => '-l',
+              :long_form   => '--label MODEL_LABEL',
+              :description => 'The new label to use for the model.',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :image_uuid,
+              :default     => false,
+              :short_form  => '-i',
+              :long_form   => '--image-uuid IMAGE_UUID',
+              :description => 'The new image UUID to use for the model.',
+              :uuid_is     => 'required',
+              :required    => true
+            },
+            { :name        => :change_metadata,
+              :default     => false,
+              :short_form  => '-c',
+              :long_form   => '--change-metadata',
+              :description => 'Used to trigger a change in the model\'s meta-data',
+              :uuid_is     => 'required',
+              :required    => true
+            }
+          ]
+        }.freeze
+      end
+
       def model_help
         if @prev_args.length > 1
           command = @prev_args.peek(1)
           begin
             # load the option items for this command (if they exist) and print them
-            option_items = load_option_items(:command => command.to_sym)
+            option_items = command_option_data(command)
             print_command_help(command, option_items)
             return
           rescue
@@ -92,7 +149,7 @@ module ProjectRazor
         @command = :add_model
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :add)
+        option_items = command_option_data(:add)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
@@ -130,7 +187,7 @@ module ProjectRazor
         @command = :update_model
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :update)
+        option_items = command_option_data(:update)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)

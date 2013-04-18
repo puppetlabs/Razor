@@ -25,12 +25,27 @@ module ProjectRazor
         commands
       end
 
+      def all_command_option_data
+        {
+          :get => [
+            { :name        => :field,
+              :default     => nil,
+              :short_form  => '-f',
+              :long_form   => '--field FIELD_NAME',
+              :description => 'The fieldname (attributes or hardware_id) to get',
+              :uuid_is     => 'required',
+              :required    => false
+            }
+          ]
+        }.freeze
+      end
+
       def node_help
         if @prev_args.length > 1
           command = @prev_args.peek(1)
           begin
             # load the option items for this command (if they exist) and print them
-            option_items = load_option_items(:command => command.to_sym)
+            option_items = command_option_data(command)
             print_command_help(command, option_items)
             return
           rescue
@@ -68,7 +83,7 @@ module ProjectRazor
         # ran one argument far when parsing if we were working with a web command
         @command_array.unshift(@prev_args.pop) if @web_command
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :get)
+        option_items = command_option_data(:get)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)

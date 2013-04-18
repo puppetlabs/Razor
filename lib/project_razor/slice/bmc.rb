@@ -44,19 +44,62 @@ module ProjectRazor
         commands
       end
 
+      def all_command_option_data
+        {
+          :get => [
+            { :name        => :query,
+              :default     => nil,
+              :short_form  => '-q',
+              :long_form   => '--query IPMI_QUERY',
+              :description => 'The IPMI query to run against a BMC',
+              :uuid_is     => 'required',
+              :required    => false
+            }
+          ],
+          :register => [
+            { :name        => :ip_address,
+              :default     => false,
+              :short_form  => '-i',
+              :long_form   => '--ip_address IP_ADDR',
+              :description => 'IP address for BMC being registered',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            },
+            { :name        => :mac_address,
+              :default     => false,
+              :short_form  => '-m',
+              :long_form   => '--mac_address MAC_ADDR',
+              :description => 'MAC address for BMC being registered',
+              :uuid_is     => 'not_allowed',
+              :required    => true
+            }
+          ],
+          :update => [
+            { :name        => :power_state,
+              :default     => nil,
+              :short_form  => "-p",
+              :long_form   => "--power-state NEW_STATE",
+              :description => "Used to transition the power-state of a node",
+              :uuid_is     => "required",
+              :required    => true
+            }
+          ]
+        }.freeze
+      end
+
       def bmc_help
         if @prev_args.length > 1
           command = @prev_args.peek(1)
           begin
             # load the option items for this command (if they exist) and print them
-            option_items = load_option_items(:command => command.to_sym)
+            option_items = command_option_data(command)
             print_command_help(command, option_items)
             return
           rescue
           end
         end
         # if here, then either there are no specific options for the current command or we've
-        # been asked for generic help, so provide generic help          print_command_help("bmc")
+        # been asked for generic help, so provide generic help          
         puts "BMC Slice: used to view the current list of BMCs; also used by to register".red
         puts "    new BMCs with Razor.".red
         puts "BMC Commands:".yellow
@@ -92,7 +135,7 @@ module ProjectRazor
         @command = :get_bmc_by_uuid
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :get)
+        option_items = command_option_data(:get)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
@@ -132,7 +175,7 @@ module ProjectRazor
         @command = :update_bmc_power_state
         includes_uuid = false
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :update)
+        option_items = command_option_data(:update)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
@@ -151,7 +194,7 @@ module ProjectRazor
       def register_bmc
         @command = :register_bmc
         # load the appropriate option items for the subcommand we are handling
-        option_items = load_option_items(:command => :register)
+        option_items = command_option_data(:register)
         # parse and validate the options that were passed in as part of this
         # subcommand (this method will return a UUID value, if present, and the
         # options map constructed from the @commmand_array)
