@@ -28,7 +28,7 @@ rpm -i http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-6.noa
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "repo_install_ok") %> || curl <%= callback_url("postinstall", "repo_install_fail") %>
 
 # Install requirements
-yum -y install rubygems facter
+yum -y --enablerepo=base install rubygems facter
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "yum_install_ok") %> || curl <%= callback_url("postinstall", "yum_install_fail") %>
 
 # Get current IP
