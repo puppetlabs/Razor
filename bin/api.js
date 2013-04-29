@@ -9,6 +9,23 @@ var InvalidURIPathError = common.InvalidURIPathError;
 var urlDecode = common.urlDecode;
 var returnError = common.returnError;
 
+var os = require('os');
+var spawn = require("child_process").spawn;
+var Lazy = require('lazy');
+var pool = require('generic-pool').Pool({
+    name: 'razor',
+    create: function(callback) {
+        proc = spawn(razor_bin, ['-b'], options={'stdio': ['pipe', 'pipe', 'ignore']});
+        callback(null, proc);
+    },
+    destroy: function(proc) {
+        proc.stdin.end();
+    },
+    max: os.cpus().length,
+    min: os.cpus().length / 2,
+    refreshIdle: false
+});
+
 app = express.createServer(); // our express server
 app.use(express.bodyParser()); // Enable body parsing for POST
 // app.use(express.profiler()); // Uncomment for profiling to console
@@ -23,11 +40,27 @@ app.get('/razor/api/boot*',
                 args.push('default');
             args.push(JSON.stringify(req.query));
             console.log(razor_bin + getArguments(args));
-            execFile(razor_bin, args, function (err, stdout, stderr) {
-                if(err instanceof Error)
-                    returnError(res, err);
-                else
-                    res.send(stdout, 200, {"Content-Type": "text/plain"});
+            pool.acquire(function(err, proc) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    error_cb = function (return_code) {
+                        if (return_code != 0) {
+                            Lazy(proc.stdout).head(function(data) {
+                                returnError(res, data);
+                            });
+                        }
+                    };
+                    proc.on('close', error_cb);
+                    proc.stdin.write(getArguments(args) + '\n', callback=function(error) {
+                        Lazy(proc.stdout).head(function(data) {
+                            res.send(data, 200, {"Content-Type": "text/plain"});
+                        });
+                        proc.removeListener('close', error_cb);
+                        pool.release(proc);
+                    });
+                }
             });
         } catch(e) {
             returnError(res, e);
@@ -44,11 +77,27 @@ app.get('/razor/api/*',
             	
             args.push(JSON.stringify(req.query));
             console.log(razor_bin + getArguments(args));
-            execFile(razor_bin, args, function (err, stdout, stderr) {
-                if(err instanceof Error)
-                    returnError(res, err);
-                else
-                    returnResult(res, stdout);
+            pool.acquire(function(err, proc) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    error_cb = function (return_code) {
+                        if (return_code != 0) {
+                            Lazy(proc.stdout).head(function(data) {
+                                returnError(res, data);
+                            });
+                        }
+                    };
+                    proc.on('close', error_cb);
+                    proc.stdin.write(getArguments(args) + '\n', callback=function(error) {
+                        Lazy(proc.stdout).head(function(data) {
+                            returnResult(res, data);
+                        });
+                        proc.removeListener('close', error_cb);
+                        pool.release(proc);
+                    });
+                }
             });
         } catch(e) {
             returnError(res, e);
@@ -66,11 +115,27 @@ app.post('/razor/api/*',
             args.push(req.param('json_hash', null));
             //process.stdout.write('\033[2J\033[0;0H');
             console.log(razor_bin + getArguments(args));
-            execFile(razor_bin, args, function (err, stdout, stderr) {
-                if(err instanceof Error)
-                    returnError(res, err);
-                else
-                    returnResult(res, stdout);
+            pool.acquire(function(err, proc) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    error_cb = function (return_code) {
+                        if (return_code != 0) {
+                            Lazy(proc.stdout).head(function(data) {
+                                returnError(res, data);
+                            });
+                        }
+                    };
+                    proc.on('close', error_cb);
+                    proc.stdin.write(getArguments(args) + '\n', callback=function(error) {
+                        Lazy(proc.stdout).head(function(data) {
+                            returnResult(res, data);
+                        });
+                        proc.removeListener('close', error_cb);
+                        pool.release(proc);
+                    });
+                }
             });
         } catch(e) {
             returnError(res, e);
@@ -87,11 +152,27 @@ app.put('/razor/api/*',
             }
             args.push(req.param('json_hash', null));
             console.log(razor_bin + getArguments(args));
-            execFile(razor_bin, args, function (err, stdout, stderr) {
-                if(err instanceof Error)
-                    returnError(res, err);
-                else
-                    returnResult(res, stdout);
+            pool.acquire(function(err, proc) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    error_cb = function (return_code) {
+                        if (return_code != 0) {
+                            Lazy(proc.stdout).head(function(data) {
+                                returnError(res, data);
+                            });
+                        }
+                    };
+                    proc.on('close', error_cb);
+                    proc.stdin.write(getArguments(args) + '\n', callback=function(error) {
+                        Lazy(proc.stdout).head(function(data) {
+                            returnResult(res, data);
+                        });
+                        proc.removeListener('close', error_cb);
+                        pool.release(proc);
+                    });
+                }
             });
         } catch(msg) {
             returnError(res, e);
@@ -107,11 +188,27 @@ app.delete('/razor/api/*',
                 args.splice(-1, 0, "remove");
             }
             console.log(razor_bin + getArguments(args));
-            execFile(razor_bin, args, function (err, stdout, stderr) {
-                if(err instanceof Error)
-                    returnError(res, err);
-                else
-                    returnResult(res, stdout);
+            pool.acquire(function(err, proc) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    error_cb = function (return_code) {
+                        if (return_code != 0) {
+                            Lazy(proc.stdout).head(function(data) {
+                                returnError(res, data);
+                            });
+                        }
+                    };
+                    proc.on('close', error_cb);
+                    proc.stdin.write(getArguments(args) + '\n', callback=function(error) {
+                        Lazy(proc.stdout).head(function(data) {
+                            returnResult(res, data);
+                        });
+                        proc.removeListener('close', error_cb);
+                        pool.release(proc);
+                    });
+                }
             });
         } catch(msg) {
             returnError(res, e);

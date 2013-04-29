@@ -13,6 +13,22 @@ var urlDecode = common.urlDecode;
 var returnError = common.returnError;
 var image_svc_path;
 
+var io_id = 0;
+var pool = require('generic-pool').Pool({
+    name: 'io',
+    create: function(callback) {
+        var id = io_id++;
+        console.info('Created IO resource: ' + id);
+        callback(null, id);
+    },
+    destroy: function(id) {
+        console.info('Destroyed IO resource: ' + id);
+    },
+    max: 5,
+    min: 1,
+    refreshIdle: false
+});
+
 app = express.createServer(); // our express server
 
 app.get('/razor/image/*', function(req, res) {
@@ -53,23 +69,32 @@ function respondWithFile(path, res, req) {
                 start_offset = 0;
                 end_offset = stat.size - 1;
             }
+            pool.acquire(function(err, id) {
+                if (err) {
+                    console.error(err);
+                }
+                else {
+                    console.info('Acquired IO resource: ' + id);
+                    var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
+                    res.setHeader('Content-length', (end_offset - start_offset + 1));
+                    res.writeHead(200, {'Content-Type': mimetype});
 
-            var fileStream = fs.createReadStream(path, {start: start_offset, end: end_offset});
-            res.setHeader('Content-length', (end_offset - start_offset + 1));
-            res.writeHead(200, {'Content-Type': mimetype});
-
-            fileStream.on('data', function(chunk) {
-                process.stdout.write(".");
-                res.write(chunk);
+                    fileStream.on('data', function(chunk) {
+                        process.stdout.write(".");
+                        res.write(chunk);
+                    });
+                    fileStream.on('end', function() {
+                        process.stdout.write("!\n");
+                        res.end();
+                        console.info('Released IO resource: ' + id);
+                        pool.release(id);
+                    });
+                    console.log("\tSending: " + path);
+                    console.log("\tMimetype: " + mimetype);
+                    console.log("\tSize: " + stat.size);
+                    console.log("\tStart: " + start_offset + " / End: " + end_offset);
+                }
             });
-            fileStream.on('end', function() {
-                process.stdout.write("!\n");
-                res.end();
-            });
-            console.log("\tSending: " + path);
-            console.log("\tMimetype: " + mimetype);
-            console.log("\tSize: " + stat.size);
-            console.log("\tStart: " + start_offset + " / End: " + end_offset);
         }
         catch (err)
         {
