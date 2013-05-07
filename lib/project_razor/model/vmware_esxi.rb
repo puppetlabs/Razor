@@ -132,23 +132,23 @@ module ProjectRazor
 
       def broker_proxy_handoff
         logger.debug "Broker proxy called for: #{@broker.name}"
-        unless node_ip_address
+        if node_ip_address
+          options = {
+              :username                => "root",
+              :password                => @root_password,
+              :metadata                => node_metadata,
+              :hostname                => node_hostname,
+              :uuid                    => @node.uuid,
+              :ipaddress               => node_ip_address,
+              :vcenter_name            => @vcenter_name,
+              :vcenter_datacenter_path => @vcenter_datacenter_path,
+              :vcenter_cluster_path    => @vcenter_cluster_path,
+          }
+          @current_state = @broker.proxy_hand_off(options)
+        else
           logger.error "Node IP address isn't known"
           @current_state = :broker_fail
-          broker_fsm_log
         end
-        options = {
-            :username                => "root",
-            :password                => @root_password,
-            :metadata                => node_metadata,
-            :hostname                => node_hostname,
-            :uuid                    => @node.uuid,
-            :ipaddress               => node_ip_address,
-            :vcenter_name            => @vcenter_name,
-            :vcenter_datacenter_path => @vcenter_datacenter_path,
-            :vcenter_cluster_path    => @vcenter_cluster_path,
-        }
-        @current_state = @broker.proxy_hand_off(options)
         broker_fsm_log
       end
 

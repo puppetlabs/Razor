@@ -105,19 +105,19 @@ module ProjectRazor
       
       def broker_agent_handoff
         logger.debug "Broker agent called for: #{@broker.name}"
-        unless @node_ip
+        if @node_ip
+          options = {
+            :username  => "root",
+            :password  => @root_password,
+            :metadata  => node_metadata,
+            :uuid  => @node.uuid,
+            :ipaddress => @node_ip_address,
+          }
+          @current_state = @broker.agent_hand_off(options)
+        else
           logger.error "Node IP address isn't known"
           @current_state = :broker_fail
-          broker_fsm_log
         end
-        options = {
-          :username  => "root",
-          :password  => @root_password,
-          :metadata  => node_metadata,
-          :uuid  => @node.uuid,
-          :ipaddress => @node_ip_address,
-        }
-        @current_state = @broker.agent_hand_off(options)
         broker_fsm_log
       end
       
@@ -137,7 +137,7 @@ module ProjectRazor
                                 :xenserverinstall_xml_start => :preinstall,
                                 :xenserverinstall_xml_file  => :init,
                                 :xenserverinstall_xml_end   => :postinstall,
-				:timeout         => :timeout_error,
+                                :timeout         => :timeout_error,
                                 :error           => :error_catch,
                                 :else            => :init },
             :preinstall    => { :mk_call           => :preinstall,
@@ -146,7 +146,7 @@ module ProjectRazor
                                 :xenserverinstall_xml_file    => :init,
                                 :xenserverinstall_xml_end     => :postinstall,
                                 :xenserverinstall_xml_timeout => :timeout_error,
-				:error             => :error_catch,
+                                :error             => :error_catch,
                                 :else              => :preinstall },
             :postinstall   => { :mk_call           => :postinstall,
                                 :boot_call         => :postinstall,
@@ -154,9 +154,9 @@ module ProjectRazor
                                 :xenserverinstall_xml_file    => :postinstall,
                                 :xenserverinstall_xml_end     => :postinstall,
                                 :postinstallscript_inject => :postinstall,
-				:postinstall_inject => :postinstall,
-				:xenserverinstall_xml_timeout => :postinstall,
-				:error             => :error_catch,
+                                :postinstall_inject => :postinstall,
+                                :xenserverinstall_xml_timeout => :postinstall,
+                                :error             => :error_catch,
                                 :else              => :preinstall },
             :os_complete   => { :mk_call   => :os_complete,
                                 :boot_call => :os_complete,
@@ -249,7 +249,7 @@ module ProjectRazor
           when "inject"
             fsm_action(:postinstall_inject, :postinstall)
             return os_boot_script(@policy_uuid)
-	  when "end"
+          when "end"
             fsm_action(:postinstall_end, :postinstall)
             return "ok"
           when "debug"
@@ -273,7 +273,7 @@ module ProjectRazor
       end
 
       def pxelinuxbin
-	"pxelinux.0"
+        "pxelinux.0"
       end 
 
       def pxelinux_path
@@ -297,7 +297,7 @@ module ProjectRazor
         filepath = template_filepath('isolinux_cfg')
         ERB.new(File.read(filepath)).result(binding)
       end
-	
+
       def image_svc_uri
         "http://#{config.image_svc_host}:#{config.image_svc_port}/razor/image/xenserver"
       end
