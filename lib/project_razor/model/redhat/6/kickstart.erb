@@ -20,7 +20,19 @@ bootloader --location=mbr --driveorder=sda --append=crashkernel=auto rhgb quiet
 # not guaranteed to work
 zerombr
 clearpart --all --initlabel
+
+<% if @autopart == "true"%>
 autopart
+<% else %>
+part /boot --asprimary --fstype="ext4" --size=200
+<% if @swap_partition_size.to_i != 0 %>
+part swap  --asprimary --fstype="swap" --size=<%= @swap_partition_size %>
+<% end %>
+part pv.0  --asprimary --size=1 --grow
+volgroup VG0 pv.0
+logvol /     --fstype ext4 --name=VolRoot --vgname=VG0 --size=<%= @root_partition_size %>
+<% end %>
+
 # reboot automatically
 reboot
 
