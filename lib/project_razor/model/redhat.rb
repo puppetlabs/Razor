@@ -57,27 +57,6 @@ module ProjectRazor
                 :required    => true,
                 :description => "root password (> 8 characters)"
             },
-            "@root_partition_size" => {
-                :default     => "16384",
-                :example     => "6144",
-                :validation  => '^\d+$',
-                :required    => true,
-                :description => "size (in megabytes) of root partition (valid if autopart == false)"
-            },
-            "@swap_partition_size" => {
-                :default     => "8192",
-                :example     => "2048",
-                :validation  => '^\d+$',
-                :required    => true,
-                :description => "size (in megabytes) of swap partition (valid if autopart == false)"
-            },
-            "@autopart" => {
-                :default     => "true",
-                :example     => "false",
-                :validation  => '(true|false)',
-                :required    => true,
-                :description => "if you want to use 'autopart' option"
-            },
         }
       end
 
