@@ -15,6 +15,13 @@ baseurl = http://yum.puppetlabs.com/fedora/f$releasever/products/$basearch/
 gpgcheck = 1
 enabled = 1
 gpgkey = http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+
+[puppetlabs-deps]
+name = Puppetlabs Dependencies
+baseurl = http://yum.puppetlabs.com/fedora/f$releasever/dependencies/$basearch/
+gpgcheck = 1
+enabled = 1
+gpgkey = http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
 EOFYUMREPO
 }
 
@@ -26,6 +33,7 @@ baseurl = http://yum.puppetlabs.com/el/$releasever/products/$basearch/
 gpgcheck = 1
 enabled = 1
 gpgkey = http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+
 [puppetlabs-deps]
 name = Puppetlabs Dependencies
 baseurl = http://yum.puppetlabs.com/el/$releasever/dependencies/$basearch/
@@ -63,7 +71,7 @@ function apt_install() {
 
   # Setup the apt Puppet repository
   cat > /etc/apt/sources.list.d/puppetlabs.list <<EOFAPTREPO
-deb http://apt.puppetlabs.com/ ${release} main
+deb http://apt.puppetlabs.com/ ${release} main dependencies
 EOFAPTREPO
   apt-get -q -y update
   # Install Puppet from Debian repositories
