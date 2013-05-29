@@ -43,13 +43,13 @@ mk_url = if ENV['INSTALL_MODE'] == 'internal-packages' then
          end
 
 mk     = add_image(:type => 'mk', :url => mk_url)
-esxi   = add_image(:type => 'esxi', :url => "http://faro.puppetlabs.lan/Software/VMware/VMware-VMvisor-Installer-5.0.0-469512.x86_64.iso")
-ubuntu = add_image(:type => 'os', :name => 'ubuntu', :version => '1204', :url => "http://faro.puppetlabs.lan/ISO/Ubuntu/ubuntu-12.04-server-amd64.iso")
+esxi   = add_image(:type => 'esxi', :url => "http://int-resources.ops.puppetlabs.net/Software/VMware/VMware-VMvisor-Installer-5.0.0-469512.x86_64.iso")
+ubuntu = add_image(:type => 'os', :name => 'ubuntu', :version => '1204', :url => "http://int-resources.ops.puppetlabs.net/ISO/Ubuntu/ubuntu-12.04-server-amd64.iso")
 
 # The simulator doesn't have a CentOS / EL scenario yet, but we should add
 # one fairly soon.  When you do:
 #
-# centos = add_image(:type => 'os', :name => 'centos', :version => '62', :url => "http://faro.puppetlabs.lan/ISO/CentOS/CentOS-6.2-x86_64-minimal.iso")
+# centos = add_image(:type => 'os', :name => 'centos', :version => '62', :url => "http://int-resources.ops.puppetlabs.net/ISO/CentOS/CentOS-6.2-x86_64-minimal.iso")
 
 
 step "Upload the perftest tool source code"
