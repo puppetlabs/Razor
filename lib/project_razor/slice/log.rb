@@ -45,10 +45,10 @@ class File
     next_buffer_size = BUFFER_SIZE
     # handle the case where the file size is less than the BUFFER_SIZE
     # correctly (in that case, will read the entire file in one chunk)
-    if size > BUFFER_SIZE
-      idx = (size - BUFFER_SIZE)
+    if stat.size > BUFFER_SIZE
+      idx = (stat.size - BUFFER_SIZE)
     else
-      next_buffer_size = size
+      next_buffer_size = stat.size
     end
     lines = 0
     # this flag is only set if a cutoff time is included
@@ -86,7 +86,7 @@ class File
         # loop until this chunk contains enough lines to satisfy the requested
         # tail size (note; this may not be enough if a filter criteria was included
         # that filters out some of these lines, but it's a start)
-      end while lines < ( num_lines + 1 ) && bytes_read < size
+      end while lines < ( num_lines + 1 ) && bytes_read < stat.size
       # now that we've got enough "raw lines" to (potentially)satisfy the requested
       # number of lines (or the entire file has been read into the buffer), concatenate
       # the array of chunks and split the result into lines
@@ -131,7 +131,7 @@ class File
         matching_lines.concat(chunk_lines)
       end
       # loop until we've found enough lines or have read the entire file
-    end while filter_expression && !first_line_earlier_than_cutoff && matching_lines.size < num_lines && bytes_read < size
+    end while filter_expression && !first_line_earlier_than_cutoff && matching_lines.size < num_lines && bytes_read < stat.size
     if matching_lines.size < num_lines
       return matching_lines
     end
