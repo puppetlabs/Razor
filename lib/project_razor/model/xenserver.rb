@@ -105,7 +105,7 @@ module ProjectRazor
       
       def broker_agent_handoff
         logger.debug "Broker agent called for: #{@broker.name}"
-        if @node_ip
+        if @node_ip_address
           options = {
             :username  => "root",
             :password  => @root_password,
