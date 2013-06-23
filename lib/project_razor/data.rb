@@ -219,7 +219,9 @@ module ProjectRazor
               # then use a regular expression for comparison; else compare as literals
               if filter_hash[filter_key].class == String && filter_hash[filter_key].start_with?('regex:')
                 regex_key = filter_hash[filter_key].sub(/^regex:/,"")
-                if Regexp.new(regex_key).match(object_hash[filter_key]) == nil
+                object_value = object_hash[filter_key]
+                object_value = object_value.join(',') if object_value.class == Array
+                if Regexp.new(regex_key).match(object_value) == nil
                   logger.debug "no match - regex"
                   return false
                 end
