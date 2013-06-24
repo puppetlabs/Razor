@@ -221,7 +221,7 @@ module ProjectRazor
                 regex_key = filter_hash[filter_key].sub(/^regex:/,"")
                 object_value = object_hash[filter_key]
                 object_value = object_value.join(',') if object_value.class == Array
-                if Regexp.new(regex_key).match(object_value) == nil
+                unless Regexp.new(regex_key).match(object_value)
                   logger.debug "no match - regex"
                   return false
                 end
