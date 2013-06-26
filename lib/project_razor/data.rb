@@ -218,14 +218,25 @@ module ProjectRazor
               # If the filter_hash[filter_key] value is a String and it starts with 'regex:'
               # then use a regular expression for comparison; else compare as literals
               if filter_hash[filter_key].class == String && filter_hash[filter_key].start_with?('regex:')
-                regex_key = filter_hash[filter_key].sub(/^regex:/,"")
-                if Regexp.new(regex_key).match(object_hash[filter_key]) == nil
-                  logger.debug "no match - regex"
+                expr = Regexp.new(filter_hash[filter_key].sub(/^regex:/,""))
+              else
+                expr = filter_hash[filter_key]
+              end
+              case object_hash[filter_key]
+              when Array
+                unless object_hash[filter_key].index{|element| expr === element}
+                  logger.debug "no match - Array"
+                  return false
+                end
+              when Fixnum
+                unless expr === object_hash[filter_key].to_s
+                  logger.debug "no match - Fixnum"
                   return false
                 end
               else
-                if filter_hash[filter_key] != object_hash[filter_key]
-                  logger.debug "no match - literal"
+                unless expr === object_hash[filter_key]
+                  logger.debug "no match - String or Boolean"
+                  logger.debug "#{expr.class} : #{object_hash[filter_key].class}"
                   return false
                 end
               end
