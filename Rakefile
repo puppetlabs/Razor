@@ -4,6 +4,7 @@ require 'yaml'
 require 'pathname'
 
 begin
+  load File.join(File.dirname(__FILE__), 'ext', 'packaging', 'packaging.rake')
   require 'rspec/core/rake_task'
 rescue LoadError
 end
@@ -41,9 +42,6 @@ if defined?(RSpec::Core::RakeTask)
     t.pattern = 'spec/**/*_spec.rb'
   end
 end
-
-# Puppet Labs packaging automation support infrastructure.
-Dir['ext/packaging/tasks/**/*.{rb,rake}'].sort.each{|task| load task }
 
 begin
   @build_defaults ||= YAML.load_file('ext/build_defaults.yaml')
