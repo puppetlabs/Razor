@@ -240,7 +240,7 @@ module ProjectRazor
                 end
               else
                 unless expr === object_hash[filter_key]
-                  logger.debug "no match - String
+                  logger.debug "no match - String"
                   logger.debug "#{expr.class} : #{object_hash[filter_key].class}"
                   return false
                 end
