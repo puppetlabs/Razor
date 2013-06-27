@@ -234,7 +234,7 @@ module ProjectRazor
                   return false
                 end
               when FalseClass, TrueClass
-                unless (expr === 'true') === object_hash[filter_key]
+                unless (expr === 'true') == object_hash[filter_key]
                   logger.debug "no match - Boolean"
                   return false
                 end
