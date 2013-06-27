@@ -532,12 +532,7 @@ class ProjectRazor::Slice < ProjectRazor::Object
         begin
           # Render our JSON to a Hash
           filter_hash = JSON.parse(@filter_json_string)
-          # if any of the Hash values are "true" or "false", convert to equivalent
-          # Boolean values (true and false, respectively)
-          filter_hash.each { |key, val|
-            (filter_hash[key] = true; next) if val == "true"
-            filter_hash[key] = false if val == "false"
-          }
+          logger.debug "filter_hash: #{filter_hash.inspect}"
           return return_objects_using_filter(collection, filter_hash)
         rescue StandardError => e
           # We caught an error / likely JSON. We return the error text as a Slice error.

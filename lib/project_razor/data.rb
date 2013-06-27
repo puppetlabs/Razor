@@ -233,9 +233,14 @@ module ProjectRazor
                   logger.debug "no match - Fixnum"
                   return false
                 end
+              when FalseClass, TrueClass
+                unless (expr === 'true') === object_hash[filter_key]
+                  logger.debug "no match - Boolean"
+                  return false
+                end
               else
                 unless expr === object_hash[filter_key]
-                  logger.debug "no match - String or Boolean"
+                  logger.debug "no match - String
                   logger.debug "#{expr.class} : #{object_hash[filter_key].class}"
                   return false
                 end
