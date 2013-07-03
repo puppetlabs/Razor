@@ -46,6 +46,7 @@ module ProjectRazor
           return false
         end
         @razor_database = @connection.db("project_razor")
+        @razor_database.authenticate(username, password)
         @connection.active?
       end
 
