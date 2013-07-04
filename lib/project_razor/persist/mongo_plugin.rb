@@ -46,7 +46,13 @@ module ProjectRazor
           return false
         end
         @razor_database = @connection.db("project_razor")
-        @razor_database.authenticate(username, password)
+        begin
+          @razor_database.authenticate(username, password) unless "" == username
+        rescue Mongo::AuthenticationError
+          logger.error "Mongo::AuthenticationError"
+          disconnect
+          return false
+        end
         @connection.active?
       end
 
