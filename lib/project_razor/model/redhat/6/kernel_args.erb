@@ -1,5 +1,5 @@
-<% if @node.dhcp_mac %>ksdevice=bootif BOOTIF=<%= @node.dhcp_mac %>  ks=<%= "#{api_svc_uri}/policy/callback/#{policy_uuid}/kickstart/file" %>
-<% else %>ks=<%= "#{api_svc_uri}/policy/callback/#{policy_uuid}/kickstart/file" %>
+<% if @node.dhcp_mac %>ksdevice=bootif BOOTIF=<%= @node.dhcp_mac %>  ks=<%= "#{api_svc_uri}/policy/callback/#{policy_uuid}/kickstart/file" %> <%= config.install_kernel_args %>
+<% else %>ks=<%= "#{api_svc_uri}/policy/callback/#{policy_uuid}/kickstart/file" %> <%= config.install_kernel_args %>
 <% end %>
 
 
