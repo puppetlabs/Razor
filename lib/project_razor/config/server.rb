@@ -63,6 +63,7 @@ module ProjectRazor
       attr_accessor :rz_mk_boot_debug_level
       attr_accessor :rz_mk_boot_kernel_args
 
+      attr_accessor :set_hostname
 
       attr_reader   :noun
 
@@ -186,6 +187,9 @@ module ProjectRazor
           # e.g. "console=ttyS0" or "razor.ip=1.2.3.4"
           'rz_mk_boot_kernel_args'   => "",
 
+          # used to avoid that the os_boot step is overwritting the existing hostname.
+          # E.g. the one provided by DHCP. Default: "true" - setting the hostname.
+          'set_hostname' = true,
 
           # used to overwrite the distribution specific mirror location for maintenance
           # updates.

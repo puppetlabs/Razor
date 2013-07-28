@@ -6,6 +6,7 @@ if service NetworkManager status >/dev/null 2>&1 && type -P nm-online; then
     [ "$?" -eq 0 ] || exit 1
 fi
 
+<% if config.set_hostname %>
 # Configure hostname.
 hostname <%= hostname %>
 echo <%= hostname %> > /etc/hostname
@@ -22,6 +23,7 @@ grep -v '^127\.0\.0\.1.*' /etc/hosts- | grep '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.
 grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/hosts
 
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
+<% end %>
 
 # Need to add the Puppetlabs repo
 rpm -i http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-6.noarch.rpm
