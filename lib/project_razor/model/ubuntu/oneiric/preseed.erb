@@ -9,6 +9,10 @@ d-i mirror/country string manual
 d-i mirror/http/hostname string <%= config.image_svc_host %>:<%= config.image_svc_port %>
 d-i mirror/http/directory string /razor/image/os/<%= @image_uuid %>
 d-i mirror/http/proxy string
+<% if config.mirror_update_host.empty? %>
+d-i apt-setup/security_host string <%= config.mirror_update_host %>:<%= config.mirror_update_port %>
+d-i apt-setup/security_path string <%= config.mirror_update_path %>
+<% end %>
 d-i clock-setup/utc boolean true
 d-i time/zone string US/Central
 d-i clock-setup/ntp boolean true
