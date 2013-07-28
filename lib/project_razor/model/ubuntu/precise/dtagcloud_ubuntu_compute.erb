@@ -10,7 +10,7 @@ d-i mirror/http/hostname string <%= config.image_svc_host %>:<%= config.image_sv
 d-i mirror/http/directory string /razor/image/os/<%= @image_uuid %>
 d-i mirror/http/proxy string
 d-i clock-setup/utc boolean true
-d-i time/zone string US/Central
+d-i time/zone string UTC
 d-i clock-setup/ntp boolean true
 d-i partman-auto/disk string /dev/sda
 d-i partman-auto/method string lvm
