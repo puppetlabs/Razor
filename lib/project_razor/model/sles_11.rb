@@ -184,7 +184,7 @@ module ProjectRazor
         super(node, policy_uuid)
         case @current_state
           # We need to reboot
-          when :init, :preinstall, :postinstall, :os_validate, :os_complete, :broker_check, :broker_fail, :broker_success
+          when :init, :preinstall, :postinstall, :os_validate, :os_complete, :broker_check, :broker_wait, :broker_fail, :broker_success
             ret = [:reboot, {}]
           when :timeout_error, :error_catch
             ret = [:acknowledge, {}]
@@ -201,7 +201,7 @@ module ProjectRazor
           when :init, :preinstall
             @result = "Starting Suse model install"
             ret = start_install(node, policy_uuid)
-          when :postinstall, :os_complete, :broker_check, :broker_fail, :broker_success, :complete_no_broker
+          when :postinstall, :os_complete, :broker_check, :broker_wait, :broker_fail, :broker_success, :complete_no_broker
             ret = local_boot(node)
           when :timeout_error, :error_catch
             engine = ProjectRazor::Engine.instance
