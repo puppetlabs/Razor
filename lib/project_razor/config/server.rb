@@ -16,6 +16,7 @@ module ProjectRazor
 
       attr_accessor :image_svc_host
       attr_accessor :mirror_update_host
+      attr_accessor :mirror_host
 
       attr_accessor :persist_mode
       attr_accessor :persist_host
@@ -29,6 +30,7 @@ module ProjectRazor
       attr_accessor :image_svc_port
       attr_accessor :mk_tce_mirror_port
       attr_accessor :mirror_update_port
+      attr_accessor :mirror_host_port
 
       attr_accessor :mk_checkin_interval
       attr_accessor :mk_checkin_skew
@@ -48,6 +50,7 @@ module ProjectRazor
 
       attr_accessor :image_svc_path
       attr_accessor :mirror_update_path
+      attr_accessor :mirror_path
 
       attr_accessor :register_timeout
       attr_accessor :force_mk_uuid
@@ -195,7 +198,12 @@ module ProjectRazor
           # updates.
           'mirror_update_host'           => "",
           'mirror_update_port'           => "",
-          'mirror_update_path'           => ""
+          'mirror_update_path'           => "",
+
+          # used to overwrite the distribution specific installation mirror location.
+          'mirror_host'           => "",
+          'mirror_port'           => "",
+          'mirror_path'           => ""
         }
 
         # A handful of calculated default values that depend on pre-existing

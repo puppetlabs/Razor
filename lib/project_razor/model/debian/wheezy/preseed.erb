@@ -8,9 +8,17 @@ d-i netcfg/get_hostname string <%= hostname if config.set_hostname %>
 d-i netcfg/get_domain string <%= "puppetlabs.lan" if config.set_hostname %>
 d-i netcfg/no_default_route boolean true
 d-i mirror/country string US
+
+<% if config.mirror_host.empty? %>
 d-i mirror/protocol string http
 d-i mirror/http/mirror string ftp.us.debian.org
 d-i mirror/http/directory string /debian/
+<% else %>
+d-i mirror/protocol string <%= "http" if config.mirror_protocol.empty? %>
+d-i mirror/http/hostname string <%= config.mirror_host %>:<%= config.mirror_port %>
+d-i mirror/http/directory string <%= config.mirror_path %>
+<% end %>
+
 d-i mirror/http/proxy string
 d-i mirror/suite string wheezy
 <% if config.mirror_update_host.empty? %>

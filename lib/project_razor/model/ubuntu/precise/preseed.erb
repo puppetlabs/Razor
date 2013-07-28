@@ -4,10 +4,18 @@ d-i netcfg/choose_interface select auto
 d-i netcfg/get_hostname string <%= hostname if config.set_hostname %>
 d-i netcfg/get_domain string <%= "razorlab.local" if config.set_hostname %>
 d-i netcfg/no_default_route boolean true
-d-i mirror/protocol string http
 d-i mirror/country string manual
+
+<% if config.mirror_host.empty? %>
+d-i mirror/protocol string http
 d-i mirror/http/hostname string <%= config.image_svc_host %>:<%= config.image_svc_port %>
 d-i mirror/http/directory string /razor/image/os/<%= @image_uuid %>
+<% else %>
+d-i mirror/protocol string <%= "http" if config.mirror_protocol.empty? %>
+d-i mirror/http/hostname string <%= config.mirror_host %>:<%= config.mirror_port %>
+d-i mirror/http/directory string <%= config.mirror_path %>
+<% end %>
+
 d-i mirror/http/proxy string
 <% if config.mirror_update_host.empty? %>
 d-i apt-setup/security_host string <%= config.mirror_update_host %>:<%= config.mirror_update_port %>
