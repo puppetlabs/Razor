@@ -41,13 +41,17 @@ d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
 d-i partman-md/confirm boolean true
 d-i passwd/root-login boolean true
+<% if config.make_user %>
 d-i passwd/make-user boolean true
-d-i passwd/root-password password <%= @root_password %>
-d-i passwd/root-password-again password <%= @root_password %>
 d-i passwd/user-fullname string User
 d-i passwd/username string user
 d-i passwd/user-password password insecure
 d-i passwd/user-password-again password insecure
+<% else %>
+d-i passwd/make-user boolean false
+<% end %>
+d-i passwd/root-password password <%= @root_password %>
+d-i passwd/root-password-again password <%= @root_password %>
 d-i user-setup/allow-password-weak boolean true
 d-i apt-setup/restricted boolean true
 d-i pkgsel/include string curl openssh-server
