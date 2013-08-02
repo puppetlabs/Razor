@@ -34,6 +34,11 @@ module ProjectRazor
         ERB.new(File.read(filepath)).result(binding)
       end
 
+      def kernel_args(policy_uuid)
+        filepath = template_filepath('dtagcloud_kernel_args_storage')
+        ERB.new(File.read(filepath)).result(binding)
+      end
+
     end
   end
 end
