@@ -192,17 +192,17 @@ module ProjectRazor
 
           # used to pass arguments to the Microkernel's linux kernel;
           # e.g. "console=ttyS0" or "razor.ip=1.2.3.4"
-          'rz_mk_boot_kernel_args'   => "",
+          'rz_mk_boot_kernel_args'   => "printk.time=1",
 
           # used to pass arguments to the installer linux kernel additionally,
           # beside the Razor specific options.
           # e.g. "console=ttyS0"
-          'install_kernel_args'   => "",
+          'install_kernel_args'   => "printk.time=1",
 
           # used to pass arguments to the final linux kernel configuration,
           # which is used for the final installation.
           # e.g. "console=ttyS0"
-          'boot_kernel_args'   => "",
+          'boot_kernel_args'   => "printk.time=1",
 
           # used to avoid that the os_boot step is overwritting the existing hostname.
           # E.g. the one provided by DHCP. Default: "true" - setting the hostname.
