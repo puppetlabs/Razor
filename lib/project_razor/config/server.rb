@@ -30,7 +30,7 @@ module ProjectRazor
       attr_accessor :image_svc_port
       attr_accessor :mk_tce_mirror_port
       attr_accessor :mirror_update_port
-      attr_accessor :mirror_host_port
+      attr_accessor :mirror_port
 
       attr_accessor :mk_checkin_interval
       attr_accessor :mk_checkin_skew
