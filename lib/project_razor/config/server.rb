@@ -30,7 +30,7 @@ module ProjectRazor
       attr_accessor :image_svc_port
       attr_accessor :mk_tce_mirror_port
       attr_accessor :mirror_update_port
-      attr_accessor :mirror_host_port
+      attr_accessor :mirror_port
 
       attr_accessor :mk_checkin_interval
       attr_accessor :mk_checkin_skew
@@ -206,11 +206,11 @@ module ProjectRazor
 
           # used to avoid that the os_boot step is overwritting the existing hostname.
           # E.g. the one provided by DHCP. Default: "true" - setting the hostname.
-          'set_hostname' = true,
+          'set_hostname' => true,
 
           # used to control if a non-root user should get created.
           # By default NO non-root user get created.
-          'make_user' = false,
+          'make_user' => false,
 
           # used to overwrite the distribution specific mirror location for maintenance
           # updates.
