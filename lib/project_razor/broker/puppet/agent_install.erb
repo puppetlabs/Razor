@@ -4,8 +4,20 @@ set -u
 set -e
 
 function install_puppet() {
-    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
-    puppet master --mkusers
+    # FIXME: This is DTAG specific. Introduce a hook for this.
+    wget http://mirror1/puppetlabs-release-precise.deb
+    dpkg -i puppetlabs-release-precise.deb
+    rm puppetlabs-release-precise.deb
+    cat >/etc/apt/sources.list.d/puppetlabs.list <<EOFPUPPETLABSLIST
+deb [arch=amd64] http://mirror1/apt.puppetlabs.com/ precise main dependencies
+EOFPUPPETLABSLIST
+
+    apt-get update || true;
+    apt-get -y install puppet puppet-common
+
+# Do not go with GEM installed puppet agent -gollub
+#    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
+#    puppet master --mkusers
 }
 
 function configure_puppet() {
@@ -37,7 +49,8 @@ EOFPUPPETDEFAULT
 }
 
 function run_agent() {
-    puppet agent -t
+    puppet agent -t --noop
+    puppet agent --daemonize
 }
 
 #This fuction is not called if no custom facts are given
