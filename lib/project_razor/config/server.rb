@@ -31,6 +31,7 @@ module ProjectRazor
       attr_accessor :mk_tce_mirror_port
       attr_accessor :mirror_update_port
       attr_accessor :mirror_port
+      attr_accessor :mirror_protocol
 
       attr_accessor :mk_checkin_interval
       attr_accessor :mk_checkin_skew
@@ -221,6 +222,7 @@ module ProjectRazor
           # used to overwrite the distribution specific installation mirror location.
           'mirror_host'           => "",
           'mirror_port'           => "",
+          'mirror_protocol'       => "",
           'mirror_path'           => ""
         }
 
