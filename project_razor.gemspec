@@ -8,5 +8,5 @@ Gem::Specification.new do |s|
   s.email       = ['nicholas.weaver@emc.com','tom.mcweeney@emc.com']
   s.files       = ["lib/project_razor.rb"]
   s.homepage    =
-      'http://nickapedia.com/project-razor'
+      'https://forge.puppetlabs.com/puppetlabs/razor'
 end
