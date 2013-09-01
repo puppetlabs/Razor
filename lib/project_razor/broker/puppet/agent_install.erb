@@ -20,7 +20,8 @@ pluginsync = true
 report = true
 <%= "ca_server = #{@options[:ca_server]}" if @options[:ca_server] && !@options[:ca_server].empty? %>
 <%= "server = #{@options[:server]}" if @options[:server] && !@options[:server].empty? %>
-certname = <%= @options[:puppetagent_certname] %>
+# we need to have the FQDN name here - required for puppet-secret -gollub
+#certname = <%= @options[:puppetagent_certname] %>
 EOFPUPPETCONF
 
     if [ -f /etc/default/puppet ]; then
