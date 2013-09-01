@@ -5,7 +5,7 @@ sed -i '4 i\
 192.168.99.50   puppet learn puppet.razor-dev.local learn.razor-dev.local' /etc/hosts
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "added_puppet_hosts_ok") %> || curl <%= callback_url("postinstall", "added_puppet_hosts_fail") %>
 
-<% if config.set_hostname %>
+<% if config.set_hostname != "false" %>
 hostname <%= hostname %>
 echo <%= hostname %> > /etc/hostname
 

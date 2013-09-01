@@ -1,6 +1,6 @@
 #!/bin/bash
 
-<% if config.set_hostname %>
+<% if config.set_hostname != "false" %>
 hostname <%= hostname %>
 echo <%= hostname %> > /etc/hostname
 

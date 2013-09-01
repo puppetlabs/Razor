@@ -6,7 +6,7 @@ if service NetworkManager status >/dev/null 2>&1 && type -P nm-online; then
     [ "$?" -eq 0 ] || exit 1
 fi
 
-<% if config.set_hostname %>
+<% if config.set_hostname != "false" %>
 # Configure hostname.
 hostname <%= hostname %>
 echo <%= hostname %> > /etc/hostname
