@@ -34,6 +34,12 @@ module ProjectRazor
         ERB.new(File.read(filepath)).result(binding)
       end
 
+      def os_boot_script(policy_uuid)
+        @result = "Replied with os boot script"
+        filepath = template_filepath('dtagcloud_os_boot')
+        ERB.new(File.read(filepath)).result(binding)
+      end
+
     end
   end
 end
