@@ -1,4 +1,6 @@
-d-i debian-installer/add-kernel-opts string console=ttyS1,115200 <%= config.boot_kernel_args %> intel_idle.max_cstate=0
+d-i debian-installer/add-kernel-opts string console=ttyS1,115200 crashkernel=4G-:256M <%= config.boot_kernel_args %> intel_idle.max_cstate=0
+d-i debian-installer/quiet boolean false
+d-i debian-installer/splash boolean false
 d-i base-installer/kernel/override-image string linux-server
 d-i console-setup/ask_detect boolean false
 d-i keyboard-configuration/layoutcode string us
@@ -23,40 +25,51 @@ d-i mirror/http/proxy string
 d-i apt-setup/security_host string <%= config.mirror_update_host %>:<%= config.mirror_update_port %>
 d-i apt-setup/security_path string <%= config.mirror_update_path %>
 <% end %>
+
+# disable multiarch
+d-i apt-setup/multiarch string
+
+#disable backports
+d-i apt-setup/backports boolean false
+
+## disable deb-src
+<% (1..10).each do |i| %>
+d-i apt-setup/local<%= i %>/source boolean false<% end %>
+
+
 d-i clock-setup/utc boolean true
 d-i time/zone string UTC
 d-i clock-setup/ntp boolean true
+
+
 d-i partman-auto/disk string /dev/sda /dev/sdb
 d-i partman-auto/method string raid
-d-i partman-lvm/device_remove_lvm boolean true
-d-i partman-md/device_remove_md boolean true
-d-i partman-lvm/device_remove_lvm_span boolean true
-d-i partman-md/confirm_nooverwrite boolean true
-d-i partman-auto-lvm/guided_size string max
-#d-i partman-auto/choose_recipe select atomic
-#d-i partman-auto/purge_lvm_from_device boolean true
-#d-i partman/default_filesystem string ext4
-#d-i partman-auto/init_automatically_partition select biggest_free
-d-i partman-auto-lvm/new_vg_name string bootdisk
-d-i partman-lvm/confirm boolean true
-#d-i partman-lvm/confirm_nooverwrite boolean true
-d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/choose_partition select finish
-d-i partman/confirm boolean true
-d-i partman/confirm_nooverwrite boolean true
 d-i partman-md/confirm boolean true
-
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/confirm_write_new_label boolean true
+d-i partman-md/device_remove_md boolean true
+d-i partman-lvm/confirm boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm_nooverwrite boolean true
+d-i partman-md/confirm_nooverwrite boolean true
+d-i partman/confirm boolean true
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-lvm/device_remove_lvm_span boolean true
+d-i partman-auto-lvm/new_vg_name string system
+d-i partman-auto-lvm/guided_size string max
 d-i partman-auto-raid/recipe string \
  1 2 0 ext4 /boot   /dev/sda1#/dev/sdb1  .  1 2 0 lvm  /       /dev/sda5#/dev/sdb5  .
 d-i partman-auto/expert_recipe string \
     multiraid :: \
     100 512 256 raid $lvmignore{ } $primary{ } method{ raid } . \
     900 5000 1000000000 raid $lvmignore{ } method{ raid } . \
-    700 5000 200000 ext4 $defaultignore{ } $lvmok{ } \
+    4000 4000 4000 linux-swap $defaultignore{ } $lvmok{ } method{ swap } format{ } . \
+    150% 150% 150% ext4 $defaultignore{ } $lvmok{ } \
         method{ format } format{ } use_filesystem{ } filesystem{ ext4 } \
-        options/relatime{ relatime } mountpoint{ / } . \
-    256 3000 4500 linux-swap $defaultignore{ } $lvmok{ } method{ swap } format{ } .
-d-i partman/confirm_write_new_label boolean true
+        options/relatime{ relatime } mountpoint{ /var/crash } . \
+    700 5000 1000000000 ext4 $defaultignore{ } $lvmok{ } \
+        method{ format } format{ } use_filesystem{ } filesystem{ ext4 } \
+        options/relatime{ relatime } mountpoint{ / } .
 d-i mdadm/boot_degraded boolean true
 
 
