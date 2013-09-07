@@ -1,0 +1,71 @@
+d-i debian-installer/add-kernel-opts string <%= config.boot_kernel_args %>
+d-i base-installer/kernel/override-image string linux-server
+d-i console-setup/ask_detect boolean false
+d-i keyboard-configuration/layoutcode string us
+d-i netcfg/choose_interface select auto
+d-i netcfg/get_hostname string <%= hostname if config.set_hostname %>
+d-i netcfg/get_domain string <%= "razorlab.local" if config.set_hostname %>
+d-i netcfg/no_default_route boolean true
+d-i mirror/country string manual
+
+<% if config.mirror_host.empty? %>
+d-i mirror/protocol string http
+d-i mirror/http/hostname string <%= config.image_svc_host %>:<%= config.image_svc_port %>
+d-i mirror/http/directory string /razor/image/os/<%= @image_uuid %>
+<% else %>
+d-i mirror/protocol string <%= "http" if config.mirror_protocol.empty? %>
+d-i mirror/http/hostname string <%= config.mirror_host %>:<%= config.mirror_port %>
+d-i mirror/http/directory string <%= config.mirror_path %>
+<% end %>
+
+d-i mirror/http/proxy string
+<% if config.mirror_update_host.empty? %>
+d-i apt-setup/security_host string <%= config.mirror_update_host %>:<%= config.mirror_update_port %>
+d-i apt-setup/security_path string <%= config.mirror_update_path %>
+<% end %>
+d-i clock-setup/utc boolean true
+d-i time/zone string UTC
+d-i clock-setup/ntp boolean true
+d-i partman-auto/disk string /dev/sda
+d-i partman-auto/method string lvm
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-md/device_remove_md boolean true
+d-i partman-auto-lvm/guided_size string max
+d-i partman-auto/choose_recipe select atomic
+d-i partman-auto/purge_lvm_from_device boolean true
+d-i partman/default_filesystem string ext4
+d-i partman-auto/init_automatically_partition select biggest_free
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i partman-md/confirm boolean true
+d-i passwd/root-login boolean true
+<% if config.make_user %>
+d-i passwd/make-user boolean true
+d-i passwd/user-fullname string User
+d-i passwd/username string user
+d-i passwd/user-password password insecure
+d-i passwd/user-password-again password insecure
+<% else %>
+d-i passwd/make-user boolean false
+<% end %>
+d-i passwd/root-password password <%= @root_password %>
+d-i passwd/root-password-again password <%= @root_password %>
+d-i user-setup/allow-password-weak boolean true
+d-i apt-setup/restricted boolean true
+d-i pkgsel/include string curl openssh-server
+d-i grub-installer/only_debian boolean true
+d-i grub-installer/with_other_os boolean true
+d-i finish-install/reboot_in_progress note
+#Our callbacks
+d-i preseed/early_command string wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/preseed/start
+d-i preseed/late_command string  \
+wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/preseed/end; \
+wget <%= api_svc_uri %>/policy/callback/<%= policy_uuid %>/postinstall/inject -O /target/usr/local/bin/razor_postinstall.sh;  \
+sed -i '/exit 0/d' /target/etc/rc.local;  \
+echo bash /usr/local/bin/razor_postinstall.sh >> /target/etc/rc.local; \
+echo exit 0 >> /target/etc/rc.local;  \
+chmod +x /target/usr/local/bin/razor_postinstall.sh
