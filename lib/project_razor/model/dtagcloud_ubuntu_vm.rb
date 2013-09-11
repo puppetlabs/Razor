@@ -5,7 +5,7 @@ module ProjectRazor
   module ModelTemplate
     # Root Model object
     # @abstract
-    class DTAGCloudUbuntuCompute < Ubuntu
+    class DTAGCloudUbuntuVM < Ubuntu
       include(ProjectRazor::Logging)
 
       def initialize(hash)
