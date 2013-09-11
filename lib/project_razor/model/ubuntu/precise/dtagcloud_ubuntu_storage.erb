@@ -1,4 +1,4 @@
-d-i debian-installer/add-kernel-opts string crashkernel=4G-:256M <%= config.boot_kernel_args %> intel_idle.max_cstate=0
+d-i debian-installer/add-kernel-opts string crashkernel=4G-:256M <%= config.boot_kernel_args %>
 d-i debian-installer/quiet boolean false
 d-i debian-installer/splash boolean false
 d-i base-installer/kernel/override-image string linux-server
