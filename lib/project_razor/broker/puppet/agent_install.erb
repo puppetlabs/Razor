@@ -5,9 +5,7 @@ set -e
 
 function install_puppet() {
     # FIXME: This is DTAG specific. Introduce a hook for this.
-    wget http://mirror1/puppetlabs-release-precise.deb
-    dpkg -i puppetlabs-release-precise.deb
-    rm puppetlabs-release-precise.deb
+    wget -O- http://mirror1/gpgkeys/apt_puppetlabs.gpg | apt-key add -
     cat >/etc/apt/sources.list.d/puppetlabs.list <<EOFPUPPETLABSLIST
 deb [arch=amd64] http://mirror1/apt.puppetlabs.com/ precise main dependencies
 EOFPUPPETLABSLIST
