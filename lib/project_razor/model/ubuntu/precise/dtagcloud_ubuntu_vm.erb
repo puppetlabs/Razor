@@ -19,7 +19,7 @@ d-i mirror/http/directory string <%= config.mirror_path %>
 <% end %>
 
 d-i mirror/http/proxy string
-<% if config.mirror_update_host.empty? %>
+<% if not config.mirror_update_host.empty? %>
 d-i apt-setup/security_host string <%= config.mirror_update_host %>:<%= config.mirror_update_port %>
 d-i apt-setup/security_path string <%= config.mirror_update_path %>
 <% end %>
