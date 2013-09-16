@@ -110,6 +110,7 @@ allow *.`hostname -d`
 server = `hostname -f`
 port = 8081
 EOF
+
 	puppet apply << EOF
 package { 'git':
     ensure => present
@@ -184,6 +185,7 @@ service { "puppetdb":
       require => Package['puppetmaster'],
   }
 EOF
+
 	echo "the dirty job is off...."
 fi;
 
