@@ -71,8 +71,120 @@ elif [ $mission == "bootstrap1" -o $mission == "bootstrap2"]; then
 
 
 elif [ $mission == "puppetmaster1" -o $mission == "puppetmaster2"]; then
-	echo "TODO";
+	mkdir /etc/puppet
+	cat << EOF > /etc/puppet/puppet.conf
+[main]
+logdir = /var/log/puppet
+vardir = /var/lib/puppet
+ssldir = /var/lib/puppet/ssl
+rundir = /var/run/puppet
+factpath = $vardir/lib/facter
+templatedir = /opt/deploy/templates
+manifestdir = /opt/deploy/manifests
+modulepath = /opt/deploy/modules
 
+[master]
+ssl_client_header = SSL_CLIENT_S_DN
+ssl_client_verify_header = SSL_CLIENT_VERIFY
+storeconfigs = true
+storeconfigs_backend = puppetdb
+autosign = true
+
+[agent]
+certname = `hostname -f`
+server = `hostname -f`
+EOF
+
+	cat << EOF > /etc/puppet/fileserver.conf
+[secrets]
+path /secrets/%H/
+allow *.`hostname -d`
+
+[shared-secrets]
+path /secrets/shared/
+allow *.`hostname -d`
+
+	mkdir /etc/puppetdb/
+	cat << EOF > /etc/puppetdb/puppetdb.conf
+[main]
+server = `hostname -f`
+port = 8081
+EOF
+	puppet apply << EOF
+package { 'git':
+    ensure => present
+}
+
+package { 'puppet':
+  ensure => present,
+}
+
+file { '/etc/default/puppet':
+  path => '/etc/default/puppet',
+  content => 'START=yes'
+}
+
+service { "puppet":
+  name       => "puppet",
+  ensure     => running,
+  enable     => true,
+  hasrestart => true,
+  require    => [Package["puppet"], File['/etc/default/puppet']]
+}
+
+package { 'puppetmaster':
+  ensure => present,
+}
+package { "ceph-common":
+  ensure => installed,
+}
+
+package { 'puppetdb':
+  ensure => present,
+  require => [Service['puppetmaster']],
+}
+
+package { 'puppetdb-terminus':
+  ensure => present,
+  require => [Service['puppetmaster']]
+}
+
+service { "puppetmaster":
+  name       => "puppetmaster",
+  ensure     => running,
+  enable     => true,
+  hasrestart => true,
+  require    => Package["puppetmaster"],
+}
+
+service { "puppetdb":
+  name       => "puppetdb",
+  ensure     => running,
+  enable     => true,
+  hasrestart => true,
+  require    => Package["puppetdb"],
+}
+
+  file { '/opt/deploy':
+    ensure => "directory"
+  }
+
+  file { "/secrets":
+      ensure  => "directory",
+      owner   => "puppet",
+      group   => "puppet",
+      mode    => 750,
+      require => Package['puppetmaster'],
+  }
+  file { "/secrets/shared":
+      ensure  => "directory",
+      owner   => "puppet",
+      group   => "puppet",
+      mode    => 750,
+      require => Package['puppetmaster'],
+  }
+EOF
+	echo "the dirty job is off...."
 fi;
 
 
