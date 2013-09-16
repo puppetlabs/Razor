@@ -114,10 +114,6 @@ EOFPUPPETLABSLIST
 
     apt-get update || true;
     apt-get -y install puppet puppet-common
-
-# Do not go with GEM installed puppet agent -gollub
-#    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
-#    puppet master --mkusers
 }
 
 function configure_puppet() {
@@ -130,10 +126,8 @@ vardir = /var/lib/puppet
 ssldir = /var/lib/puppet/ssl
 pluginsync = true
 report = true
-<%= "ca_server = #{@options[:ca_server]}" if @options[:ca_server] && !@options[:ca_server].empty? %>
-<%= "server = #{@options[:server]}" if @options[:server] && !@options[:server].empty? %>
-# we need to have the FQDN name here - required for puppet-secret -gollub
-#certname = <%= @options[:puppetagent_certname] %>
+ca_server = puppetmaster1.<%= domainname %>
+server = puppetmaster1.<%= domainname %>
 EOFPUPPETCONF
 
     if [ -f /etc/default/puppet ]; then
