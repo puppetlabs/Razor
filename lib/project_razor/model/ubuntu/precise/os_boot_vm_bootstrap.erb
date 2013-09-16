@@ -105,6 +105,50 @@ curl <%= callback_url("postinstall", "final") %> &
 
 ####
 
+function install_puppet() {
+    # FIXME: This is DTAG specific. Introduce a hook for this.
+    wget -O- http://mirror1/gpgkeys/apt_puppetlabs.gpg | apt-key add -
+    cat >/etc/apt/sources.list.d/puppetlabs.list <<EOFPUPPETLABSLIST
+deb [arch=amd64] http://mirror1/apt.puppetlabs.com/ precise main dependencies
+EOFPUPPETLABSLIST
+
+    apt-get update || true;
+    apt-get -y install puppet puppet-common
+
+# Do not go with GEM installed puppet agent -gollub
+#    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
+#    puppet master --mkusers
+}
+
+function configure_puppet() {
+    mkdir -p /etc/puppet
+    cat >/etc/puppet/puppet.conf <<EOFPUPPETCONF
+[main]
+logdir = /var/log/puppet
+rundir = /var/run/puppet
+vardir = /var/lib/puppet
+ssldir = /var/lib/puppet/ssl
+pluginsync = true
+report = true
+<%= "ca_server = #{@options[:ca_server]}" if @options[:ca_server] && !@options[:ca_server].empty? %>
+<%= "server = #{@options[:server]}" if @options[:server] && !@options[:server].empty? %>
+# we need to have the FQDN name here - required for puppet-secret -gollub
+#certname = <%= @options[:puppetagent_certname] %>
+EOFPUPPETCONF
+
+    if [ -f /etc/default/puppet ]; then
+        cat > /etc/default/puppet <<EOFPUPPETDEFAULT
+# Defaults for puppet - sourced by /etc/init.d/puppet
+
+# Start puppet on boot?
+START=yes
+
+# Startup options
+DAEMON_OPTS=''
+EOFPUPPETDEFAULT
+    fi
+}
+
 
 if [ $mission = "mirror1" -o $mission = "puppetmaster1" -o $mission = "bootstrap1" -o $mission = "mirror2" -o $mission = "puppetmaster2" -o $mission = "bootstrap2" ]; then
 
@@ -138,5 +182,8 @@ iface eth1 inet manual
 EOF
 
 	/etc/init.d/networking start
+
+install_puppet
+configure_puppet
 
 fi
