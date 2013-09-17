@@ -72,6 +72,7 @@ elif [ $mission = "bootstrap1" -o $mission = "bootstrap2" ]; then
 
 elif [ $mission = "puppetmaster1" -o $mission = "puppetmaster2" ]; then
 
+exit
         puppet apply --debug << EOF
         package { 'git':
             ensure => present
