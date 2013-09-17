@@ -110,7 +110,7 @@ EOF
 [main]
 server = `hostname -f`
 port = 8081
-	EOF
+EOF
 
 	puppet apply << EOF
 	package { 'git':
@@ -185,7 +185,7 @@ port = 8081
 	  mode    => 750,
 	  require => Package['puppetmaster'],
 	}
-	EOF
+EOF
 
 	echo "the dirty job is off...."
 fi;
