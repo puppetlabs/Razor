@@ -21,7 +21,7 @@ grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/h
 
 ##### Bootstrap stuff
 
-if [ $mission = "mirror1" -o $mission = "mirror2"]; then
+if [ $mission = "mirror1" -o $mission = "mirror2" ]; then
 
         mkdir -p /srv/mirror
 	echo "/dev/vdb1                                       /srv/mirror            ext4    defaults        0       0" >> /etc/fstab
@@ -66,11 +66,11 @@ EOF
 
 	service apache2 restart
 
-elif [ $mission == "bootstrap1" -o $mission == "bootstrap2"]; then
+elif [ $mission = "bootstrap1" -o $mission = "bootstrap2" ]; then
 	echo "TODO";
 
 
-elif [ $mission == "puppetmaster1" -o $mission == "puppetmaster2"]; then
+elif [ $mission = "puppetmaster1" -o $mission = "puppetmaster2" ]; then
 	mkdir /etc/puppet
 	cat << EOF > /etc/puppet/puppet.conf
 [main]
@@ -192,7 +192,7 @@ fi;
 
 
 ### for bootstrap this is tricky. This VM might be the mirror :)
-if [ $mission != "mirror1" -o $mission = "mirror2"]; then
+if [ $mission != "mirror1" -o $mission = "mirror2" ]; then
 	sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_<%= config.mirror_host %>:%<%= config.mirror_port %>/archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && curl <%= callback_url("postinstall", "sources_fix") %>
 fi
 
