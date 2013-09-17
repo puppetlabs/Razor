@@ -193,7 +193,7 @@ fi
 
 
 ### for bootstrap this is tricky. This VM might be the mirror :)
-if [ $mission != "mirror1" -o $mission = "mirror2" ]; then
+if [ $mission != "mirror1" -a $mission != "mirror2" ]; then
         sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_<%= config.mirror_host %>:%<%= config.mirror_port %>/archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && curl <%= callback_url("postinstall", "sources_fix") %>
 fi
 
