@@ -24,21 +24,21 @@ grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/h
 if [ $mission = "mirror1" -o $mission = "mirror2" ]; then
 
         mkdir -p /srv/mirror
-	echo "/dev/vdb1                                       /srv/mirror            ext4    defaults        0       0" >> /etc/fstab
-	mount -a
+        echo "/dev/vdb1                                       /srv/mirror            ext4    defaults        0       0" >> /etc/fstab
+        mount -a
 
-	cat << EOF > /etc/apt/sources.list
-	deb file:///srv/mirror/archive.ubuntu.com precise main restricted
-	deb file:///srv/mirror/archive.ubuntu.com precise-updates main restricted
-	deb file:///srv/mirror/archive.ubuntu.com precise universe
-	deb file:///srv/mirror/archive.ubuntu.com precise-updates universe
-	deb file:///srv/mirror/archive.ubuntu.com precise multiverse
-	deb file:///srv/mirror/archive.ubuntu.com precise-updates multiverse
-	deb file:///srv/mirror/archive.ubuntu.com precise-security main restricted
-	deb file:///srv/mirror/archive.ubuntu.com precise-security universe
-	deb file:///srv/mirror/archive.ubuntu.com precise-security multiverse
-	deb file:///srv/mirror/apt.puppetlabs.com precise main
-	deb file:///srv/mirror/apt.puppetlabs.com precise dependencies
+        cat << EOF > /etc/apt/sources.list
+        deb file:///srv/mirror/archive.ubuntu.com precise main restricted
+        deb file:///srv/mirror/archive.ubuntu.com precise-updates main restricted
+        deb file:///srv/mirror/archive.ubuntu.com precise universe
+        deb file:///srv/mirror/archive.ubuntu.com precise-updates universe
+        deb file:///srv/mirror/archive.ubuntu.com precise multiverse
+        deb file:///srv/mirror/archive.ubuntu.com precise-updates multiverse
+        deb file:///srv/mirror/archive.ubuntu.com precise-security main restricted
+        deb file:///srv/mirror/archive.ubuntu.com precise-security universe
+        deb file:///srv/mirror/archive.ubuntu.com precise-security multiverse
+        deb file:///srv/mirror/apt.puppetlabs.com precise main
+        deb file:///srv/mirror/apt.puppetlabs.com precise dependencies
 EOF
         rm -f /etc/dpkg/dpkg.cfg.d/multiarch
 
@@ -47,32 +47,107 @@ EOF
 
         apt-get -y install apache2
 
-	cat << EOF > /etc/apache2/sites-enabled/000-default
+        cat << EOF > /etc/apache2/sites-enabled/000-default
 <VirtualHost *:80>
-	DocumentRoot /srv/mirror
+        DocumentRoot /srv/mirror
 
-	<Directory /srv/mirror/>
-		Options Indexes FollowSymLinks MultiViews
-		AllowOverride None
-		Order allow,deny
-		allow from all
-	</Directory>
+        <Directory /srv/mirror/>
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
 
-	ErrorLog ${APACHE_LOG_DIR}/error.log
-	LogLevel warn
-	CustomLog ${APACHE_LOG_DIR}/access.log combined
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        LogLevel warn
+#         CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF
 
-	service apache2 restart
+        service apache2 restart
 
 elif [ $mission = "bootstrap1" -o $mission = "bootstrap2" ]; then
-	echo "TODO";
+        echo "TODO";
 
 
 elif [ $mission = "puppetmaster1" -o $mission = "puppetmaster2" ]; then
-	mkdir /etc/puppet
-	cat << EOF > /etc/puppet/puppet.conf
+
+        puppet apply --debug << EOF
+        package { 'git':
+            ensure => present
+        }
+
+        package { 'puppet':
+          ensure => present,
+        }
+
+        service { "puppet":
+          name       => "puppet",
+          ensure     => running,
+          enable     => true,
+          hasrestart => true,
+          require    => [Package["puppet"], File['/etc/default/puppet']]
+        }
+
+        package { 'puppetmaster':
+          ensure => present,
+        }
+        package { "ceph-common":
+          ensure => installed,
+        }
+
+        package { 'puppetdb':
+          ensure => present,
+          require => [Service['puppetmaster']],
+        }
+
+        package { 'puppetdb-terminus':
+          ensure => present,
+          require => [Service['puppetmaster']]
+        }
+
+        service { "puppetmaster":
+          name       => "puppetmaster",
+          ensure     => running,
+          enable     => true,
+          hasrestart => true,
+          require    => Package["puppetmaster"],
+        }
+
+        service { "puppetdb":
+          name       => "puppetdb",
+          ensure     => running,
+          enable     => true,
+          hasrestart => true,
+          require    => Package["puppetdb"],
+        }
+
+        file { '/opt/deploy':
+        ensure => "directory"
+        }
+
+        file { "/secrets":
+          ensure  => "directory",
+          owner   => "puppet",
+          group   => "puppet",
+          mode    => 750,
+          require => Package['puppetmaster'],
+        }
+        file { "/secrets/shared":
+          ensure  => "directory",
+          owner   => "puppet",
+          group   => "puppet",
+          mode    => 750,
+          require => Package['puppetmaster'],
+        }
+EOF
+
+        mkdir /etc/puppet
+        cat << EOF > /etc/default/puppet
+START=yes
+EOF
+
+        cat << EOF > /etc/puppet/puppet.conf
 [main]
 logdir = /var/log/puppet
 vardir = /var/lib/puppet
@@ -95,7 +170,7 @@ certname = `hostname -f`
 server = `hostname -f`
 EOF
 
-	cat << EOF > /etc/puppet/fileserver.conf
+        cat << EOF > /etc/puppet/fileserver.conf
 [secrets]
 path /secrets/%H/
 allow *.`hostname -d`
@@ -105,95 +180,20 @@ path /secrets/shared/
 allow *.`hostname -d`
 EOF
 
-	mkdir /etc/puppetdb/
-	cat << EOF > /etc/puppetdb/puppetdb.conf
+        mkdir /etc/puppetdb/
+        cat << EOF > /etc/puppetdb/puppetdb.conf
 [main]
 server = `hostname -f`
 port = 8081
 EOF
 
-	puppet apply << EOF
-	package { 'git':
-	    ensure => present
-	}
-
-	package { 'puppet':
-	  ensure => present,
-	}
-
-	file { '/etc/default/puppet':
-	  path => '/etc/default/puppet',
-	  content => 'START=yes'
-	}
-
-	service { "puppet":
-	  name       => "puppet",
-	  ensure     => running,
-	  enable     => true,
-	  hasrestart => true,
-	  require    => [Package["puppet"], File['/etc/default/puppet']]
-	}
-
-	package { 'puppetmaster':
-	  ensure => present,
-	}
-	package { "ceph-common":
-	  ensure => installed,
-	}
-
-	package { 'puppetdb':
-	  ensure => present,
-	  require => [Service['puppetmaster']],
-	}
-
-	package { 'puppetdb-terminus':
-	  ensure => present,
-	  require => [Service['puppetmaster']]
-	}
-
-	service { "puppetmaster":
-	  name       => "puppetmaster",
-	  ensure     => running,
-	  enable     => true,
-	  hasrestart => true,
-	  require    => Package["puppetmaster"],
-	}
-
-	service { "puppetdb":
-	  name       => "puppetdb",
-	  ensure     => running,
-	  enable     => true,
-	  hasrestart => true,
-	  require    => Package["puppetdb"],
-	}
-
-	file { '/opt/deploy':
-	ensure => "directory"
-	}
-
-	file { "/secrets":
-	  ensure  => "directory",
-	  owner   => "puppet",
-	  group   => "puppet",
-	  mode    => 750,
-	  require => Package['puppetmaster'],
-	}
-	file { "/secrets/shared":
-	  ensure  => "directory",
-	  owner   => "puppet",
-	  group   => "puppet",
-	  mode    => 750,
-	  require => Package['puppetmaster'],
-	}
-EOF
-
-	echo "the dirty job is off...."
+        echo "puppetmaster installed"
 fi
 
 
 ### for bootstrap this is tricky. This VM might be the mirror :)
 if [ $mission != "mirror1" -o $mission = "mirror2" ]; then
-	sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_<%= config.mirror_host %>:%<%= config.mirror_port %>/archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && curl <%= callback_url("postinstall", "sources_fix") %>
+        sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_<%= config.mirror_host %>:%<%= config.mirror_port %>/archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && curl <%= callback_url("postinstall", "sources_fix") %>
 fi
 
 apt-get -y update
@@ -261,14 +261,14 @@ EOFPUPPETDEFAULT
 
 if [ $mission = "mirror1" -o $mission = "puppetmaster1" -o $mission = "bootstrap1" -o $mission = "mirror2" -o $mission = "puppetmaster2" -o $mission = "bootstrap2" ]; then
 
-	### cut network
-	FINAL_IP=$( host $mission.<%= domainname %> | awk '{ print $NF }' ) 
-	GW_IP=$( echo $FINAL_IP | sed 's/\(.*\)\.[0-9]*/\1.1/g' )
-	DNS_SERVERS=$( grep nameserver /etc/resolv.conf | awk '{ printf $NF" " }' )
+        ### cut network
+        FINAL_IP=$( host $mission.<%= domainname %> | awk '{ print $NF }' ) 
+        GW_IP=$( echo $FINAL_IP | sed 's/\(.*\)\.[0-9]*/\1.1/g' )
+        DNS_SERVERS=$( grep nameserver /etc/resolv.conf | awk '{ printf $NF" " }' )
 
-	/etc/init.d/networking stop
+        /etc/init.d/networking stop
 
-	cat << EOF > /etc/network/interfaces
+        cat << EOF > /etc/network/interfaces
 
 
 # The loopback network interface
@@ -278,19 +278,19 @@ iface lo inet loopback
 # The primary network interface
 auto eth0
 iface eth0 inet static
-	address $FINAL_IP
-	netmask 255.255.255.0
-	gateway $GW_IP
-	# dns-* options are implemented by the resolvconf package, if installed
-	dns-nameservers $DNS_SERVERS 
-	dns-search <%= domainname %>
+        address $FINAL_IP
+        netmask 255.255.255.0
+        gateway $GW_IP
+        # dns-* options are implemented by the resolvconf package, if installed
+        dns-nameservers $DNS_SERVERS 
+        dns-search <%= domainname %>
 
 ### bootstrapping interface
 auto eth1
 iface eth1 inet manual
 EOF
 
-	/etc/init.d/networking start
+        /etc/init.d/networking start
 
 install_puppet
 configure_puppet
