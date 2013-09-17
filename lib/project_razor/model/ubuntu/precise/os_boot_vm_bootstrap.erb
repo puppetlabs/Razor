@@ -70,125 +70,6 @@ elif [ $mission = "bootstrap1" -o $mission = "bootstrap2" ]; then
         echo "TODO";
 
 
-elif [ $mission = "puppetmaster1" -o $mission = "puppetmaster2" ]; then
-
-exit
-        puppet apply --debug << EOF
-        package { 'git':
-            ensure => present
-        }
-
-        package { 'puppet':
-          ensure => present,
-        }
-
-        service { "puppet":
-          name       => "puppet",
-          ensure     => running,
-          enable     => true,
-          hasrestart => true,
-          require    => [Package["puppet"], File['/etc/default/puppet']]
-        }
-
-        package { 'puppetmaster':
-          ensure => present,
-        }
-        package { "ceph-common":
-          ensure => installed,
-        }
-
-        package { 'puppetdb':
-          ensure => present,
-          require => [Service['puppetmaster']],
-        }
-
-        package { 'puppetdb-terminus':
-          ensure => present,
-          require => [Service['puppetmaster']]
-        }
-
-        service { "puppetmaster":
-          name       => "puppetmaster",
-          ensure     => running,
-          enable     => true,
-          hasrestart => true,
-          require    => Package["puppetmaster"],
-        }
-
-        service { "puppetdb":
-          name       => "puppetdb",
-          ensure     => running,
-          enable     => true,
-          hasrestart => true,
-          require    => Package["puppetdb"],
-        }
-
-        file { '/opt/deploy':
-        ensure => "directory"
-        }
-
-        file { "/secrets":
-          ensure  => "directory",
-          owner   => "puppet",
-          group   => "puppet",
-          mode    => 750,
-          require => Package['puppetmaster'],
-        }
-        file { "/secrets/shared":
-          ensure  => "directory",
-          owner   => "puppet",
-          group   => "puppet",
-          mode    => 750,
-          require => Package['puppetmaster'],
-        }
-EOF
-
-        mkdir /etc/puppet
-        cat << EOF > /etc/default/puppet
-START=yes
-EOF
-
-        cat << EOF > /etc/puppet/puppet.conf
-[main]
-logdir = /var/log/puppet
-vardir = /var/lib/puppet
-ssldir = /var/lib/puppet/ssl
-rundir = /var/run/puppet
-factpath = \$vardir/lib/facter
-templatedir = /opt/deploy/templates
-manifestdir = /opt/deploy/manifests
-modulepath = /opt/deploy/modules
-
-[master]
-ssl_client_header = SSL_CLIENT_S_DN
-ssl_client_verify_header = SSL_CLIENT_VERIFY
-storeconfigs = true
-storeconfigs_backend = puppetdb
-autosign = true
-
-[agent]
-certname = `hostname -f`
-server = `hostname -f`
-EOF
-
-        cat << EOF > /etc/puppet/fileserver.conf
-[secrets]
-path /secrets/%H/
-allow *.`hostname -d`
-
-[shared-secrets]
-path /secrets/shared/
-allow *.`hostname -d`
-EOF
-
-        mkdir /etc/puppetdb/
-        cat << EOF > /etc/puppetdb/puppetdb.conf
-[main]
-server = `hostname -f`
-port = 8081
-EOF
-
-        echo "puppetmaster installed"
 fi
 
 
@@ -294,7 +175,133 @@ EOF
         /etc/init.d/networking start
 
 install_puppet
-configure_puppet
+
+case "$mission" in
+    puppetmaster1|puppetmaster2)
+        apt-get -y install puppet
+
+        puppet apply --debug << EOF
+        package { 'git':
+            ensure => present
+        }
+
+        package { 'puppet':
+          ensure => present,
+        }
+
+        service { "puppet":
+          name       => "puppet",
+          ensure     => running,
+          enable     => true,
+          hasrestart => true,
+          require    => Package["puppet"]
+        }
+
+        package { 'puppetmaster':
+          ensure => present,
+        }
+        package { "ceph-common":
+          ensure => installed,
+        }
+
+        package { 'puppetdb':
+          ensure => present,
+          require => [Service['puppetmaster']],
+        }
+
+        package { 'puppetdb-terminus':
+          ensure => present,
+          require => [Service['puppetmaster']]
+        }
+
+        service { "puppetmaster":
+          name       => "puppetmaster",
+          ensure     => running,
+          enable     => true,
+          hasrestart => true,
+          require    => Package["puppetmaster"],
+        }
+
+        service { "puppetdb":
+          name       => "puppetdb",
+          ensure     => running,
+          enable     => true,
+          hasrestart => true,
+          require    => Package["puppetdb"],
+        }
+
+        file { '/opt/deploy':
+        ensure => "directory"
+        }
+
+        file { "/secrets":
+          ensure  => "directory",
+          owner   => "puppet",
+          group   => "puppet",
+          mode    => 750,
+          require => Package['puppetmaster'],
+        }
+        file { "/secrets/shared":
+          ensure  => "directory",
+          owner   => "puppet",
+          group   => "puppet",
+          mode    => 750,
+          require => Package['puppetmaster'],
+        }
+EOF
+
+        mkdir /etc/puppet
+        cat << EOF > /etc/default/puppet
+START=yes
+EOF
+
+        cat << EOF > /etc/puppet/puppet.conf
+[main]
+logdir = /var/log/puppet
+vardir = /var/lib/puppet
+ssldir = /var/lib/puppet/ssl
+rundir = /var/run/puppet
+factpath = \$vardir/lib/facter
+templatedir = /opt/deploy/templates
+manifestdir = /opt/deploy/manifests
+modulepath = /opt/deploy/modules
+
+[master]
+ssl_client_header = SSL_CLIENT_S_DN
+ssl_client_verify_header = SSL_CLIENT_VERIFY
+storeconfigs = true
+storeconfigs_backend = puppetdb
+autosign = true
+
+[agent]
+certname = `hostname -f`
+server = `hostname -f`
+EOF
+
+        cat << EOF > /etc/puppet/fileserver.conf
+[secrets]
+path /secrets/%H/
+allow *.`hostname -d`
+
+[shared-secrets]
+path /secrets/shared/
+allow *.`hostname -d`
+EOF
+
+        mkdir /etc/puppetdb/
+        cat << EOF > /etc/puppetdb/puppetdb.conf
+[main]
+server = `hostname -f`
+port = 8081
+EOF
+
+        echo "puppetmaster installed"
+        ;;
+    *)
+        configure_puppet
+        ;;
+esac
+
 service puppet start
 
 fi
