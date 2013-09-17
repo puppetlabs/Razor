@@ -23,8 +23,8 @@ grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/h
 
 if [ $mission = "mirror1" -o $mission = "mirror2" ]; then
 
-        mkdir -p /srv/mirror
-        echo "/dev/vdb1                                       /srv/mirror            ext4    defaults        0       0" >> /etc/fstab
+        mkdir -p /srv
+        echo "/dev/vdb1                                       /srv            ext4    defaults        0       0" >> /etc/fstab
         mount -a
 
         cat << EOF > /etc/apt/sources.list
