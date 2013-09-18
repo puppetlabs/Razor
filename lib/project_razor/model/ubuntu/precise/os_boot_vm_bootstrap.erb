@@ -289,7 +289,7 @@ allow *.`hostname -d`
 EOF
 
         mkdir /etc/puppetdb/
-        cat << EOF > /etc/puppetdb/puppetdb.conf
+        cat << EOF > /etc/puppet/puppetdb.conf
 [main]
 server = `hostname -f`
 port = 8081
