@@ -64,7 +64,7 @@ d-i partman-auto/expert_recipe string \
     100 512 256 raid $lvmignore{ } $primary{ } method{ raid } . \
     900 5000 1000000000 raid $lvmignore{ } method{ raid } . \
     4000 4000 4000 linux-swap $defaultignore{ } $lvmok{ } method{ swap } format{ } . \
-    150% 150% 150% ext4 $defaultignore{ } $lvmok{ } \
+    50% 50% 50% ext4 $defaultignore{ } $lvmok{ } \
         method{ format } format{ } use_filesystem{ } filesystem{ ext4 } \
         options/relatime{ relatime } mountpoint{ /var/crash } . \
     700 5000 1000000000 ext4 $defaultignore{ } $lvmok{ } \
