@@ -4,8 +4,18 @@ set -u
 set -e
 
 function install_puppet() {
-    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
-    puppet master --mkusers
+    # FIXME: This is DTAG specific. Introduce a hook for this.
+    wget -O- http://mirror1/gpgkeys/apt_puppetlabs.gpg | apt-key add -
+    cat >/etc/apt/sources.list.d/puppetlabs.list <<EOFPUPPETLABSLIST
+deb [arch=amd64] http://mirror1/apt.puppetlabs.com/ precise main dependencies
+EOFPUPPETLABSLIST
+
+    apt-get update || true;
+    apt-get -y install puppet puppet-common
+
+# Do not go with GEM installed puppet agent -gollub
+#    gem install puppet --no-ri --no-rdoc <%= "--version #{@options[:version]}" if @options[:version] && !@options[:version].empty? %>
+#    puppet master --mkusers
 }
 
 function configure_puppet() {
@@ -20,7 +30,8 @@ pluginsync = true
 report = true
 <%= "ca_server = #{@options[:ca_server]}" if @options[:ca_server] && !@options[:ca_server].empty? %>
 <%= "server = #{@options[:server]}" if @options[:server] && !@options[:server].empty? %>
-certname = <%= @options[:puppetagent_certname] %>
+# we need to have the FQDN name here - required for puppet-secret -gollub
+#certname = <%= @options[:puppetagent_certname] %>
 EOFPUPPETCONF
 
     if [ -f /etc/default/puppet ]; then
@@ -37,7 +48,15 @@ EOFPUPPETDEFAULT
 }
 
 function run_agent() {
-    puppet agent -t
+    ## DTAG specific "stage1". TODO: make configurable -gollub
+
+    puppet agent --environment stage1 -t --noop
+    # Force environtment change by stopping the running agent
+    service puppet stop
+    # ... and run onetime daemonized
+    # Daemonized run is required since we loose the connection
+    # via SSH since the network might get reconfigured and retartd.
+    puppet agent --environment stage1 -o
 }
 
 #This fuction is not called if no custom facts are given

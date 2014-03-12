@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# This is a patch for lack of DNS in my lab (Not needed if you have proper DNS, .nick)
-sed -i '4 i\
-192.168.99.50   puppet learn puppet.razor-dev.local learn.razor-dev.local' /etc/hosts
-[ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "added_puppet_hosts_ok") %> || curl <%= callback_url("postinstall", "added_puppet_hosts_fail") %>
-
 <% if config.set_hostname != "false" %>
 hostname <%= hostname %>
 echo <%= hostname %> > /etc/hostname
@@ -23,14 +18,56 @@ grep -v '^127\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}.*' /etc/hosts- >> /etc/h
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "set_hostname_ok") %> || curl <%= callback_url("postinstall", "set_hostname_fail") %>
 <% end %>
 
-sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && <%= callback_url("postinstall", "sources_fix") %>
+#
+# Make NIC naming deterministic. 
+#
+MACS=$( ifconfig -a | grep Ethernet | grep HWaddr | awk '{ print $NF }' | sort -V )
+ID=0
+(
+for n in $MACS; do
+        echo "SUBSYSTEM==\"net\", ACTION==\"add\", DRIVERS==\"?*\", ATTR{address}==\"$n\", ATTR{dev_id}==\"0x0\", ATTR{type}==\"1\", KERNEL==\"eth*\", NAME=\"eth$ID\""
+        ID=$((ID+1))
+done;
+) > /etc/udev/rules.d/70-persistent-net.rules
+
+/etc/init.d/networking stop
+NIC_DRIVERS=$( lsmod | egrep "^\b(bnx2|igb|ixgbe)\b" | awk '{ print $1 }' )
+for n in $NIC_DRIVERS; do rmmod $n; done
+udevadm control --reload-rules
+
+cat << EOF > /etc/network/interfaces
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet dhcp
+EOF
+
+for n in $NIC_DRIVERS; do modprobe $n; done
+/etc/init.d/networking start
+# networking start seems to be async. At least there seems to be a race
+# and mirror could not be resolved and/or route to gateway was missing.
+sleep 10s;
+#### end-of MAC and NIC name assignment
+
+#### time sync
+. /var/lib/ntpdate/default.dhcp
+ntpdate $NTPSERVERS && curl <%= callback_url("postinstall", "ntpdate_sync_ok") %> || curl <%= callback_url("postinstall", "ntpdate_sync_fail") %>
+hwclock --systohc && curl <%= callback_url("postinstall", "hwclock_sync_ok") %> || curl <%= callback_url("postinstall", "hwclock_sync_fail") %>
+
+sed -i 's_<%= config.image_svc_host %>:<%= config.image_svc_port %>/razor/image/os/<%= @image_uuid %>_archive.ubuntu.com/ubuntu_g' /etc/apt/sources.list && curl <%= callback_url("postinstall", "sources_fix") %>
 apt-get -y update
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_update_ok") %> || curl <%= callback_url("postinstall", "apt_update_fail") %>
 
 apt-get -y upgrade
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_upgrade_ok") %> || curl <%= callback_url("postinstall", "apt_upgrade_fail") %>
 
-apt-get -y install rubygems facter
+apt-get -y install ruby rubygems facter openssh-server
 [ "$?" -eq 0 ] && curl <%= callback_url("postinstall", "apt_install_ok") %> || curl <%= callback_url("postinstall", "apt_install_fail") %>
 
 # Get current IP

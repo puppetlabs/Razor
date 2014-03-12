@@ -15,6 +15,8 @@ module ProjectRazor
       extend  ProjectRazor::Logging
 
       attr_accessor :image_svc_host
+      attr_accessor :mirror_update_host
+      attr_accessor :mirror_host
 
       attr_accessor :persist_mode
       attr_accessor :persist_host
@@ -27,6 +29,9 @@ module ProjectRazor
       attr_accessor :api_port
       attr_accessor :image_svc_port
       attr_accessor :mk_tce_mirror_port
+      attr_accessor :mirror_update_port
+      attr_accessor :mirror_port
+      attr_accessor :mirror_protocol
 
       attr_accessor :mk_checkin_interval
       attr_accessor :mk_checkin_skew
@@ -45,6 +50,8 @@ module ProjectRazor
       attr_accessor :mk_gemlist_uri
 
       attr_accessor :image_svc_path
+      attr_accessor :mirror_update_path
+      attr_accessor :mirror_path
 
       attr_accessor :register_timeout
       attr_accessor :force_mk_uuid
@@ -59,6 +66,12 @@ module ProjectRazor
 
       attr_accessor :rz_mk_boot_debug_level
       attr_accessor :rz_mk_boot_kernel_args
+
+      attr_accessor :install_kernel_args
+      attr_accessor :boot_kernel_args
+
+      attr_accessor :set_hostname
+      attr_accessor :make_user
 
       attr_reader   :noun
 
@@ -180,7 +193,37 @@ module ProjectRazor
 
           # used to pass arguments to the Microkernel's linux kernel;
           # e.g. "console=ttyS0" or "razor.ip=1.2.3.4"
-          'rz_mk_boot_kernel_args'   => ""
+          'rz_mk_boot_kernel_args'   => "printk.time=1",
+
+          # used to pass arguments to the installer linux kernel additionally,
+          # beside the Razor specific options.
+          # e.g. "console=ttyS0"
+          'install_kernel_args'   => "printk.time=1",
+
+          # used to pass arguments to the final linux kernel configuration,
+          # which is used for the final installation.
+          # e.g. "console=ttyS0"
+          'boot_kernel_args'   => "printk.time=1",
+
+          # used to avoid that the os_boot step is overwritting the existing hostname.
+          # E.g. the one provided by DHCP. Default: "true" - setting the hostname.
+          'set_hostname' => true,
+
+          # used to control if a non-root user should get created.
+          # By default NO non-root user get created.
+          'make_user' => false,
+
+          # used to overwrite the distribution specific mirror location for maintenance
+          # updates.
+          'mirror_update_host'           => "",
+          'mirror_update_port'           => "",
+          'mirror_update_path'           => "",
+
+          # used to overwrite the distribution specific installation mirror location.
+          'mirror_host'           => "",
+          'mirror_port'           => "",
+          'mirror_protocol'       => "",
+          'mirror_path'           => ""
         }
 
         # A handful of calculated default values that depend on pre-existing

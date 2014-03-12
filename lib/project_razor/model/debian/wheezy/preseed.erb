@@ -1,18 +1,31 @@
+d-i debian-installer/add-kernel-opts string <%= config.boot_kernel_args %>
 d-i debian-installer/locale string en_US
 d-i console-keymaps-at/keymap select us
 d-i console-setup/ask_detect boolean false
 d-i keyboard-configuration/xkb-keymap select us
 d-i keyboard-configuration/layoutcode string us
 d-i netcfg/choose_interface select auto
-d-i netcfg/get_hostname string <%= hostname %>
-d-i netcfg/get_domain string puppetlabs.lan
+d-i netcfg/get_hostname string <%= hostname if config.set_hostname != "false" %>
+d-i netcfg/get_domain string <%= "puppetlabs.lan" if config.set_hostname != "false" %>
 d-i netcfg/no_default_route boolean true
 d-i mirror/country string US
+
+<% if config.mirror_host.empty? %>
 d-i mirror/protocol string http
 d-i mirror/http/mirror string ftp.us.debian.org
 d-i mirror/http/directory string /debian/
+<% else %>
+d-i mirror/protocol string <%= "http" if config.mirror_protocol.empty? %>
+d-i mirror/http/hostname string <%= config.mirror_host %>:<%= config.mirror_port %>
+d-i mirror/http/directory string <%= config.mirror_path %>
+<% end %>
+
 d-i mirror/http/proxy string
 d-i mirror/suite string wheezy
+<% if not config.mirror_update_host.empty? %>
+d-i apt-setup/security_host string <%= config.mirror_update_host %>:<%= config.mirror_update_port %>
+d-i apt-setup/security_path string <%= config.mirror_update_path %>
+<% end %>
 d-i time/zone string US/Central
 d-i clock-setup/utc boolean true
 d-i clock-setup/ntp boolean true
@@ -35,7 +48,15 @@ d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
 d-i passwd/root-login boolean true
+<% if config.make_user != "false" %>
+d-i passwd/make-user boolean true
+d-i passwd/user-fullname string User
+d-i passwd/username string user
+d-i passwd/user-password password insecure
+d-i passwd/user-password-again password insecure
+<% else %>
 d-i passwd/make-user boolean false
+<% end %>
 d-i passwd/root-password password <%= @root_password %>
 d-i passwd/root-password-again password <%= @root_password %>
 d-i user-setup/allow-password-weak boolean true

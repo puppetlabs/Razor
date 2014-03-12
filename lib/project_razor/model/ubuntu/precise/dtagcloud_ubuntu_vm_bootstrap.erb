@@ -1,35 +1,76 @@
 d-i debian-installer/add-kernel-opts string <%= config.boot_kernel_args %>
+d-i debian-installer/quiet boolean false
+d-i debian-installer/splash boolean false
+d-i base-installer/kernel/override-image string linux-server
 d-i console-setup/ask_detect boolean false
 d-i keyboard-configuration/layoutcode string us
 d-i netcfg/choose_interface select auto
-d-i netcfg/get_hostname string <%= hostname if config.set_hostname != "false" %>
-d-i netcfg/get_domain string <%= "razorlab.local" if config.set_hostname != "false" %>
+d-i netcfg/get_hostname string <%= hostname if config.set_hostname %>
+d-i netcfg/get_domain string <%= "razorlab.local" if config.set_hostname %>
 d-i netcfg/no_default_route boolean true
 d-i mirror/country string manual
 
-<% if config.mirror_host.empty? %>
 d-i mirror/protocol string http
 d-i mirror/http/hostname string <%= config.image_svc_host %>:<%= config.image_svc_port %>
 d-i mirror/http/directory string /razor/image/os/<%= @image_uuid %>
-<% else %>
-d-i mirror/protocol string <%= "http" if config.mirror_protocol.empty? %>
-d-i mirror/http/hostname string <%= config.mirror_host %>:<%= config.mirror_port %>
-d-i mirror/http/directory string <%= config.mirror_path %>
-<% end %>
-
 d-i mirror/http/proxy string
-<% if not config.mirror_update_host.empty? %>
-d-i apt-setup/security_host string <%= config.mirror_update_host %>:<%= config.mirror_update_port %>
-d-i apt-setup/security_path string <%= config.mirror_update_path %>
-<% end %>
+
+# Avoid talking to upstream repos
+d-i apt-setup/security_host string <%= config.image_svc_host %>:<%= config.image_svc_port %>
+d-i apt-setup/security_path string /razor/image/os/<%= @image_uuid %>
+
+# disable multiarch
+d-i apt-setup/multiarch string
+
+#disable backports
+d-i apt-setup/backports boolean false
+
+## disable deb-src
+<% (1..10).each do |i| %>
+d-i apt-setup/local<%= i %>/source boolean false<% end %>
+
 d-i clock-setup/utc boolean true
-d-i time/zone string US/Central
+d-i time/zone string UTC
 d-i clock-setup/ntp boolean true
-d-i partman-auto/disk string /dev/sda
+d-i partman-auto/disk string /dev/vda
 d-i partman-auto/method string lvm
 d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-md/device_remove_md boolean true
 d-i partman-auto-lvm/guided_size string max
+
+d-i partman-auto/expert_recipe string        \
+  boot-root ::                               \
+    128 128 256 ext3                         \
+    $primary{ }                              \
+    $bootable{ }                             \
+    method{ format } format{ }               \
+    use_filesystem{ } filesystem{ ext3 }     \
+    mountpoint{ /boot }                      \
+    .                                        \
+    10000 15000 -1 ext4                      \
+    device{ /dev/vda }                       \
+    $defaultignore{ }                        \
+    $primary{ }                              \
+    method{ lvm }                            \
+    vg_name{ volgroup0 }                     \
+    .                                        \
+    5000 10000 -1 ext4                       \
+    $primary{ }                              \
+    $lvmok{ }                                \
+    method{ format } format{ }               \
+    use_filesystem{ } filesystem{ ext4 }     \
+    in_vg{ volgroup0 }                       \
+    lv_name{ root }                          \
+    mountpoint{ / }                          \
+    .                                        \
+    1024 1024 2048 linux-swap                \
+    $lvmok{ }                                \
+    in_vg{ volgroup0 }                       \
+    lv_name{ swap }                          \
+    method{ swap }                           \
+    format{ }                                \
+    .
+
 d-i partman-auto/choose_recipe select atomic
 d-i partman-auto/purge_lvm_from_device boolean true
 d-i partman/default_filesystem string ext4
@@ -51,11 +92,12 @@ d-i passwd/user-password-again password insecure
 <% else %>
 d-i passwd/make-user boolean false
 <% end %>
+
 d-i passwd/root-password password <%= @root_password %>
 d-i passwd/root-password-again password <%= @root_password %>
 d-i user-setup/allow-password-weak boolean true
 d-i apt-setup/restricted boolean true
-d-i pkgsel/include string curl openssh-server
+d-i pkgsel/include string acpid curl openssh-server
 d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
 d-i finish-install/reboot_in_progress note
