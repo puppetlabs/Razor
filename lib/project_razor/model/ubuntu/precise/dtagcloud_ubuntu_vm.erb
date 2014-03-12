@@ -47,6 +47,40 @@ d-i partman-auto/method string lvm
 d-i partman-lvm/device_remove_lvm boolean true
 d-i partman-md/device_remove_md boolean true
 d-i partman-auto-lvm/guided_size string max
+
+d-i partman-auto/expert_recipe string        \
+  boot-root ::                               \
+    128 128 256 ext3                         \
+    $primary{ }                              \
+    $bootable{ }                             \
+    method{ format } format{ }               \
+    use_filesystem{ } filesystem{ ext3 }     \
+    mountpoint{ /boot }                      \
+    .                                        \
+    10000 15000 -1 ext4                      \
+    device{ /dev/vda }                       \
+    $defaultignore{ }                        \
+    $primary{ }                              \
+    method{ lvm }                            \
+    vg_name{ volgroup0 }                     \
+    .                                        \
+    5000 10000 -1 ext4                       \
+    $primary{ }                              \
+    $lvmok{ }                                \
+    method{ format } format{ }               \
+    use_filesystem{ } filesystem{ ext4 }     \
+    in_vg{ volgroup0 }                       \
+    lv_name{ root }                          \
+    mountpoint{ / }                          \
+    .                                        \
+    1024 1024 2048 linux-swap                \
+    $lvmok{ }                                \
+    in_vg{ volgroup0 }                       \
+    lv_name{ swap }                          \
+    method{ swap }                           \
+    format{ }                                \
+    .
+
 d-i partman-auto/choose_recipe select atomic
 d-i partman-auto/purge_lvm_from_device boolean true
 d-i partman/default_filesystem string ext4
