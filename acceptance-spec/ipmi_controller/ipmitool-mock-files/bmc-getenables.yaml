@@ -1,8 +1,0 @@
---- 
-:Receive_Message_Queue_Interrupt: enabled
-:Event_Message_Buffer_Full_Interrupt: disabled
-:Event_Message_Buffer: disabled
-:System_Event_Logging: enabled
-:OEM_0: disabled
-:OEM_1: disabled
-:OEM_2: disabled

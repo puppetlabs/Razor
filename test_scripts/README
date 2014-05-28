@@ -1,4 +1,0 @@
-This folder will hold build/testing scripts used for dev purposes
-
-Descriptions:
-run_all_unit_tests.sh - Shell script that runs all RSpec unit tests and outputs to the console window
